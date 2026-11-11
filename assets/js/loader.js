@@ -20,19 +20,44 @@
 
   /* ---------------- Rolling counter ---------------- */
 
-  function RollCell(host) {
+  /* Text metrics in em, from the count's own font on a canvas. Returns
+     null until the web font is ready (never cache fallback metrics). */
+  var metricsCtx = document.createElement("canvas").getContext("2d");
+  var metricsCache = {};
+  function advance(t) {
+    if (!t) return 0;
+    if (!(t in metricsCache)) {
+      var cs = getComputedStyle(countEl);
+      metricsCtx.font = cs.fontStyle + " " + cs.fontWeight + " 100px " + cs.fontFamily;
+      if (!document.fonts.check(metricsCtx.font)) return null;
+      metricsCache[t] = metricsCtx.measureText(t).width / 100;
+    }
+    return metricsCache[t];
+  }
+  // Separate cells lose the font's kerning ("10" is tighter than "1" + "0");
+  // it comes back as a margin on the right-hand cell.
+  function kern(a, b) {
+    if (!a || !b) return 0;
+    var ab = advance(a + b), wa = advance(a), wb = advance(b);
+    return ab === null || wa === null || wb === null ? null : ab - wa - wb;
+  }
+
+  function RollCell(host, onTarget) {
     var el = document.createElement("span");
     el.className = "roll";
     el.innerHTML = '<span class="roll-cur"></span><span class="roll-next" data-gl-skip></span>';
     host.appendChild(el);
     var curEl = el.children[0], nextEl = el.children[1];
+    var cell = { el: el, target: "" };
     var cur = "", pending = null, busy = false;
 
     function roll(to) {
       busy = true;
+      cell.target = to;
+      onTarget();               // width and kerning ease toward the new digit
       nextEl.textContent = to;
       el.classList.remove("is-rolling");
-      void el.offsetWidth; // restart the animation
+      void el.offsetWidth;      // restart the animation
       el.classList.add("is-rolling");
     }
     nextEl.addEventListener("animationend", function () {
@@ -46,53 +71,44 @@
       else pending = null;
     });
 
-    return {
-      set: function (d) {
-        if (reduce) { cur = curEl.textContent = d; return; }
-        if (busy) { pending = d; return; }
-        if (d !== cur) roll(d);
-      },
-      idle: function () { return !busy && pending === null; },
-      el: el
+    cell.set = function (d) {
+      if (reduce) { cur = curEl.textContent = cell.target = d; onTarget(); return; }
+      if (busy) { pending = d; return; }
+      if (d !== cur) roll(d);
     };
-  }
-
-  /* Digit cells break the font's kerning between neighbours ("10" is kerned
-     tighter than "1" + "0"), so put it back as a margin on each cell, measured
-     with the same font on a canvas and cached in em. */
-  var kernCtx = document.createElement("canvas").getContext("2d");
-  var kernCache = {};
-  function kern(a, b) {
-    if (!a || !b) return 0;
-    var key = a + b;
-    if (!(key in kernCache)) {
-      var cs = getComputedStyle(countEl);
-      kernCtx.font = cs.fontStyle + " " + cs.fontWeight + " 100px " + cs.fontFamily;
-      if (!document.fonts.check(kernCtx.font)) return 0; // retry once loaded
-      var m = function (t) { return kernCtx.measureText(t).width; };
-      kernCache[key] = (m(a + b) - m(a) - m(b)) / 100;
-    }
-    return kernCache[key];
+    cell.idle = function () { return !busy && pending === null; };
+    return cell;
   }
 
   var countEl = loader.querySelector(".loader-count");
   countEl.textContent = "";
-  var cells = [RollCell(countEl), RollCell(countEl), RollCell(countEl)];
+  var cells = [];
   var pctEl = document.createElement("span");
+  pctEl.className = "roll-pct";
   pctEl.textContent = "%";
+
+  /* Each cell gets an explicit width (the digit it is rolling to) and a
+     kerning margin, both transitioned in CSS over the roll's duration, so
+     the row glides instead of snapping when a 1 turns into a 0. */
+  function layout() {
+    var prev = "";
+    for (var i = 0; i < cells.length; i++) {
+      var d = cells[i].target, w = advance(d), k = kern(prev, d);
+      if (w !== null) cells[i].el.style.width = w + "em";
+      if (k !== null) cells[i].el.style.marginLeft = k + "em";
+      if (d) prev = d;
+    }
+    var kp = kern(prev, "%");
+    if (kp !== null) pctEl.style.marginLeft = kp + "em";
+  }
+  for (var c = 0; c < 3; c++) cells.push(RollCell(countEl, layout));
   countEl.appendChild(pctEl);
+  document.fonts.ready.then(layout);
 
   function showCount(n) {
     var s = String(n);
     while (s.length < 3) s = " " + s;
-    var prev = "";
-    for (var i = 0; i < 3; i++) {
-      var d = s[i] === " " ? "" : s[i];
-      cells[i].set(d);
-      cells[i].el.style.marginLeft = kern(prev, d) + "em";
-      if (d) prev = d;
-    }
-    pctEl.style.marginLeft = kern(prev, "%") + "em";
+    for (var i = 0; i < 3; i++) cells[i].set(s[i] === " " ? "" : s[i]);
   }
   showCount(0);
 

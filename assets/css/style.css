@@ -211,11 +211,14 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
   display: inline-grid;
   clip-path: inset(-0.03em -0.2em);
   --roll-ms: 200ms;
+  --roll-ease: cubic-bezier(0.3, 0, 0.2, 1);
+  transition: width var(--roll-ms) var(--roll-ease), margin-left var(--roll-ms) var(--roll-ease);
 }
+.roll-pct { transition: margin-left 200ms cubic-bezier(0.3, 0, 0.2, 1); }
 .roll > span { grid-area: 1 / 1; text-align: center; }
 .roll-next { visibility: hidden; }
-.roll.is-rolling .roll-cur  { animation: roll-out var(--roll-ms) cubic-bezier(0.3, 0, 0.2, 1) forwards; }
-.roll.is-rolling .roll-next { visibility: visible; animation: roll-in var(--roll-ms) cubic-bezier(0.3, 0, 0.2, 1) forwards; }
+.roll.is-rolling .roll-cur  { animation: roll-out var(--roll-ms) var(--roll-ease) forwards; }
+.roll.is-rolling .roll-next { visibility: visible; animation: roll-in var(--roll-ms) var(--roll-ease) forwards; }
 @keyframes roll-out { from { transform: translateY(0); }    to { transform: translateY(-120%); } }
 @keyframes roll-in  { from { transform: translateY(120%); } to { transform: translateY(0); } }
 
