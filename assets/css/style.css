@@ -284,28 +284,67 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
   .has-cursor .cursor { transition: opacity 0.2s; }
 }
 
-/* ---------- Work (Figma Work-01 / 02 / 03) ----------
-   Final (Work-03) positions in units of the 1432 content width; work.js
-   moves things there as you scroll. Without JS, or on small screens, the
-   section simply follows Home in the page. */
-.work { --fs: calc(100cqi * 330 / 1432); position: relative; margin-top: 15vh; }
+/* ---------- Rolling letters (assets/js/roll.js) ----------
+   Each letter is a window one line tall; the column of letters inside rolls
+   up through it (--r 0 → 1 = three rows up). */
+.rc {
+  display: inline-block;
+  position: relative;
+  text-align: center;
+  white-space: nowrap;
+  clip-path: inset(-0.04em -0.06em); /* the window: the letter's own box */
+}
+.rc-w {
+  display: block;
+  transform: translateY(calc(var(--r, 0) * -3em));
+}
+/* decorations that are not letters (the ✱ between LinkedIn and Facebook)
+   fade while their text rolls */
+.is-rolling li + li::before { opacity: 0; transition: opacity 0.25s; }
+.rc-r {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+/* ---------- Work (Figma Work-01 10:1481, Work-02 23:10013) ----------
+   Units of the 1432 content width. Work-01: WORK at the bottom left, the
+   "đs" mark top centre, SCROLL DOWN in the middle. Work-02: the projects
+   (573 × 430) run up a column 40 apart, the current one's name beside it.
+   Without JS the section simply follows Home in the page. */
+.work { --fs: calc(100cqi * 330 / 1432); --u: calc(100cqi / 1432); position: relative; margin-top: 15vh; }
 .work-mark {
   display: block;
-  height: calc(100cqi * 104 / 1432);
+  height: calc(var(--u) * 104);
   width: auto;
   margin: 0 auto;
 }
-.work-title { color: var(--green-500); text-align: center; margin: 6vh 0; }
+.work-title { margin: 6vh 0; }
+.work-hint { display: none; color: var(--green-500); }
 .work-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--gutter); }
+.work-caption { display: none; }
+.work-caption .wc-name { display: block; margin-top: -0.16em; margin-bottom: -0.14em; }
+.work-caption .wc-desc {
+  display: block;
+  margin-top: calc(6px - 0.16em);
+  margin-bottom: -0.14em;
+  color: var(--green-500);
+  font-size: calc(var(--text-sm) * 1.2);
+  font-style: italic;
+  font-weight: 400;
+  text-transform: none;
+}
 /* each project hangs like a sheet of paper pinned at its top edge (work.js
    makes it flutter) */
 .work-card a {
   position: relative;
   display: block;
+  aspect-ratio: 573 / 430;
   transform-origin: 50% 0;
   will-change: transform;
 }
-.work-card img { display: block; width: 100%; height: auto; }
+.work-card img { display: block; width: 100%; height: 100%; object-fit: cover; }
 /* the fluttering sheet (work.js) draws the image in nested bands; the <img>
    stays underneath for its size and alt text */
 .work-card a.has-sheet { perspective: 1100px; }
@@ -322,8 +361,7 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
   width: 100%;
   top: 0;
   height: calc(var(--bh, 5.556%) + 3px); /* overlap: corners lift a little as bands lean sideways */
-  /* the image covers the card (work.js sets the size for cards that are
-     not square, like the 3 : 4 ones on mobile) */
+  /* the image covers the card (work.js sets the size) */
   background-size: var(--bgw, 100%) var(--bgh, calc(var(--bh, 5.556%) * var(--n, 18)));
   background-repeat: no-repeat;
   transform-origin: 50% 0;
@@ -345,42 +383,73 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
     container-type: inline-size;
     overflow: hidden;
   }
-  .has-scrub .scroll-space { display: block; height: 760svh; } /* room for the carousel's wrap-round */
+  .has-scrub .scroll-space { display: block; height: 760svh; } /* room for the endless list's wrap-round */
 
   .has-scrub .work { position: absolute; inset: var(--gutter); margin: 0; pointer-events: none; }
-  .has-scrub .work-mark, .has-scrub .work-title, .has-scrub .work-card { opacity: 0; }
-  /* logo mark, top centre (Figma: 83 × 104 at y 39) */
+  /* logo mark, top centre (Figma: 83 × 104 at y 39), over the pictures */
   .has-scrub .work-mark {
     position: absolute;
-    left: 50%;
-    top: calc(100cqi * -1 / 1432);
+    z-index: 1;
+    left: calc(50% - var(--u) * 41.5);
+    top: calc(var(--u) * -1);
     margin: 0;
-    transform: translateX(-50%);
+    visibility: hidden;
   }
-  /* WORK, centred; Work-02/03 at the top (Work-01: 502 units lower) */
-  .has-scrub .work-title { position: absolute; left: 0; right: 0; top: 0; margin: 0; }
+  /* WORK at the bottom left (work.js sets its height on the page) */
+  .has-scrub .work-title { position: absolute; left: 0; top: 0; margin: 0; visibility: hidden; }
+  .has-scrub .work-title.is-on, .has-scrub .work-mark.is-on { visibility: visible; }
+  /* SCROLL DOWN, centred, cap top 296 units down */
+  .has-scrub .work-hint {
+    display: block;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(var(--u) * 296);
+    text-align: center;
+    visibility: hidden;
+  }
+  .has-scrub .work-hint.is-on { visibility: visible; }
   .has-scrub .work-list { display: block; }
   .has-scrub .work-card {
     position: absolute;
-    width: calc(100cqi * 328 / 1432);
+    left: calc(var(--u) * 736);
+    top: 0;
+    width: calc(var(--u) * 573);
+    opacity: 0;
   }
-  .has-scrub .work-card { left: 0; top: 0; } /* placed along the wave by work.js */
   .has-scrub .work-card.is-on { pointer-events: auto; }
+  /* the current project's name and line, bottom-aligned with its picture */
+  .has-scrub .work-caption {
+    display: block;
+    position: absolute;
+    left: calc(var(--u) * 368);
+    top: calc(var(--u) * 430);
+    width: calc(var(--u) * 328);
+    transform: translateY(-100%);
+  }
   /* what moves with the scroll gets its own GPU layer */
   .has-scrub .hero .contact, .has-scrub .work-title, .has-scrub .work-card { will-change: transform; }
 }
 /* Mobile Work (Figma Work-01 22:3, Work-02 22:66, 390 × 844; units of 358):
-   WORK at 96, the "đs" mark (51 × 64) under the contact block, sheets
-   328 × 437 (3 : 4) in a row 16 apart */
+   WORK (96) stays at the bottom, the "đs" mark (51 × 64) under the contact
+   block; the projects (350 × 262) run right to left 16 apart, the current
+   one's name centred under them */
 @media (max-width: 720px) {
-  .work { --fs: calc(100cqi * 96 / 358); }
-  .work-mark { height: calc(100cqi * 64 / 358); }
+  .work { --fs: calc(100cqi * 96 / 358); --u: calc(100cqi / 358); }
+  .work-mark { height: calc(var(--u) * 64); }
   .work-list { grid-template-columns: 1fr; }
-  .work-card a { aspect-ratio: 3 / 4; }
-  .work-card img { height: 100%; object-fit: cover; }
   .has-scrub .stage { display: flex; flex-direction: column; }
-  .has-scrub .work-mark { top: 132px; } /* under the contact block (px text) */
-  .has-scrub .work-card { width: calc(100cqi * 328 / 358 * var(--cs, 1)); }
+  .has-scrub .work-mark { top: 124px; left: calc(50% - var(--u) * 25.5); } /* under the contact block (px text) */
+  .has-scrub .work-title { right: 0; text-align: center; }
+  .has-scrub .work-hint { display: none; }
+  .has-scrub .work-card { left: 0; width: calc(var(--u) * 350); }
+  .has-scrub .work-caption {
+    left: 0;
+    width: 100%;
+    top: var(--cap-top, calc(var(--u) * 534));
+    transform: none;
+    text-align: center;
+  }
 }
 
 /* ---------- Mobile (Figma Home 13:8, 390 × 844) ---------- */
