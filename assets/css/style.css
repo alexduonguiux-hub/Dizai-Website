@@ -699,12 +699,12 @@ body::after {
   /* Contact on a phone (Figma Contact 32:24558, 390 × 844): the mark under
      the menu, no small contact block; in the middle, 12 apart: SEND US YOUR
      PROBLEMS, HELLO@ / DIZAI. / STUDIO on three lines (Regular 99, line
-     height 0.9: 0.2em between), LinkedIn ✱ Facebook */
+     height 0.8: 0.1em between), LinkedIn ✱ Facebook */
   .cp { --fs: calc(100cqi * 99 / 358); }
   .cp-mark { top: 44px; left: calc(50% - 100cqi * 25.5 / 358); height: calc(100cqi * 64 / 358); }
   .page-contact .cp-info { display: none; }
   .cp-center { gap: 12px; margin-top: 0; }
-  .cp-email a { gap: 0.2em; }
+  .cp-email a { gap: 0.1em; }
   .cp-email .cp-p { display: block; }
-  .cp-email .cp-p + .cp-p { margin-top: 0.2em; }
+  .cp-email .cp-p + .cp-p { margin-top: 0.1em; }
 }

@@ -79,11 +79,11 @@
      column of 573 × 430 pictures 40 apart at x 736, WORK at the bottom
      left. Mobile: Work-01 22:3 / Work-02 22:66 (358 grid) — a row of
      350 × 262 pictures 8 apart under WORK, the names under them. */
-  // WORK: desktop 262 at the bottom left (183 tall, 6 above the content's
-  // foot) in both frames; mobile 99 (69 tall), in the middle (402 on an
+  // WORK: desktop 262 at the bottom left (183 tall, on the content's foot)
+  // in both frames; mobile 99 (69 tall), in the middle (402 on an
   // 812-tall screen), then up to 140
   var DESK = { W: 1432, axis: "y", pitch: 470, len: 430, pitchV: 0.38,
-               titleY: function () { return H - 183 - 6; }, titleY2: function () { return H - 183 - 6; },
+               titleY: function () { return H - 183; }, titleY2: function () { return H - 183; },
                contactY: -251, hint: true };
   // how far Home's block sits below the top on a tall screen (see the CSS)
   function heroDrop() { var h = q(".hero"); return h ? parseFloat(getComputedStyle(h).marginTop) || 0 : 0; }
