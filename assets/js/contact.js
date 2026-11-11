@@ -1,6 +1,6 @@
 /* Contact (Figma 10:1546): everything rolls in when the page opens, the
-   same letters-rolling move as the rest of the site (assets/js/roll.js);
-   the "đs" mark and the big ✱ slide up through their windows. Going to
+   same letters-rising move as the rest of the site (assets/js/roll.js);
+   the "đs" mark rises with them. Going to
    another page of the site, it all rolls away first. */
 (function () {
   "use strict";
@@ -11,10 +11,10 @@
 
   var q = function (s) { return [].slice.call(document.querySelectorAll(s)); };
   // in the order they come in: the middle first, then the frame around it
-  var texts = [".cp-kicker", ".cp-email", ".cp-city .cp-l", ".cp-social", ".nav-list", ".cp-info", ".cp-copy"]
+  var texts = [".cp-kicker", ".cp-email", ".cp-social", ".nav-list", ".cp-info", ".cp-copy"]
     .reduce(function (all, s) { return all.concat(q(s)); }, [])
     .filter(function (el) { return el.getClientRects().length; });
-  var boxes = [".cp-star", ".cp-mark"].reduce(function (all, s) { return all.concat(q(s)); }, []);
+  var boxes = [".cp-mark"].reduce(function (all, s) { return all.concat(q(s)); }, []);
   var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   function enter() {

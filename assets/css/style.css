@@ -341,7 +341,7 @@ body::after {
    "đs" mark top centre, SCROLL DOWN in the middle. Work-02: the projects
    (573 × 430) run up a column 40 apart, the current one's name beside it.
    Without JS the section simply follows Home in the page. */
-.work { --fs: calc(100cqi * 156 / 1432); --u: calc(100cqi / 1432); position: relative; margin-top: 15vh; }
+.work { --fs: calc(100cqi * 262 / 1432); --u: calc(100cqi / 1432); position: relative; margin-top: 15vh; }
 .work-mark {
   display: block;
   height: calc(var(--u) * 104);
@@ -476,15 +476,14 @@ body::after {
   }
   .has-scrub .work-card.is-on { pointer-events: auto; }
   /* the names, beside the pictures: three above the current one, three
-     below, the whole list always centred on the screen's middle line
-     (Figma: 301–512 on the 813-tall frame) */
+     below, the list's foot level with the first picture's (Figma 219–430) */
   .has-scrub .work-caption {
     display: block;
     position: absolute;
     left: calc(var(--u) * 368);
-    top: 50%;
+    top: calc(var(--u) * 430);
     width: calc(var(--u) * 328);
-    transform: translateY(-50%);
+    transform: translateY(-100%);
   }
   /* what moves with the scroll gets its own GPU layer */
   .has-scrub .hero .contact, .has-scrub .work-title, .has-scrub .work-card { will-change: transform; }
@@ -502,7 +501,7 @@ body::after {
    it; under them the current project's name and line, then the next four
    names (Figma 29:24528) */
 @media (max-width: 720px) {
-  .work { --fs: calc(100cqi * 66 / 358); --u: calc(100cqi / 358); }
+  .work { --fs: calc(100cqi * 99 / 358); --u: calc(100cqi / 358); }
   .work-mark { height: calc(var(--u) * 64); }
   .work-list { grid-template-columns: 1fr; }
   .has-scrub .stage { display: flex; flex-direction: column; }
@@ -521,11 +520,11 @@ body::after {
 }
 
 /* ---------- Contact (Figma Contact 10:1546, 1512 × 813) ----------
-   Units of the 1432 content width. In the middle: SEND US YOUR PROBLEMS,
-   HELLO@ / DIZAI.STUDIO on two lines (Medium 155, ink), SAIGON ✱ VIETNAM (Medium 155,
-   pale green), LINKEDIN ✱ FACEBOOK, 20 apart; the "đs" mark top centre,
-   the contact block top left, © 2024 at the bottom. */
-.cp { --u: calc(100cqi / 1432); --fs: calc(var(--u) * 155); position: relative; min-height: calc(100svh - 2 * var(--gutter)); }
+   Units of the 1432 content width. In the middle, 20 apart: SEND US YOUR
+   PROBLEMS, HELLO@ / DIZAI.STUDIO on two lines (Regular 262, ink, line
+   height 0.8), LINKEDIN ✱ FACEBOOK; the "đs" mark top centre, the contact
+   block top left, © 2024 at the bottom. */
+.cp { --u: calc(100cqi / 1432); --fs: calc(var(--u) * 262); position: relative; min-height: calc(100svh - 2 * var(--gutter)); }
 .cp-mark {
   position: absolute;
   left: calc(50% - var(--u) * 41.5);
@@ -540,6 +539,7 @@ body::after {
   right: 0;
   top: 50%;
   transform: translateY(-50%);
+  margin-top: calc(var(--u) * 7); /* Figma: the group sits 7 below the middle */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -548,24 +548,17 @@ body::after {
 }
 .cp-big {
   font-size: var(--fs);
-  font-weight: 500;
+  font-weight: 400;
   line-height: 0.7;       /* box = cap height, like .display */
   white-space: nowrap;
   position: relative;
   top: -0.01em;
 }
 /* (no clipping here, unlike .display: the @ hangs well below the baseline) */
-/* the email on two lines, HELLO@ / DIZAI.STUDIO (line height 0.82:
-   0.12em between the cap boxes) */
-.cp-email a { display: flex; flex-direction: column; align-items: center; gap: 0.12em; }
-.cp-email .cp-l { display: block; }
-.cp-city {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.129em;           /* 20 at 155 */
-  color: var(--green-500);
-}
-.cp-star { display: block; flex: none; height: 0.71em; width: auto; } /* 107 × 110 at 155 */
+/* the email on two lines, HELLO@ / DIZAI.STUDIO (line height 0.8: 0.1em
+   between the cap boxes); a phone breaks DIZAI. / STUDIO too */
+.cp-email a { display: flex; flex-direction: column; align-items: center; gap: 0.1em; }
+.cp-email .cp-l { display: flex; justify-content: center; }
 .cp-social { display: flex; justify-content: center; gap: 8px; }
 .cp-social li { display: flex; align-items: center; gap: 8px; }
 .cp-social li + li::before {
@@ -686,25 +679,13 @@ body::after {
   .loader-top { align-items: flex-start; }
 
   /* Contact on a phone (Figma Contact 32:24558, 390 × 844): the mark under
-     the menu, no small contact block; in the middle, 12 apart: the email on
-     two lines, then SAIGON / ✱ / VIETNAM stacked, all Regular 66 (line
-     height 0.9: 13 between the two email lines), LinkedIn ✱ Facebook 12
-     under them too */
-  .cp { --fs: calc(100cqi * 66 / 358); }
+     the menu, no small contact block; in the middle, 12 apart: SEND US YOUR
+     PROBLEMS, HELLO@ / DIZAI. / STUDIO on three lines (Regular 99, line
+     height 0.9: 0.2em between), LinkedIn ✱ Facebook */
+  .cp { --fs: calc(100cqi * 99 / 358); }
   .cp-mark { top: 44px; left: calc(50% - 100cqi * 25.5 / 358); height: calc(100cqi * 64 / 358); }
   .page-contact .cp-info { display: none; }
-  .cp-center { gap: 12px; }
-  .cp-big { font-weight: 400; }
-  .cp-email a { flex-direction: column; align-items: center; gap: 0.2em; }
-  .cp-email .cp-l { display: block; }
-  .cp-city { flex-direction: column; align-items: center; gap: 12px; }
-  .cp-star { height: 0.697em; } /* 45 × 46 at 66 */
-  .loader-bottom { --fs: calc(100cqi * 160 / 358); justify-content: flex-end; }
-  .loader-bottom .seal {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    height: calc(100cqi * 269 / 358);
-    translate: -50% -50%; /* own property: the hand-off flies it with transform */
-  }
+  .cp-center { gap: 12px; margin-top: 0; }
+  .cp-email a { gap: 0.2em; }
+  .cp-email .cp-l { flex-direction: column; align-items: center; gap: 0.2em; }
 }
