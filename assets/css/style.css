@@ -358,6 +358,19 @@ body::after {
 .wc-item { display: block; }
 .work-caption .wc-name { display: block; margin-top: -0.16em; margin-bottom: -0.14em; color: var(--green-200); transition: color 0.3s; }
 .wc-item.is-active .wc-name { color: var(--green-900); }
+/* the current project's kind (website, mobile application …), in the left
+   column on the line of its name (Figma 33:27045); not on phones */
+.wc-item { position: relative; }
+.wc-cat {
+  position: absolute;
+  left: calc(var(--u) * -368);
+  top: 0;
+  width: calc(var(--u) * 328);
+  margin-top: -0.16em;
+  color: var(--green-900);
+}
+.wc-item:not(.is-active) .wc-cat { display: none; }
+@media (max-width: 720px) { .wc-cat { display: none; } }
 .wc-item:not(.is-active) .wc-desc { display: none; }
 /* the line under the name: AnNam Serif Regular 16 (Figma 23:22526), line
    height 1.1, trimmed to cap height / baseline like the rest (half-leading

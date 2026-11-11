@@ -222,10 +222,11 @@
   function buildSlots() {
     capList.textContent = ""; slots = [];
     offsets().forEach(function (o) {
-      var li = document.createElement("li"), n = document.createElement("span"), d = document.createElement("span");
-      li.className = "wc-item"; n.className = "wc-name"; d.className = "wc-desc";
-      li.appendChild(n); li.appendChild(d); capList.appendChild(li);
-      slots.push({ o: o, li: li, name: n, desc: d });
+      var li = document.createElement("li"), n = document.createElement("span"), d = document.createElement("span"),
+          c = document.createElement("span");
+      li.className = "wc-item"; n.className = "wc-name"; d.className = "wc-desc"; c.className = "wc-cat";
+      li.appendChild(n); li.appendChild(d); li.appendChild(c); capList.appendChild(li);
+      slots.push({ o: o, li: li, name: n, desc: d, cat: c });
     });
     capShown = -1;
   }
@@ -234,6 +235,7 @@
       var c = cards[((k + sl.o) % N + N) % N];
       sl.name.textContent = noWidow(c.dataset.name);
       sl.desc.textContent = sl.o === 0 ? noWidow(c.dataset.desc) : "";
+      sl.cat.textContent = sl.o === 0 ? (c.dataset.cat || "") : "";
       sl.li.classList.toggle("is-active", sl.o === 0);
     });
   }
