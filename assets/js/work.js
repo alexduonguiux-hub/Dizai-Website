@@ -15,7 +15,7 @@
                    its name rolls in — Work-02
      1.6 V →       the projects keep travelling as an endless list; the
                    scroll wraps round so it never runs out, and the name
-                   beside them rolls in for the project the list comes to rest on
+                   beside them comes into focus for the project the list comes to rest on
 
    Everything but the names is a function of the (smoothed) scroll
    position, so scrolling back plays it in reverse. The project pictures
@@ -198,31 +198,32 @@
     if (h <= 1) { hintOut.set(0); hintIn.set(h); } else { hintIn.set(1); hintOut.set(h - 1); }
   }
 
-  /* the current project's name: rolls away, then the next one rolls in */
+  /* the current project's name: blurs away, then the next one comes into
+     focus (name first, its line a beat after) */
   var capCur = -1, capWant = -1, capBusy = false;
+  var capParts = [capName, capDesc];
   caption.style.visibility = "hidden";
+  gsap.set(capParts, { autoAlpha: 0, filter: "blur(10px)" });
   function showCaption(k) { capWant = k; if (!capBusy) capStep(); }
   function capStep() {
     if (capWant === capCur) return;
     capBusy = true;
-    var next;
-    function roll(dir, dur, done) {
-      var r = Roll.text(caption, dir), o = { v: 0 };
-      r.set(0);
-      gsap.to(o, { v: 1, duration: reduce ? 0.01 : dur, ease: "none",
-                   onUpdate: function () { r.set(o.v); }, onComplete: function () { done(r); } });
-    }
-    function rollIn() {
+    function blurIn() {
       capCur = -1;
-      next = capWant; // whatever is current now, not when the old name left
-      if (next < 0) { capBusy = false; return capStep(); }
+      var next = capWant; // whatever is current now
+      if (next < 0) { caption.style.visibility = "hidden"; capBusy = false; return capStep(); }
       capName.textContent = cards[next].dataset.name || "";
       capDesc.textContent = cards[next].dataset.desc || "";
       caption.style.visibility = "";
-      roll("in", 0.4, function () { capCur = next; capBusy = false; capStep(); });
+      gsap.fromTo(capParts, { autoAlpha: 0, filter: "blur(10px)", y: 6 },
+        { autoAlpha: 1, filter: "blur(0px)", y: 0, duration: reduce ? 0.01 : 0.6, stagger: reduce ? 0 : 0.08,
+          ease: "power2.out", clearProps: "filter,transform",
+          onComplete: function () { capCur = next; capBusy = false; capStep(); } });
     }
-    if (capCur >= 0) roll("out", 0.22, function (r) { r.revert(); caption.style.visibility = "hidden"; rollIn(); });
-    else rollIn();
+    if (capCur >= 0) {
+      gsap.to(capParts, { autoAlpha: 0, filter: "blur(8px)", duration: reduce ? 0.01 : 0.25, ease: "power1.in",
+                          onComplete: blurIn });
+    } else blurIn();
   }
 
   /* ---------- the endless list ---------- */
