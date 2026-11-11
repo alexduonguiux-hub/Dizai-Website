@@ -5,14 +5,14 @@
 
 @font-face {
   font-family: "AnNam Serif";
-  src: url("../fonts/AnNamSerif-VF.woff2") format("woff2");
+  src: url("../fonts/AnNamSerif-VF.woff2?v=0.913") format("woff2");
   font-weight: 400 700;
   font-style: normal;
   font-display: block; /* no fallback-font flash on the loader count */
 }
 @font-face {
   font-family: "AnNam Serif";
-  src: url("../fonts/AnNamSerif-Italic-VF.woff2") format("woff2");
+  src: url("../fonts/AnNamSerif-Italic-VF.woff2?v=0.913") format("woff2");
   font-weight: 400 700;
   font-style: italic;
   font-display: block; /* no fallback-font flash on the loader count */
@@ -284,6 +284,174 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
   .has-cursor .cursor { transition: opacity 0.2s; }
 }
 
+/* ---------- Rolling letters (assets/js/roll.js) ----------
+   Each letter is a window one line tall; the column of letters inside rolls
+   up through it (--r 0 → 1 = three rows up). */
+.rc {
+  display: inline-block;
+  position: relative;
+  text-align: center;
+  white-space: nowrap;
+  clip-path: inset(-0.04em -0.06em); /* the window: the letter's own box */
+}
+.rc-w {
+  display: block;
+  transform: translateY(calc(var(--r, 0) * -3em));
+}
+/* decorations that are not letters (the ✱ between LinkedIn and Facebook)
+   fade while their text rolls */
+.is-rolling li + li::before { opacity: 0; transition: opacity 0.25s; }
+.rc-r {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+/* ---------- Work (Figma Work-01 10:1481, Work-02 23:10013) ----------
+   Units of the 1432 content width. Work-01: WORK at the bottom left, the
+   "đs" mark top centre, SCROLL DOWN in the middle. Work-02: the projects
+   (573 × 430) run up a column 40 apart, the current one's name beside it.
+   Without JS the section simply follows Home in the page. */
+.work { --fs: calc(100cqi * 330 / 1432); --u: calc(100cqi / 1432); position: relative; margin-top: 15vh; }
+.work-mark {
+  display: block;
+  height: calc(var(--u) * 104);
+  width: auto;
+  margin: 0 auto;
+}
+.work-title { margin: 6vh 0; }
+.work-hint { display: none; color: var(--green-500); }
+.work-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--gutter); }
+.work-caption { display: none; }
+.work-caption .wc-name { display: block; margin-top: -0.16em; margin-bottom: -0.14em; }
+.work-caption .wc-desc {
+  display: block;
+  margin-top: calc(6px - 0.16em);
+  margin-bottom: -0.14em;
+  color: var(--green-500);
+  font-size: calc(var(--text-sm) * 1.2);
+  font-style: italic;
+  font-weight: 400;
+  text-transform: none;
+}
+/* each project hangs like a sheet of paper pinned at its top edge (work.js
+   makes it flutter) */
+.work-card a {
+  position: relative;
+  display: block;
+  aspect-ratio: 573 / 430;
+  transform-origin: 50% 0;
+  will-change: transform;
+}
+.work-card img { display: block; width: 100%; height: 100%; object-fit: cover; }
+/* the fluttering sheet (work.js) draws the image in nested bands; the <img>
+   stays underneath for its size and alt text */
+.work-card a.has-sheet { perspective: 1100px; }
+.work-card a.has-sheet img { visibility: hidden; }
+.sheet {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  pointer-events: none;
+}
+.sheet-band {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  top: 0;
+  height: calc(var(--bh, 5.556%) + 3px); /* overlap: corners lift a little as bands lean sideways */
+  /* the image covers the card (work.js sets the size) */
+  background-size: var(--bgw, 100%) var(--bgh, calc(var(--bh, 5.556%) * var(--n, 18)));
+  background-repeat: no-repeat;
+  transform-origin: 50% 0;
+  transform-style: preserve-3d;
+  backface-visibility: visible;
+}
+/* every band after the first hangs from the bottom edge of its parent */
+.sheet-band .sheet-band { top: var(--bh); }
+
+.scroll-space { display: none; }
+
+/* With JS: one pinned stage, scroll drives Home → Work (desktop and mobile) */
+@media all {
+  .has-scrub body { padding: 0; container-type: normal; }
+  .has-scrub .stage {
+    position: fixed;
+    inset: 0;
+    padding: var(--gutter);
+    container-type: inline-size;
+    overflow: hidden;
+  }
+  .has-scrub .scroll-space { display: block; height: 760svh; } /* room for the endless list's wrap-round */
+
+  .has-scrub .work { position: absolute; inset: var(--gutter); margin: 0; pointer-events: none; }
+  /* logo mark, top centre (Figma: 83 × 104 at y 39), over the pictures */
+  .has-scrub .work-mark {
+    position: absolute;
+    z-index: 1;
+    left: calc(50% - var(--u) * 41.5);
+    top: calc(var(--u) * -1);
+    margin: 0;
+    visibility: hidden;
+  }
+  /* WORK at the bottom left (work.js sets its height on the page) */
+  .has-scrub .work-title { position: absolute; left: 0; top: 0; margin: 0; visibility: hidden; }
+  .has-scrub .work-title.is-on, .has-scrub .work-mark.is-on { visibility: visible; }
+  /* SCROLL DOWN, centred, cap top 296 units down */
+  .has-scrub .work-hint {
+    display: block;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(var(--u) * 296);
+    text-align: center;
+    visibility: hidden;
+  }
+  .has-scrub .work-hint.is-on { visibility: visible; }
+  .has-scrub .work-list { display: block; }
+  .has-scrub .work-card {
+    position: absolute;
+    left: calc(var(--u) * 736);
+    top: 0;
+    width: calc(var(--u) * 573);
+    opacity: 0;
+  }
+  .has-scrub .work-card.is-on { pointer-events: auto; }
+  /* the current project's name and line, bottom-aligned with its picture */
+  .has-scrub .work-caption {
+    display: block;
+    position: absolute;
+    left: calc(var(--u) * 368);
+    top: calc(var(--u) * 430);
+    width: calc(var(--u) * 328);
+    transform: translateY(-100%);
+  }
+  /* what moves with the scroll gets its own GPU layer */
+  .has-scrub .hero .contact, .has-scrub .work-title, .has-scrub .work-card { will-change: transform; }
+}
+/* Mobile Work (Figma Work-01 22:3, Work-02 22:66, 390 × 844; units of 358):
+   WORK (96) stays at the bottom, the "đs" mark (51 × 64) under the contact
+   block; the projects (350 × 262) run right to left 16 apart, the current
+   one's name centred under them */
+@media (max-width: 720px) {
+  .work { --fs: calc(100cqi * 96 / 358); --u: calc(100cqi / 358); }
+  .work-mark { height: calc(var(--u) * 64); }
+  .work-list { grid-template-columns: 1fr; }
+  .has-scrub .stage { display: flex; flex-direction: column; }
+  .has-scrub .work-mark { top: 124px; left: calc(50% - var(--u) * 25.5); } /* under the contact block (px text) */
+  .has-scrub .work-title { right: 0; text-align: center; }
+  .has-scrub .work-hint { display: none; }
+  .has-scrub .work-card { left: 0; width: calc(var(--u) * 350); }
+  .has-scrub .work-caption {
+    left: 0;
+    width: 100%;
+    top: var(--cap-top, calc(var(--u) * 534));
+    transform: none;
+    text-align: center;
+  }
+}
+
 /* ---------- Mobile (Figma Home 13:8, 390 × 844) ---------- */
 @media (max-width: 720px) {
   :root { --text-sm: 20px; }
@@ -322,14 +490,16 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
     padding-block: calc(var(--gutter) + 46px + 54px + 16px);
   }
 
-  /* Four rows at 118px on 358: DESIGN centred, STUDIO right,
-     seal + EST centred (8px apart), 2024 centred on its own row. */
+  /* Four rows at 96px on 358 (Figma 13:8): every row centred,
+     seal + EST 8px apart, 2024 on its own row. On short screens the size
+     also follows the height, so the block (≈ 3.05 × size + 110px with the
+     services) always clears the contact block and SCROLL DOWN. */
   .type {
-    --fs: calc(100cqi * 118 / 358);
-    --gap: calc(100cqi * 8 / 358);
+    --fs: max(48px, min(calc(100cqi * 96 / 358), calc((100svh - 390px) / 3.05)));
+    --gap: calc(var(--fs) * 8 / 96);
     row-gap: var(--gap);
   }
-  .line-design { align-self: center; }
+  .line-design, .line-studio { align-self: center; }
   .type-row {
     flex-wrap: wrap;
     justify-content: center;
@@ -363,12 +533,12 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
   }
   .social li { display: flex; align-items: center; gap: 6px; }
 
-  /* centred, 32px above the social row (cap bottom 62px from the screen's) */
+  /* centred, just above the social row (cap bottom 36px from the screen's) */
   .scroll-hint {
     top: auto;
     left: var(--gutter);
     right: var(--gutter);
-    bottom: calc(var(--gutter) + 46px);
+    bottom: calc(var(--gutter) + 20px); /* 6px above the social row (Figma 13:330) */
     text-align: center;
   }
   .social li + li::before {
@@ -380,6 +550,6 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
   }
 
   /* Loader: no mobile frame in Figma; the count uses the mobile display size */
-  .loader-bottom { --fs: calc(100cqi * 118 / 358); }
+  .loader-bottom { --fs: calc(100cqi * 96 / 358); }
   .loader-bottom .seal { height: calc(var(--fs) * 0.7); } /* no mobile frame: keep it row height */
 }
