@@ -252,7 +252,7 @@
     function shown(el) { return el && el.getClientRects().length > 0; }
 
     var seal = loader.querySelector(".seal");
-    var homeSeal = document.querySelector(".type-row .seal");
+    var homeSeal = document.querySelector(".type-row .seal-coin"); // the whole coin
     var shared = seal && homeSeal && same(rectOf(seal), rectOf(homeSeal));
 
     var out = [
@@ -261,7 +261,7 @@
       loader.querySelector(".loader-top > p:first-child")
     ].filter(shown);
     var ins = [".site-nav .nav-list", ".line-design", ".line-studio"]
-      .concat(shared ? [] : [".type-row .seal"])
+      .concat(shared ? [] : [".type-row .seal-coin"])
       .concat([".line-est", ".line-year", ".services", ".contact", ".scroll-hint", ".social"])
       .map(function (q) { return document.querySelector(q); })
       .filter(shown);
