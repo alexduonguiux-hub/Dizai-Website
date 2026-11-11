@@ -49,6 +49,22 @@
   var seal = q(".type-row .seal");
   var contact = q(".hero .contact");
   var mark = q(".work-mark");
+  /* The mark inverts where a picture passes under it, like the cursor: a
+     white copy in "difference" (paper → near black, a picture → its
+     negative) plus a copy in rgb(18 64 23) "plus-lighter", so on the paper
+     the sum is exactly the ink green #215028 again. Browsers without
+     plus-lighter keep the plain green mark. */
+  var marks = [mark];
+  if (window.CSS && CSS.supports("mix-blend-mode", "plus-lighter")) {
+    var src = mark.getAttribute("src"); // keeps the ?v= cache stamp
+    var tint = mark.cloneNode(false);
+    tint.src = src.replace("dizai-mark.svg", "dizai-mark-tint.svg");
+    mark.src = src.replace("dizai-mark.svg", "dizai-mark-white.svg");
+    mark.classList.add("work-mark--invert");
+    tint.classList.add("work-mark--tint");
+    mark.parentNode.insertBefore(tint, mark.nextSibling);
+    marks.push(tint);
+  }
   var title = q(".work-title");
   var hint = q(".work-hint");
   var caption = q(".work-caption");
@@ -168,11 +184,13 @@
   var sealOut = seal ? Roll.box(seal, "out") : { set: function () {} };
   var contactOut = Roll.text(contact, "out"); // mobile Work has no contact block
   var titleIn = Roll.text(title, "in");
-  var markIn = Roll.box(mark, "in");
+  var markIns = marks.map(function (m) { return Roll.box(m, "in"); });
   var hintIn = hint ? Roll.text(hint, "in") : null, hintOut = hint ? Roll.text(hint, "out") : null;
 
   function showTitle(v) { title.classList.toggle("is-on", v > 0); titleIn.set(v); }
-  function showMark(v) { mark.classList.toggle("is-on", v > 0); markIn.set(v); }
+  function showMark(v) {
+    marks.forEach(function (m, i) { m.classList.toggle("is-on", v > 0); markIns[i].set(v); });
+  }
   // SCROLL DOWN rolls in (h 0 → 1), then away (1 → 2)
   function showHint(h) {
     if (!hint) return;
@@ -272,57 +290,20 @@
     swayStep(dt, time * 1000);
   }
 
-  /* ---------- snapping: the project list comes to rest on one project ----------
-     Once the scroll has been still for a moment (and no finger is on the
-     screen), it glides the last bit to the nearest resting point, so the
-     list never stops with two projects half in view. */
-
-  // only the project list snaps; Home → Work-01 rests wherever you leave it
-  var snapTimer = null, touching = false;
-  function snapTarget(v) {
-    if (v < (ENTER_AT + LIST_AT) / 2) return null; // first project not yet in
-    return LIST_AT + Math.max(0, Math.round((v - LIST_AT) / G.pitchV)) * G.pitchV;
-  }
-  function scheduleSnap() {
-    clearTimeout(snapTimer);
-    if (!on || touching || navTween) return;
-    snapTimer = setTimeout(snap, 160);
-  }
-  function snap() {
-    if (!on || touching || navTween || root.classList.contains("is-loading")) return;
-    var t = snapTarget(window.scrollY / V);
-    if (t === null) return;
-    var to = t * V;
-    // keep the glide inside the wrap-round zone
-    if (to > HI * V) { jump(-LOOP * V); to -= LOOP * V; }
-    var dist = Math.abs(to - window.scrollY);
-    if (dist < 2) return;
-    navTween = gsap.to(window, {
-      scrollTo: { y: to, autoKill: false },         // see takeOver() below
-      duration: reduce ? 0 : Math.min(0.9, 0.35 + dist / V * 0.8),
-      ease: "power2.out",
-      onComplete: function () { navTween = null; },
-      onInterrupt: function () { navTween = null; }
-    });
-  }
-  /* The user takes over from a glide (menu jump or snap) by touching,
+  /* ---------- the menu's glide: the user can take over ----------
+     The user takes over from a menu glide by touching,
      wheeling or pressing a key. GSAP's own autoKill is off: iOS reports the
      scroll a little off from what was set, which it read as the user
-     scrolling, so the glide stopped halfway and then snapped back. */
+     scrolling, so the glide stopped halfway. */
   function takeOver() { if (navTween) { navTween.kill(); navTween = null; } }
   window.addEventListener("wheel", takeOver, { passive: true });
   window.addEventListener("keydown", function (e) {
     if (/^(Arrow|Page|Home|End| )/.test(e.key)) takeOver();
   });
-  window.addEventListener("scroll", scheduleSnap, { passive: true });
   window.addEventListener("touchstart", function (e) {
-    touching = true; clearTimeout(snapTimer);
     // a tap on the menu starts its own glide; any other touch takes over
     if (!(e.target.closest && e.target.closest(".nav-list a[data-go]"))) takeOver();
   }, { passive: true });
-  function release() { touching = false; scheduleSnap(); }
-  window.addEventListener("touchend", release, { passive: true });
-  window.addEventListener("touchcancel", release, { passive: true });
 
   /* ---------- GSAP: the scroll timeline ---------- */
 
@@ -392,11 +373,11 @@
       root.classList.remove("has-scrub");
       outs.forEach(function (r) { r.set(0); });
       contactOut.set(0);
-      sealOut.set(0); titleIn.revert(); markIn.set(1); showHint(0);
+      sealOut.set(0); titleIn.revert(); markIns.forEach(function (r) { r.set(1); }); showHint(0);
       [contact, title, mark].concat(cards).forEach(function (el) {
         el.style.transform = el.style.opacity = el.style.color = "";
       });
-      title.classList.remove("is-on"); mark.classList.remove("is-on");
+      title.classList.remove("is-on"); marks.forEach(function (m) { m.classList.remove("is-on"); });
       showCaption(-1);
     };
   });

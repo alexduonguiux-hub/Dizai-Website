@@ -424,6 +424,7 @@ body::after {
     padding: var(--gutter);
     container-type: inline-size;
     overflow: hidden;
+    background: var(--paper); /* the Work mark's blend needs the paper under it */
   }
   .has-scrub .scroll-space { display: block; height: 760svh; } /* room for the endless list's wrap-round */
 
@@ -440,6 +441,11 @@ body::after {
   /* WORK at the bottom left (work.js sets its height on the page) */
   .has-scrub .work-title { position: absolute; left: 0; top: 0; margin: 0; visibility: hidden; }
   .has-scrub .work-title.is-on, .has-scrub .work-mark.is-on { visibility: visible; }
+  /* the mark inverts over the pictures (work.js adds the two copies) */
+  .has-scrub .work-mark--invert { mix-blend-mode: difference; }
+  .has-scrub .work-mark--tint { mix-blend-mode: plus-lighter; }
+  .work-mark--tint { display: none; }
+  .has-scrub .work-mark--tint { display: block; }
   /* SCROLL DOWN, centred, cap top 296 units down */
   .has-scrub .work-hint {
     display: block;
