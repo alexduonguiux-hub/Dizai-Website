@@ -348,18 +348,6 @@ html:not(.is-loading) .coin-rim   { animation: coin-rim 9s linear infinite; }
   .has-cursor .cursor { transition: opacity 0.2s; }
 }
 
-/* ---------- Ink bleed ("lem mực in") ----------
-   SVG filters defined at the top of index.html, one strength per type size.
-   The turning seal is left crisp: a filter on it would be recomputed on
-   every frame of the turn. */
-svg.defs { position: absolute; width: 0; height: 0; overflow: hidden; }
-.display { filter: url(#dz-bleed-lg); }
-.nav-list, .services, .contact, .social, .scroll-hint,
-.loader-top > p { filter: url(#dz-bleed-sm); }
-@media (max-width: 720px) {
-  .display { filter: url(#dz-bleed-md); }
-}
-
 /* ---------- Mobile (Figma Home 13:8, 390 × 844) ---------- */
 @media (max-width: 720px) {
   :root { --text-sm: 20px; }
