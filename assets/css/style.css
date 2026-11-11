@@ -333,8 +333,8 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 
 .scroll-space { display: none; }
 
-/* Desktop with JS: one pinned stage, scroll drives Home → Work */
-@media (min-width: 721px) {
+/* With JS: one pinned stage, scroll drives Home → Work (desktop and mobile) */
+@media all {
   .has-scrub body { padding: 0; container-type: normal; }
   .has-scrub .stage {
     position: fixed;
@@ -367,9 +367,15 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
   /* what moves with the scroll gets its own GPU layer */
   .has-scrub .hero .contact, .has-scrub .work-title, .has-scrub .work-card { will-change: transform; }
 }
-/* small screens: no Work layout in Figma yet */
+/* Mobile Work: no Figma frame yet — built on the mobile Home grid (358):
+   WORK at 118, the "đs" mark in the middle of the screen, sheets 240 wide */
 @media (max-width: 720px) {
-  .work { display: none; }
+  .work { --fs: calc(100cqi * 118 / 358); }
+  .work-mark { height: calc(100cqi * 64 / 358); }
+  .work-list { grid-template-columns: 1fr; }
+  .has-scrub .stage { display: flex; flex-direction: column; }
+  .has-scrub .work-mark { top: 50%; transform: translate(-50%, -50%); }
+  .has-scrub .work-card { width: calc(100cqi * 240 / 358); }
 }
 
 /* ---------- Mobile (Figma Home 13:8, 390 × 844) ---------- */

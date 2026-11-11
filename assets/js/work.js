@@ -137,10 +137,31 @@
     cards.push(clone);
   }
 
-  var on = false, soaks = null, unit = 1;
+  var on = false, soaks = null, unit = 1, H = 733;
+
+  /* Layout per screen size, in units of the content width (G.W).
+     Desktop is Figma Work-01/02/03. Mobile has no Work frame in Figma yet:
+     the same story on the 358 grid of mobile Home — WORK (118) prints in at
+     the bottom, rises under the contact block, and one sheet at a time
+     rides the wave across the screen. */
+  var DESK = { W: 1432, pitch: 368, cardW: 328, rest0: 1104, navAt: 1104,
+               wave: [275, 379, 320, 275], contactY: -251,
+               titleFrom: function () { return 502; }, titleTo: 0 };
+  var MOB = { W: 358, pitch: 272, cardW: 240, rest0: 59, navAt: 0,
+              waveOff: [0, 70, 30, 0], contactY: 0,
+              titleFrom: function () { return H - 83; }, titleTo: 132 };
+  var G = DESK;
 
   function measure() {
-    unit = work.getBoundingClientRect().width / 1432; // transforms are GSAP's
+    var r = work.getBoundingClientRect(); // transforms are GSAP's
+    unit = r.width / G.W;
+    H = r.height / unit;
+    if (G.wave) WAVE = G.wave;
+    else { // mobile: the wave sits in the room left under WORK
+      var top = G.titleTo + 83, base = top + Math.max(24, (H - top - G.cardW - 70) / 2);
+      WAVE = G.waveOff.map(function (d) { return base + d; });
+    }
+    PITCH = G.pitch; SPAN = PITCH * LOOP_CARDS;
     if (typeof sizeSheets === "function") sizeSheets();
   }
 
@@ -231,6 +252,7 @@
   // 275, 379, 320, 275. A periodic Catmull-Rom curve through them, repeating
   // every 4 cards, is the wave the sheets ride along.
   var PITCH = 368, WAVE = [275, 379, 320, 275], LOOP_CARDS = 8, SPAN = PITCH * LOOP_CARDS;
+  // (mobile: PITCH / WAVE are set by measure())
   function waveY(x) {
     var n = WAVE.length, t = x / PITCH, i = Math.floor(t), f = t - i;
     function P(k) { return WAVE[((k % n) + n) % n]; }
@@ -252,9 +274,9 @@
 
   var V = window.innerHeight;
   var PITCH_V = 0.35;            // V of scroll per card on the carousel
-  var RATE = PITCH / PITCH_V;    // carousel units per V
+  var RATE = PITCH / PITCH_V;    // carousel units per V (set per layout)
   var CAROUSEL_AT = 1.6;         // V: Work-02
-  var WORK03 = CAROUSEL_AT + 1104 / RATE;
+  var WORK03 = CAROUSEL_AT;      // where the menu's WORK lands (set per layout)
   // the wrap-round zone (all eight sheets have entered by then)
   var LO = 3.4, LOOP = LOOP_CARDS * PITCH_V, HI = LO + LOOP;
   var loops = 0;
@@ -263,8 +285,15 @@
   var mm = gsap.matchMedia();
   var smooth = { y: 0 };   // the carousel's own smoothed scroll (it runs past the timeline)
 
-  mm.add("(min-width: 721px)", function () {
+  window.ScrollTrigger.config({ ignoreMobileResize: true }); // phone URL bar: no re-layout
+
+  mm.add({ desk: "(min-width: 721px)", mob: "(max-width: 720px)" }, function (ctx) {
+    G = ctx.conditions.desk ? DESK : MOB;
+    V = window.innerHeight;
     enable();
+    RATE = G.pitch / PITCH_V;
+    WORK03 = CAROUSEL_AT + G.navAt / RATE;
+    loops = 0; smooth.y = window.scrollY; lastCards = -1;
     // the timeline's time is measured in V (viewport heights of scroll)
     var tl = gsap.timeline({
       defaults: { ease: "none" },
@@ -292,14 +321,15 @@
 
     // text and seal only Home has: soak away, one after another
     soaks.home.forEach(function (set, i) { soakTween(set, 1, 0, i * 0.04, 0.3); });
-    // the contact block slides up to its Work place (251 units)
-    tl.fromTo(contact, { y: 0 }, { y: function () { return -251 * unit; }, duration: 0.6, ease: "dz.move" }, 0.1);
+    // the contact block slides up to its Work place (desktop: 251 units;
+    // mobile: it is already there)
+    if (G.contactY) tl.fromTo(contact, { y: 0 }, { y: function () { return G.contactY * unit; }, duration: 0.6, ease: "dz.move" }, 0.1);
     // WORK and the small mark print in — Work-01
     soakTween(soaks.title, 0, 1, 0.5, 0.35);
     soakTween(soaks.mark, 0, 1, 0.55, 0.3);
     // scroll on: WORK is pushed to the top and lightens, the mark leaves — Work-02
-    tl.fromTo(title, { y: function () { return 502 * unit; }, color: DARK },
-                     { y: 0, color: LIGHT, duration: 0.6, ease: "dz.move" }, 1.0);
+    tl.fromTo(title, { y: function () { return G.titleFrom() * unit; }, color: DARK },
+                     { y: function () { return G.titleTo * unit; }, color: LIGHT, duration: 0.6, ease: "dz.move" }, 1.0);
     var mk = { v: 1 };
     tl.to(mk, { v: 0, duration: 0.2, onUpdate: function () { soaks.mark(mk.v); } }, 1.0);
     tl.set({}, {}, CAROUSEL_AT); // timeline length = CAROUSEL_AT V
@@ -321,14 +351,14 @@
     // carousel offset (units): 0 at Work-02, 1104 at Work-03, on and on after
     var o = (v - CAROUSEL_AT) * RATE;
     cards.forEach(function (c, k) {
-      // card k first comes in from the right when o reaches k·368 − 328;
-      // before that it waits off screen
-      var entered = o > k * PITCH - 328 - 520;
-      var x = 1104 + k * PITCH - o;
+      // card k waits off screen to the right until its turn; from then on
+      // it goes round the loop
+      var x = G.rest0 + k * PITCH - o;
+      var entered = x < SPAN - PITCH;
       if (entered) x = ((x + PITCH) % SPAN + SPAN) % SPAN - PITCH;
-      var show = entered && x > -PITCH && x < 1432 + 40;
+      var show = entered && x > -PITCH && x < G.W + 40;
       c.style.opacity = show ? "1" : "0";
-      c.classList.toggle("is-on", show && x > -200 && x < 1300);
+      c.classList.toggle("is-on", show && x > -G.cardW * 0.6 && x < G.W - G.cardW * 0.4);
       if (show) gsap.set(c, { x: x * unit, y: waveY(x) * unit });
     });
   }
@@ -364,7 +394,7 @@
   var navTween = null;
   document.querySelectorAll(".nav-list a[data-go]").forEach(function (a) {
     a.addEventListener("click", function (e) {
-      if (!on) return; // small screens: the plain #anchors do the job
+      if (!on) return; // no GSAP: the plain #anchors do the job
       e.preventDefault();
       loops = 0;
       if (a.dataset.go === "home" && window.scrollY > LO * V) { // far into the loop: go straight
