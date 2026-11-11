@@ -93,18 +93,14 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 }
 
 /* ---------- Hero ----------
-   .type is a grid so one set of elements serves both Figma frames:
-   desktop  DESIGN / STUDIO / seal · EST · 2024        (Home 10:1457, 1512 wide)
-   mobile   DESIGN / STUDIO / seal EST / 2024, centred (Home 13:8, 390 wide)
-   Columns: seal | free | EST | free | 2024 — the two 1fr tracks reproduce
-   Figma's space-between. */
+   desktop  DESIGN / STUDIO / seal · EST · 2024 spread   (Home 10:1457, 1512 wide)
+   mobile   DESIGN / STUDIO / seal EST 2024 centred      (Home 13:8, 390 wide) */
 .hero { position: relative; }
 
 .type {
   --fs: calc(100cqi * 330 / 1432);
-  display: grid;
-  grid-template-columns: auto 1fr auto 1fr auto;
-  align-items: center;
+  display: flex;
+  flex-direction: column;
   row-gap: calc(100cqi * 20 / 1432);
 }
 
@@ -126,16 +122,21 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
   .display { overflow: clip; overflow-clip-margin: 0.03em; }
 }
 
-.line-design { grid-column: 1 / -1; justify-self: start; }
-.line-studio { grid-column: 1 / -1; justify-self: end; }
+.line-design { align-self: flex-start; }
+.line-studio { align-self: flex-end; }
+
+.type-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--green-500);
+}
 .seal {
-  grid-column: 1;
   display: block;
+  flex: none;
   width: auto;
   height: calc(var(--fs) * 0.7);
 }
-.line-est  { grid-column: 3; color: var(--green-500); }
-.line-year { grid-column: 5; color: var(--green-500); }
 
 /* Desktop info blocks, placed against the type rows (units of 1432) */
 .services {
@@ -190,20 +191,17 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
     padding-block: calc(var(--gutter) + 80px + 54px + 16px);
   }
 
-  /* DESIGN, 2024 and the seal + EST pair are centred; STUDIO fills the
-     width (right-aligned, as in Figma). Seal → EST gap 8px. */
+  /* Same three rows at 84px on 358: seal · EST · 2024 become one centred
+     group with 8px gaps. The group is ~0.7% wider than the column; flex
+     centring lets it overhang both edges equally, as in Figma. */
   .type {
-    --fs: calc(100cqi * 118 / 358);
-    grid-template-columns: 1fr auto auto 1fr;
+    --fs: calc(100cqi * 84 / 358);
     row-gap: calc(100cqi * 8 / 358);
   }
-  .line-design { justify-self: center; }
-  .seal {
-    grid-column: 2;
-    margin-right: calc(100cqi * 8 / 358);
+  .type-row {
+    justify-content: center;
+    gap: calc(100cqi * 8 / 358);
   }
-  .line-est  { grid-column: 3; }
-  .line-year { grid-column: 1 / -1; justify-self: center; }
 
   /* services sit 16px under the type block, centred, and centre with it */
   .services {
