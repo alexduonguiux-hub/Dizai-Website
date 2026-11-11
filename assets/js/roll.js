@@ -1,6 +1,7 @@
 /* Rolling letters — the site's one transition, after the loading counter:
    every letter is a little window; a column of letters rolls up through it
-   (the real letter, two others, then blank — or the other way round).
+   (the letter, the same letter twice more, then blank — or the other way
+   round), so a line only ever shows its own letters while it rolls.
 
    DzRoll.text(el, "out" | "in")  → { set(v), revert() }
      v 0 → 1. "out": the text rolls away (v 0 = as it is, 1 = gone).
@@ -16,16 +17,11 @@
 (function () {
   "use strict";
 
-  var UP = "DESIGNTUOWRKAMVC", LOW = "designtuowrkamvc", DIG = "0123456789";
-  var ROWS = 4; // real, two others, blank
+  var ROWS = 4; // the letter, itself twice more, blank
   var live = [];
 
   function clamp01(x) { return x < 0 ? 0 : x > 1 ? 1 : x; }
   function ease(x) { return x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2; }
-  function pick(ch, i, k) {
-    var pool = /[0-9]/.test(ch) ? DIG : ch === ch.toLowerCase() && ch !== ch.toUpperCase() ? LOW : UP;
-    return pool[(i * 7 + k * 5 + ch.charCodeAt(0)) % pool.length];
-  }
 
   function textNodes(el) {
     var out = [], w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
@@ -72,8 +68,8 @@
           c.style.width = (wpx / fs).toFixed(4) + "em";
           var wrap = document.createElement("span");
           wrap.className = "rc-w";
-          var rows = dir === "out" ? [it.ch, pick(it.ch, it.idx, 1), pick(it.ch, it.idx, 2), " "]
-                                   : [" ", pick(it.ch, it.idx, 1), pick(it.ch, it.idx, 2), it.ch];
+          var rows = dir === "out" ? [it.ch, it.ch, it.ch, " "]
+                                   : [" ", it.ch, it.ch, it.ch];
           wrap.textContent = rows[0];
           for (var r = 1; r < ROWS; r++) {
             var row = document.createElement("span");
