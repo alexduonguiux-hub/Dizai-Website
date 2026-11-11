@@ -87,17 +87,18 @@
   var MOB = { W: 358, axis: "x", pitch: 358, len: 350, pitchV: 0.35,
               titleY: function () { return (H - 46) * 402 / 766; }, titleY2: function () { return 140; },
               contactY: 0, hint: true };
-  var G = DESK, unit = 1, H = 733, cardTop = 271;
+  var G = DESK, unit = 1, H = 733, cardTop = 226;
 
   function measure() {
     var r = work.getBoundingClientRect(); // transforms are GSAP's
     unit = r.width / G.W;
     H = r.height / unit;
     if (G.axis === "x") {
-      // Figma Work-02: WORK 140–186, pictures from 271, the names 21 under
-      // them. Short screens: lift the pictures, but keep them clear of WORK.
-      cardTop = Math.max(186 + 24, Math.min(271, H - 16 - 151 - 21 - 262));
-      work.style.setProperty("--cap-top", ((cardTop + 262 + 21) * unit).toFixed(1) + "px");
+      // Figma Work-02: WORK 140–186, pictures 40 under it (226), the names
+      // 40 under them. Short screens: lift the pictures, but keep them clear
+      // of WORK.
+      cardTop = Math.max(186 + 24, Math.min(226, H - 16 - 151 - 40 - 262));
+      work.style.setProperty("--cap-top", ((cardTop + 262 + 40) * unit).toFixed(1) + "px");
     } else work.style.removeProperty("--cap-top");
     if (typeof sizeSheets === "function") sizeSheets();
   }
@@ -274,7 +275,8 @@
     cards.forEach(function (c, k) {
       var p = k * G.pitch - o;
       if (o >= 0) p = ((p + G.pitch) % span + span) % span - G.pitch;
-      var max = G.axis === "y" ? H : G.W;
+      // past the content edge, into the gutter (the next one peeks in)
+      var max = G.axis === "y" ? H : G.W + 16 / unit;
       var show = p > -G.len && p < max;
       c.style.opacity = show ? "1" : "0";
       c.classList.toggle("is-on", show);
@@ -385,7 +387,16 @@
     }
     function settle() {
       var t = tl.time();
+      // one value per piece: a piece driven twice (SCROLL DOWN rolls in,
+      // later rolls away) takes the last part that has begun, else the first
+      var pick = [];
       drives.forEach(function (d) {
+        var i = -1;
+        for (var j = 0; j < pick.length; j++) if (pick[j].fn === d.fn) i = j;
+        if (i < 0) pick.push(d);
+        else if (t >= d.at) pick[i] = d;
+      });
+      pick.forEach(function (d) {
         var q = Math.max(0, Math.min(1, (t - d.at) / d.dur));
         d.fn(d.from + (d.to - d.from) * q);
       });

@@ -503,8 +503,8 @@ body::after {
   .has-scrub .work-caption {
     left: 0;
     width: 100%;
-    /* 21 under the pictures; work.js sets the spot */
-    top: var(--cap-top, calc(var(--u) * 554));
+    /* 40 under the pictures; work.js sets the spot */
+    top: var(--cap-top, calc(var(--u) * 528));
     transform: none;
     text-align: center;
   }
