@@ -15,3 +15,6 @@ Website của Đìzai Studio. HTML/CSS tĩnh, không cần build: mở `index.ht
 - **Cắt dòng chữ:** dòng chữ được cắt sát mép chữ hoa và đường chân chữ, giống `text-box-trim` trong Figma, tính theo metric của AnNam Serif (cap 700, ascender 960, descender 240).
 - **Mũi tên ←:** AnNam Serif chưa có glyph này, nên mũi tên ở menu đang dùng font hệ thống.
 - **Chưa xong:** các trang `work/` và `contact/` chưa có. Link mạng xã hội đang là trang chủ của từng nền tảng, cần thay bằng link profile của studio.
+
+## Xuất bản bằng GitHub Pages
+Repo có file `.nojekyll` để GitHub Pages đưa nguyên các file tĩnh lên, không chạy qua Jekyll. Cách bật: vào **Settings → Pages → Build and deployment**, chọn **Source: Deploy from a branch**, rồi chọn nhánh chứa trang (thư mục `/ (root)`) và bấm Save. Trang sẽ có ở `https://alexduonguiux-hub.github.io/Dizai-Website/`.
