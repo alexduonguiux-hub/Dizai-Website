@@ -363,16 +363,17 @@ body::after {
 .work-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--gutter); }
 .work-caption { display: none; }
 .work-caption .wc-name { display: block; margin-top: -0.16em; margin-bottom: -0.14em; }
-/* the line under the name: italic 18 (Figma 23:22526), line height 1.1,
-   trimmed to cap height / baseline like the rest (half-leading 0.05em) */
+/* the line under the name: AnNam Serif Regular 16 (Figma 23:22526), line
+   height 1.1, trimmed to cap height / baseline like the rest (half-leading
+   0.05em) */
 .work-caption .wc-desc {
   display: block;
   margin-top: calc(6px - 0.21em);
   margin-bottom: -0.19em;
   color: var(--green-500);
-  font-size: calc(var(--text-sm) * 0.9);
+  font-size: calc(var(--text-sm) * 0.8);
   line-height: 1.1;
-  font-style: italic;
+  font-style: normal;
   font-weight: 400;
   text-transform: none;
 }
