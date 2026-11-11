@@ -5,6 +5,8 @@ Website của Đìzai Studio. HTML/CSS tĩnh, không cần build: mở `index.ht
 ## Cấu trúc
 - `index.html`: trang Home, dựng từ Figma *Đìzai Studio – Website – NEW*: desktop là frame **Home** `10:1457` (1512 × 813), mobile là frame **Home** `13:8` (390 × 844)
 - `assets/js/loader.js`: trang loading (Figma frame **Loading** `13:257`). Số đếm chạy 0 → 100% (chữ số trượt dọc) theo tiến độ tải trang; xong thì chữ của loading thấm tan vào giấy, logo lớn thu nhỏ và trượt về chỗ của nó trên Home, rồi các phần của Home in ra bằng mực thấm
+- `assets/js/seal3d.js`: logo mark dựng 3D bằng WebGL (Three.js). Đường nét SVG của logo được đùn thành một miếng bạc chrome mỏng, vát mép tròn. Vật liệu là kim loại PBR, bóng như gương, phản chiếu một môi trường kiểu studio do shader vẽ: trời sáng, đường chân trời sắc, nền tối, hai cột đèn softbox. Một canvas đi theo con dấu đang hiện trên màn hình: logo lớn ở Loading, bay cùng nó lúc chuyển sang Home, rồi xoay chậm ở chỗ con dấu trên Home (9 giây một vòng). Con dấu phẳng vẫn giữ trong trang để làm khung bố cục và làm dự phòng khi không có WebGL.
+- `assets/vendor/three/`: Three.js 0.160.0 (giấy phép MIT, kèm `LICENSE`), lấy từ npm và đưa thẳng vào repo để không phụ thuộc CDN.
 - `assets/js/ink.js`: hiệu ứng lem mực in khi rê chuột
 - `assets/js/cursor.js`: con trỏ chấm tròn màu chữ, đảo sang màu nền khi chồng lên chữ đậm (chỉ trên máy có chuột)
 - `assets/css/style.css`: toàn bộ style và token màu (`--paper`, `--green-900`, `--green-500`)
