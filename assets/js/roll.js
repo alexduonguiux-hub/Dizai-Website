@@ -145,14 +145,18 @@
         if (v === last) return;
         last = v;
         var e = ease(v);
+        // the window is exactly the box (no margin above or below, or a
+        // hairline of the picture stays on screen); gone = hidden outright
+        var gone = dir === "out" ? e >= 1 : e <= 0;
+        el.style.visibility = gone ? "hidden" : "";
         if (dir === "out") {
           if (e <= 0) { el.style.clipPath = el.style.translate = ""; return; }
           el.style.translate = "0 " + (-e * 100).toFixed(2) + "%";
-          el.style.clipPath = "inset(" + (e * 100).toFixed(2) + "% -2px -2px -2px)";
+          el.style.clipPath = "inset(" + (e * 100).toFixed(2) + "% -2px 0 -2px)";
         } else {
           if (e >= 1) { el.style.clipPath = el.style.translate = ""; return; }
           el.style.translate = "0 " + ((1 - e) * 100).toFixed(2) + "%";
-          el.style.clipPath = "inset(-2px -2px " + ((1 - e) * 100).toFixed(2) + "% -2px)";
+          el.style.clipPath = "inset(0 -2px " + ((1 - e) * 100).toFixed(2) + "% -2px)";
         }
       }
     };

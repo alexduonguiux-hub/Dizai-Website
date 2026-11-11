@@ -292,7 +292,7 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
   position: relative;
   text-align: center;
   white-space: nowrap;
-  clip-path: inset(-0.04em -0.06em); /* the window: the letter's own box */
+  clip-path: inset(0 -0.06em); /* the window: exactly the letter's line, so no sliver of a passing letter shows above or below */
 }
 .rc-w {
   display: block;
