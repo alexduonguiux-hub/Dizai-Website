@@ -153,14 +153,14 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
    from behind (so it reads mirrored) — any other artwork wouldn't line up
    with the edge. Thickness ≈ 2.5% of the height.
    It starts turning only once the loader is gone, from 0°, so it carries
-   on exactly where the stamp left it. */
+   on exactly where the loader's seal landed. */
 .seal-coin {
   --t: calc(var(--fs) * 0.7 * 0.025);
   position: relative;
   display: block;
   flex: none;
   height: calc(var(--fs) * 0.7);
-  aspect-ratio: 197 / 231;
+  aspect-ratio: 198.93 / 231;
   transform-style: preserve-3d;
 }
 .seal-coin > * {
@@ -273,8 +273,10 @@ html:not(.is-loading) .coin-rim   { animation: coin-rim 9s linear infinite; }
   --fs: calc(100cqi * 330 / 1432);
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-end;      /* the count sits on the seal's bottom line */
 }
+/* desktop loader: the seal is drawn large, 381 px tall (Figma 17:323) */
+.loader-bottom .seal { height: calc(100cqi * 381 / 1432); }
 .loader-count { text-align: right; }
 
 /* Rolling count: each digit cell is a window; on change the old digit
@@ -307,31 +309,6 @@ html:not(.is-loading) .coin-rim   { animation: coin-rim 9s linear infinite; }
 .is-loading:not(.is-emerging) .hero { visibility: hidden; }
 .is-emerging .loader { background: transparent; pointer-events: none; }
 
-/* Stamp effects: the dent in the paper and the ring of ink */
-.stamp-fx {
-  position: fixed;
-  z-index: 102;
-  width: 0;
-  height: 0;
-  pointer-events: none;
-}
-.stamp-fx > span {
-  position: absolute;
-  left: 0;
-  top: 0;
-  border-radius: 50%;
-  opacity: 0;
-}
-.stamp-dent {
-  width: calc(var(--d) * 2.6);
-  height: calc(var(--d) * 2.6);
-  background: radial-gradient(closest-side, rgb(33 80 40 / 0.10), rgb(33 80 40 / 0.04) 55%, transparent);
-}
-.stamp-ring {
-  width: calc(var(--d) * 1.25);
-  height: calc(var(--d) * 1.25);
-  background: radial-gradient(closest-side, transparent 72%, rgb(116 150 116 / 0.45) 82%, rgb(116 150 116 / 0.2) 90%, transparent);
-}
 
 @media (prefers-reduced-motion: reduce) {
   .is-loading .loader { transition: none; }
@@ -468,4 +445,5 @@ html:not(.is-loading) .coin-rim   { animation: coin-rim 9s linear infinite; }
 
   /* Loader: no mobile frame in Figma; the count uses the mobile display size */
   .loader-bottom { --fs: calc(100cqi * 118 / 358); }
+  .loader-bottom .seal { height: calc(var(--fs) * 0.7); } /* no mobile frame: keep it row height */
 }

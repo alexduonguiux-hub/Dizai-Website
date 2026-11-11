@@ -1,13 +1,11 @@
 /* Loading screen (Figma "Loading" 13:257)
    1. Rolling count 0 → 100% (digits slide up), following real load progress:
       it can climb to 90% on time alone and only reaches 100% after "load".
-   2. Stamp + ink hand-off: the seal lifts, then presses down. The paper dents,
-      a ring of ink spreads out, and the blow pushes the loader's own text
-      away as it soaks into the paper. Then the Home elements print in one by
-      one: ink appears in the thick cores of the strokes first and bleeds out
-      to the hairlines, with paper-fibre blotches, while each line settles
-      as if pressed into the sheet. An element in the same place on both
-      screens (the seal on desktop) stays where it is.
+   2. Hand-off to Home: the loader's text soaks away into the paper while the
+      big seal shrinks and glides to its place on Home, where the coin takes
+      over (and starts turning). The Home elements then print in one by one:
+      ink appears in the thick cores of the strokes first and bleeds out to
+      the hairlines, with paper-fibre blotches.
    The soaking is an SVG filter per element: paper-fibre noise mixed with the
    blurred glyph (its stroke "core"), thresholded by a rising level.
    prefers-reduced-motion gets a short fade instead. */
@@ -193,21 +191,20 @@
   function reveal() {
     loader.classList.add("is-done"); // dots stop, all three shown
     if (reduce) return fadeOut();
-    try { stampAndInk(); } catch (e) { fadeOut(); }
+    try { handOff(); } catch (e) { fadeOut(); }
   }
 
-  /* ---------------- Stamp + ink hand-off ---------------- */
+  /* ---------------- Hand-off: seal shrinks to Home, ink soaks ---------------- */
 
-  var LIFT_MS = 260, PRESS_MS = 130;          // seal up, then down
-  var IMPACT = LIFT_MS + PRESS_MS;            // the moment it hits the paper
-  var OUT_MS = 480, OUT_STAGGER = 60;         // loader text blown off, soaking away
-  var IN_AT = IMPACT + 170, IN_MS = 780, IN_STAGGER = 90; // Home printing in
+  var OUT_MS = 520, OUT_STAGGER = 70;          // loader text soaking away
+  var SEAL_AT = 60, SEAL_MS = 1000;            // seal shrinking into place
+  var IN_AT = 420, IN_MS = 780, IN_STAGGER = 90; // Home printing in
 
   function clamp01(x) { return x < 0 ? 0 : x > 1 ? 1 : x; }
   function easeOut(x) { return 1 - Math.pow(1 - x, 3); }
   function easeInOut(x) { return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; }
 
-  function stampAndInk() {
+  function handOff() {
     var NS = "http://www.w3.org/2000/svg";
     var svg = document.createElementNS(NS, "svg");
     svg.setAttribute("aria-hidden", "true");
@@ -245,125 +242,70 @@
     }
 
     function rectOf(el) { return el.getBoundingClientRect(); }
-    function same(a, b) {
-      return Math.abs(a.left - b.left) < 2 && Math.abs(a.top - b.top) < 2 &&
-             Math.abs(a.width - b.width) < 2 && Math.abs(a.height - b.height) < 2;
-    }
     function shown(el) { return el && el.getClientRects().length > 0; }
 
     var seal = loader.querySelector(".seal");
-    var homeSeal = document.querySelector(".type-row .seal-coin"); // the whole coin
-    var shared = seal && homeSeal && same(rectOf(seal), rectOf(homeSeal));
+    var coin = document.querySelector(".type-row .seal-coin");
 
     var out = [
       loader.querySelector(".loader-count"),
       loader.querySelector(".loader-contact"),
       loader.querySelector(".loader-top > p:first-child")
     ].filter(shown);
-    var ins = [".site-nav .nav-list", ".line-design", ".line-studio"]
-      .concat(shared ? [] : [".type-row .seal-coin"])
-      .concat([".line-est", ".line-year", ".services", ".contact", ".scroll-hint", ".social"])
+    var ins = [".site-nav .nav-list", ".line-design", ".line-studio",
+               ".line-est", ".line-year", ".services", ".contact", ".scroll-hint", ".social"]
       .map(function (q) { return document.querySelector(q); })
       .filter(shown);
 
-    // Home laid out but invisible until each piece prints in; a shared home
-    // seal waits under the loader's until the stamp has settled
+    // Home laid out but invisible until each piece prints in; the coin
+    // waits until the loader's seal has landed on it
     ins.forEach(function (el) { el.style.opacity = "0"; });
-    if (shared) homeSeal.style.opacity = "0";
+    if (coin) coin.style.opacity = "0";
     root.classList.add("is-emerging");
 
-    var sr = rectOf(seal), cx = sr.left + sr.width / 2, cy = sr.top + sr.height / 2;
-
-    // the dent in the paper and the ring of ink, centred on the seal
-    var fx = document.createElement("div");
-    fx.className = "stamp-fx";
-    fx.style.cssText = "left:" + cx + "px;top:" + cy + "px;--d:" + sr.height + "px";
-    fx.innerHTML = '<span class="stamp-dent"></span><span class="stamp-ring"></span>';
-    document.body.appendChild(fx);
-    var ringFilter = node("filter", { id: "dz-ring", x: "-20%", y: "-20%", width: "140%", height: "140%" });
-    node("feTurbulence", { type: "fractalNoise", baseFrequency: "0.06", numOctaves: "2", seed: "7", result: "n" }, ringFilter);
-    node("feDisplacementMap", { "in": "SourceGraphic", in2: "n", scale: "10",
-                                xChannelSelector: "R", yChannelSelector: "G" }, ringFilter);
-    var dent = fx.children[0], ring = fx.children[1];
-    ring.style.filter = "url(#dz-ring)";
+    // the seal's flight: from its loader box to the coin's box (FLIP)
+    var from = seal && rectOf(seal), to = coin && rectOf(coin);
+    if (seal) seal.style.transformOrigin = "0 0";
 
     var items = [];
     out.forEach(function (el, i) {
-      var r = rectOf(el), ex = r.left + r.width / 2 - cx, ey = r.top + r.height / 2 - cy;
-      var len = Math.hypot(ex, ey) || 1;
-      items.push({ el: el, dir: "out", start: IMPACT + i * OUT_STAGGER, dur: OUT_MS,
-                   push: [ex / len, ey / len], level: soakFilter(el, i, Math.max(r.height, 40)) });
+      var r = rectOf(el);
+      items.push({ el: el, dir: "out", start: i * OUT_STAGGER, dur: OUT_MS,
+                   level: soakFilter(el, i, Math.max(r.height, 40)) });
     });
-    var sealSoak = "";
-    if (!shared && seal) { // on mobile the loader's seal soaks away after its stamp
-      items.push({ el: seal, dir: "out", start: IMPACT + 260, dur: OUT_MS, push: [0, 0],
-                   level: soakFilter(seal, 50, Math.max(sr.height, 40)) });
-      sealSoak = seal.style.filter;
-    }
     ins.forEach(function (el, i) {
       var r = rectOf(el);
       items.push({ el: el, dir: "in", start: IN_AT + i * IN_STAGGER, dur: IN_MS,
                    level: soakFilter(el, 100 + i, Math.max(r.height, 40)) });
     });
-    var total = Math.max.apply(null, items.map(function (it) { return it.start + it.dur; }));
-
-    var page = [document.querySelector(".hero"), document.querySelector(".site-nav"), loader];
+    var total = Math.max(SEAL_AT + SEAL_MS, Math.max.apply(null, items.map(function (it) { return it.start + it.dur; })));
 
     var t0 = performance.now();
     (function frame() {
       var t = performance.now() - t0;
 
-      // the seal: lift (bigger, tilted, long shadow), press (squash), settle
-      var lift = easeOut(clamp01(t / LIFT_MS));
-      var press = clamp01((t - LIFT_MS) / PRESS_MS);
-      var settle = clamp01((t - IMPACT) / 220);
-      var sc, rot, sh;
-      if (t < LIFT_MS) { sc = 1 + 0.1 * lift; rot = -4 * lift; sh = lift; }
-      else if (t < IMPACT) { var p = press * press; sc = 1.1 - 0.13 * p; rot = -4 * (1 - p); sh = 1 - p; }
-      else { sc = 0.97 + 0.03 * easeOut(settle) + 0.01 * Math.sin(settle * Math.PI); rot = 0; sh = 0; }
-      if (shared && t >= IMPACT + 220) homeSeal.style.opacity = "";
-      if (seal) {
-        seal.style.transform = "scale(" + sc.toFixed(4) + ") rotate(" + rot.toFixed(2) + "deg)";
-        // shadow while it is in the air; after the hit, its ink filter (if
-        // it soaks away, on mobile) takes over
-        seal.style.filter = t < IMPACT && sh > 0.001 ?
-          "drop-shadow(0 " + (18 * sh).toFixed(1) + "px " + (22 * sh).toFixed(1) + "px rgba(33,80,40," + (0.28 * sh).toFixed(3) + "))" :
-          (t < IMPACT ? "" : sealSoak);
+      if (seal && from && to) {
+        var k = easeInOut(clamp01((t - SEAL_AT) / SEAL_MS));
+        var sc = 1 + (to.height / from.height - 1) * k;
+        var dx = (to.left - from.left) * k, dy = (to.top - from.top) * k;
+        seal.style.transform = "translate(" + dx.toFixed(2) + "px," + dy.toFixed(2) + "px) scale(" + sc.toFixed(5) + ")";
+        if (k >= 1) { coin.style.opacity = ""; seal.style.visibility = "hidden"; }
       }
-
-      // the blow: paper dents, ink ring spreads, the sheet gives a little
-      var hit = clamp01((t - IMPACT) / 650);
-      dent.style.opacity = t >= IMPACT ? String((1 - hit) * Math.min(1, hit * 8)) : "0";
-      dent.style.transform = "translate(-50%,-50%) scale(" + (0.9 + 0.35 * easeOut(hit)).toFixed(3) + ")";
-      ring.style.opacity = t >= IMPACT ? String(0.9 * Math.pow(1 - hit, 1.5)) : "0";
-      ring.style.transform = "translate(-50%,-50%) scale(" + (0.85 + 0.8 * easeOut(hit)).toFixed(3) + ")";
-      var thud = t >= IMPACT ? Math.sin(clamp01((t - IMPACT) / 160) * Math.PI) * 2 : 0;
-      page.forEach(function (el) { if (el) el.style.translate = thud ? "0 " + thud.toFixed(2) + "px" : ""; });
 
       items.forEach(function (it) {
         var q = clamp01((t - it.start) / it.dur);
         if (it.dir === "out") {
-          var e = easeOut(q);
           it.level.setAttribute("intercept", (I_SHOWN + (I_HIDDEN - I_SHOWN) * easeInOut(q)).toFixed(3));
-          if (it.el !== seal) {
-            var d = 34 * e;
-            it.el.style.transform = "translate(" + (it.push[0] * d).toFixed(1) + "px," + (it.push[1] * d).toFixed(1) + "px) scale(" + (1 + 0.03 * e).toFixed(4) + ")";
-          }
-          it.el.style.opacity = String(1 - 0.35 * e);
         } else {
-          var k = easeOut(q);
-          it.level.setAttribute("intercept", (I_HIDDEN + (I_SHOWN - I_HIDDEN) * k).toFixed(3));
+          var e = easeOut(q);
+          it.level.setAttribute("intercept", (I_HIDDEN + (I_SHOWN - I_HIDDEN) * e).toFixed(3));
           it.el.style.opacity = q > 0 ? "1" : "0";
-          // pressed into the sheet, then flat
-          it.el.style.transform = "scale(" + (0.985 + 0.015 * k).toFixed(4) + ")";
         }
       });
 
       if (t < total) return requestAnimationFrame(frame);
-      ins.forEach(function (el) { el.style.opacity = el.style.filter = el.style.transform = ""; });
-      if (homeSeal) homeSeal.style.opacity = "";
-      page.forEach(function (el) { if (el) el.style.translate = ""; });
-      fx.remove();
+      ins.forEach(function (el) { el.style.opacity = el.style.filter = ""; });
+      if (coin) coin.style.opacity = "";
       svg.remove();
       cleanup();
     })();
