@@ -22,3 +22,5 @@ Website của Đìzai Studio. HTML/CSS tĩnh, không cần build: mở `index.ht
 
 ## Xuất bản bằng GitHub Pages
 Repo có file `.nojekyll` để GitHub Pages đưa nguyên các file tĩnh lên, không chạy qua Jekyll. Cách bật: vào **Settings → Pages → Build and deployment**, chọn **Source: Deploy from a branch**, rồi chọn nhánh chứa trang (thư mục `/ (root)`) và bấm Save. Trang sẽ có ở `https://alexduonguiux-hub.github.io/Dizai-Website/`.
+
+**Cache:** GitHub Pages cho trình duyệt giữ CSS/JS tới 10 phút. Vì vậy `index.html` gắn `?v=…` vào đường dẫn `style.css`, `loader.js` và `cursor.js`. Mỗi lần sửa các file này, đổi số `v` để người xem nhận bản mới ngay.
