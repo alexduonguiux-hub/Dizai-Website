@@ -284,6 +284,80 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
   .has-cursor .cursor { transition: opacity 0.2s; }
 }
 
+/* ---------- Work (Figma Work-01 / 02 / 03) ----------
+   Final (Work-03) positions in units of the 1432 content width; work.js
+   moves things there as you scroll. Without JS, or on small screens, the
+   section simply follows Home in the page. */
+.work { --fs: calc(100cqi * 330 / 1432); position: relative; margin-top: 15vh; }
+.work-mark {
+  display: block;
+  height: calc(100cqi * 104 / 1432);
+  width: auto;
+  margin: 0 auto;
+}
+.work-title { color: var(--green-500); text-align: center; margin: 6vh 0; }
+.work-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--gutter); }
+/* each project hangs like a sheet of paper pinned at its top edge (work.js
+   sways it); the light on it follows the tilt through --sheen */
+.work-card a {
+  position: relative;
+  display: block;
+  transform-origin: 50% 0;
+  will-change: transform;
+}
+.work-card a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg,
+    rgb(255 255 255 / calc(var(--sheen, 0.5) * 0.22)),
+    transparent 45%,
+    rgb(0 0 0 / calc((1 - var(--sheen, 0.5)) * 0.22)));
+}
+.work-card img { display: block; width: 100%; height: auto; }
+.scroll-space { display: none; }
+
+/* Desktop with JS: one pinned stage, scroll drives Home → Work */
+@media (min-width: 721px) {
+  .has-scrub body { padding: 0; container-type: normal; }
+  .has-scrub .stage {
+    position: fixed;
+    inset: 0;
+    padding: var(--gutter);
+    container-type: inline-size;
+    overflow: hidden;
+  }
+  .has-scrub .scroll-space { display: block; height: 320svh; }
+
+  .has-scrub .work { position: absolute; inset: var(--gutter); margin: 0; pointer-events: none; }
+  .has-scrub .work-mark, .has-scrub .work-title, .has-scrub .work-card { opacity: 0; }
+  /* logo mark, top centre (Figma: 83 × 104 at y 39) */
+  .has-scrub .work-mark {
+    position: absolute;
+    left: 50%;
+    top: calc(100cqi * -1 / 1432);
+    margin: 0;
+    transform: translateX(-50%);
+  }
+  /* WORK, centred; Work-02/03 at the top (Work-01: 502 units lower) */
+  .has-scrub .work-title { position: absolute; left: 0; right: 0; top: 0; margin: 0; }
+  .has-scrub .work-list { display: block; }
+  .has-scrub .work-card {
+    position: absolute;
+    width: calc(100cqi * 328 / 1432);
+  }
+  .has-scrub .wc-1 { left: 0;                          top: calc(100cqi * 275 / 1432); }
+  .has-scrub .wc-2 { left: calc(100cqi * 368 / 1432);  top: calc(100cqi * 379 / 1432); }
+  .has-scrub .wc-3 { left: calc(100cqi * 736 / 1432);  top: calc(100cqi * 320 / 1432); }
+  .has-scrub .wc-4 { left: calc(100cqi * 1104 / 1432); top: calc(100cqi * 275 / 1432); }
+  .has-scrub .work-card.is-on { pointer-events: auto; }
+}
+/* small screens: no Work layout in Figma yet */
+@media (max-width: 720px) {
+  .work { display: none; }
+}
+
 /* ---------- Mobile (Figma Home 13:8, 390 × 844) ---------- */
 @media (max-width: 720px) {
   :root { --text-sm: 20px; }

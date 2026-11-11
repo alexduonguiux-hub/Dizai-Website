@@ -7,7 +7,7 @@
   <meta name="description" content="Đìzai Studio — design studio in Saigon, Vietnam. User interface, user experience, design systems, mobile app and website design.">
   <meta name="theme-color" content="#f0efee">
   <link rel="preload" href="assets/fonts/AnNamSerif-VF.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="assets/css/style.css?v=202611111347">
+  <link rel="stylesheet" href="assets/css/style.css?v=202611111453">
   <script>document.documentElement.classList.add("is-loading")</script>
 </head>
 <body>
@@ -19,29 +19,33 @@
       <p class="loader-contact trim">hello@dizai.studio<br>+84 937 937 195<br>Saigon, Vietnam</p>
     </div>
     <div class="loader-bottom">
-      <img class="seal" src="assets/img/dizai-studio-seal.svg?v=202611111347" width="199" height="231" alt="">
+      <img class="seal" src="assets/img/dizai-studio-seal.svg?v=202611111453" width="199" height="231" alt="">
       <p class="display loader-count">0%</p>
     </div>
   </div>
 
+  <!-- Home and Work share one stage. On desktop it is pinned to the screen
+       and the scroll position drives the move from Home to Work
+       (assets/js/work.js); the spacer after it gives the scroll its length. -->
+  <div class="stage">
   <header class="site-nav">
     <nav aria-label="Main">
       <ul class="nav-list trim">
-        <li><a href="./" aria-current="page">Home</a></li>
-        <li><a href="work/">Work</a></li>
+        <li><a href="#home" data-go="home" aria-current="page">Home</a></li>
+        <li><a href="#work" data-go="work">Work</a></li>
         <li><a href="contact/">Contact</a></li>
       </ul>
     </nav>
   </header>
 
-  <main class="hero">
+  <main class="hero" id="home">
     <h1 class="visually-hidden">Đìzai Studio — Design Studio, est. 2024</h1>
 
     <div class="type" aria-hidden="true">
       <p class="display line-design">DESIGN</p>
       <p class="display line-studio">STUDIO</p>
       <div class="type-row">
-        <img class="seal" src="assets/img/dizai-studio-seal.svg?v=202611111347" width="199" height="231" alt="">
+        <img class="seal" src="assets/img/dizai-studio-seal.svg?v=202611111453" width="199" height="231" alt="">
         <p class="display line-est">EST</p>
         <p class="display line-year">2024</p>
       </div>
@@ -69,9 +73,23 @@
     </ul>
   </main>
 
+  <section class="work" id="work" aria-label="Work">
+    <img class="work-mark" src="assets/img/dizai-mark.svg?v=202611111453" width="83" height="104" alt="">
+    <h2 class="display work-title">WORK</h2>
+    <ul class="work-list">
+      <li class="work-card wc-1"><a href="work/viettel-post/"><img src="assets/img/work/viettel-post.jpg?v=202611111453" width="820" height="820" alt="Viettel Post mobile app"></a></li>
+      <li class="work-card wc-2"><a href="work/viettel-post/"><img src="assets/img/work/viettel-post.jpg?v=202611111453" width="820" height="820" alt="Viettel Post mobile app"></a></li>
+      <li class="work-card wc-3"><a href="work/viettel-post/"><img src="assets/img/work/viettel-post.jpg?v=202611111453" width="820" height="820" alt="Viettel Post mobile app"></a></li>
+      <li class="work-card wc-4"><a href="work/viettel-post/"><img src="assets/img/work/viettel-post.jpg?v=202611111453" width="820" height="820" alt="Viettel Post mobile app"></a></li>
+    </ul>
+  </section>
+  </div>
+  <div class="scroll-space" aria-hidden="true"></div>
+
   <div class="cursor cursor-invert" aria-hidden="true"></div>
   <div class="cursor cursor-tint" aria-hidden="true"></div>
-  <script src="assets/js/loader.js?v=202611111347"></script>
-  <script src="assets/js/cursor.js?v=202611111347"></script>
+  <script src="assets/js/loader.js?v=202611111453"></script>
+  <script src="assets/js/work.js?v=202611111453"></script>
+  <script src="assets/js/cursor.js?v=202611111453"></script>
 </body>
 </html>
