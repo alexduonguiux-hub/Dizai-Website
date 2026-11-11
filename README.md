@@ -10,7 +10,7 @@ Website của Đìzai Studio. HTML/CSS tĩnh, không cần build: mở `index.ht
 - `assets/vendor/gsap/`: GSAP 3.15.0 (gsap, ScrollTrigger, CustomEase, ScrollToPlugin), bản rút gọn lấy nguyên từ npm. Dùng miễn phí kể cả thương mại theo [Standard "No Charge" GSAP License](https://gsap.com/standard-license); đây không phải giấy phép mã nguồn mở (xem `NOTICE.md`).
 - `assets/js/cursor.js`: con trỏ chấm tròn màu chữ, đảo sang màu nền khi chồng lên chữ đậm (chỉ trên máy có chuột)
 - `assets/css/style.css`: toàn bộ style và token màu (`--paper`, `--green-900`, `--green-500`)
-- `assets/fonts/`: AnNam Serif bản variable woff2 (Roman + Italic, wght 400–700), lấy từ repo `dizai-serif` v0.912
+- `assets/fonts/`: AnNam Serif bản variable woff2 (Roman + Italic, wght 400–700), lấy từ repo `dizai-serif` v0.913
 - `assets/img/dizai-studio-seal.svg`: logo mark (con dấu tròn) Đìzai Studio, bản mới xuất từ Figma (`17:261`, 198.9 × 231)
 - `assets/img/star.svg`: dấu ✱ ngăn cách LinkedIn và Facebook trên mobile, xuất từ Figma
 
