@@ -175,6 +175,7 @@
   function cleanup() {
     root.classList.remove("is-loading", "is-loaded", "is-emerging");
     loader.remove();
+    try { sessionStorage.setItem("dz-seen", "1"); } catch (e) {} // once per visit
   }
 
   function fadeOut() {

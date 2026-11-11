@@ -285,9 +285,9 @@
         else gsap.set(c, { x: p * unit, y: cardTop * unit });
       }
       // the current project is the picture level with its name: desktop,
-      // the one spanning the name's height (y 400, the name's middle);
+      // the one spanning the name's height (y 366, the name's middle);
       // mobile, the one over the middle of the screen, above the name
-      var at = G.axis === "y" ? 400 : G.W / 2;
+      var at = G.axis === "y" ? 366 : G.W / 2;
       var gap = at < p ? p - at : at > p + G.len ? at - p - G.len : 0;
       if (gap < best) { best = gap; active = k; }
     });
@@ -480,5 +480,43 @@
     });
   });
 
+  /* ---------- other pages (Contact) ---------- */
+
+  // going there: what shows rolls away first
+  document.querySelectorAll(".nav-list a:not([data-go])").forEach(function (a) {
+    a.addEventListener("click", function (e) {
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.button) return;
+      e.preventDefault();
+      Roll.leave(a.href, [q(".nav-list"), contact, title, hint, capList].concat(homeText),
+                 [seal].concat(marks, cards));
+    });
+  });
+
   window.scrollTo(0, 0);
+
+  // coming back: no loading screen (once per visit); Home rolls in, or,
+  // for "#work", the page glides on to Work
+  if (root.classList.contains("is-return")) {
+    root.classList.add("is-back"); // the letters below start blank
+    if (location.hash === "#work") {
+      history.replaceState(null, "", location.pathname);
+      requestAnimationFrame(function () {
+        navTween = gsap.to(window, { scrollTo: { y: LIST_AT * V, autoKill: false }, duration: reduce ? 0 : 1.6,
+                                     ease: "dz.nav", onComplete: function () { navTween = null; } });
+      });
+    } else {
+      var back = [q(".nav-list"), contact].concat(homeText)
+        .filter(function (el) { return el && el.getClientRects().length; })
+        .map(function (el) { var r = Roll.text(el, "in"); r.set(0); return r; });
+      var sealBack = seal ? Roll.box(seal, "in") : null;
+      if (sealBack) { back.push(sealBack); sealBack.set(0); }
+      (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(function () {
+        back.forEach(function (r, i) {
+          var o = { v: 0 };
+          gsap.to(o, { v: 1, duration: reduce ? 0.01 : 0.8, delay: reduce ? 0 : 0.05 + i * 0.07, ease: "none",
+                       onUpdate: function () { r.set(o.v); } });
+        });
+      });
+    }
+  }
 })();

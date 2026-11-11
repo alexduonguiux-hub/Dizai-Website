@@ -474,12 +474,12 @@ body::after {
   }
   .has-scrub .work-card.is-on { pointer-events: auto; }
   /* the names, beside the pictures: three above the current one, three
-     below; the current one starts at 397 (Figma: list at 307, 30 a name) */
+     below; the current one starts at 351 (Figma: list at 261, 30 a name) */
   .has-scrub .work-caption {
     display: block;
     position: absolute;
     left: calc(var(--u) * 368);
-    top: calc(var(--u) * 397 - 90px);
+    top: calc(var(--u) * 351 - 90px);
     width: calc(var(--u) * 328);
   }
   /* what moves with the scroll gets its own GPU layer */
@@ -509,6 +509,68 @@ body::after {
     text-align: center;
   }
 }
+
+/* ---------- Contact (Figma Contact 10:1546, 1512 × 813) ----------
+   Units of the 1432 content width. In the middle: SEND US YOUR PROBLEMS,
+   HELLO@DIZAI.STUDIO (Medium 155, ink), SAIGON ✱ VIETNAM (Medium 155,
+   pale green), LINKEDIN ✱ FACEBOOK, 20 apart; the "đs" mark top centre,
+   the contact block top left, © 2024 at the bottom. */
+.cp { --u: calc(100cqi / 1432); --fs: calc(var(--u) * 155); position: relative; min-height: calc(100svh - 2 * var(--gutter)); }
+.cp-mark {
+  position: absolute;
+  left: calc(50% - var(--u) * 41.5);
+  top: calc(var(--u) * -1);
+  height: calc(var(--u) * 104);
+  width: auto;
+}
+.page-contact .cp-info { top: 0; }
+.cp-center {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--u) * 20);
+  text-align: center;
+}
+.cp-big {
+  font-size: var(--fs);
+  font-weight: 500;
+  line-height: 0.7;       /* box = cap height, like .display */
+  white-space: nowrap;
+  position: relative;
+  top: -0.01em;
+}
+@supports (overflow-clip-margin: 1px) {
+  .cp-big { overflow: clip; overflow-clip-margin: 0.03em; }
+}
+.cp-email a { display: flex; justify-content: center; }
+.cp-city {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.129em;           /* 20 at 155 */
+  color: var(--green-500);
+}
+.cp-star { display: block; flex: none; height: 0.71em; width: auto; } /* 107 × 110 at 155 */
+.cp-social { display: flex; justify-content: center; gap: 8px; }
+.cp-social li { display: flex; align-items: center; gap: 8px; }
+.cp-social li + li::before {
+  content: url("../img/star.svg");
+  display: block;
+  width: 10px;
+  height: 10px;
+  line-height: 0;
+}
+.cp-copy { position: absolute; left: 0; right: 0; bottom: 0; text-align: center; }
+/* contact.js rolls everything in; until then nothing shows (a timer in
+   the page's head lifts this if the script never runs) */
+.is-entering .site-nav, .is-entering .cp { visibility: hidden; }
+/* back on Home from another page: hidden until work.js has its letters
+   ready to roll in (a timer in the head lifts it if the script never runs) */
+.is-return:not(.is-back) .site-nav, .is-return:not(.is-back) .hero { visibility: hidden; }
 
 /* ---------- Mobile (Figma Home 13:8, 390 × 844) ---------- */
 @media (max-width: 720px) {
@@ -611,6 +673,22 @@ body::after {
      the contact block, the seal (232 × 269) in the middle of the screen,
      100% (160) at the bottom right */
   .loader-top { align-items: flex-start; }
+
+  /* Contact on a phone (Figma Contact 32:24558, 390 × 844): the mark under
+     the menu, no small contact block; in the middle, 12 apart: the email on
+     two lines, then SAIGON / ✱ / VIETNAM stacked, all Regular 66 (line
+     height 0.9: 13 between the two email lines), LinkedIn ✱ Facebook 20
+     under them */
+  .cp { --fs: calc(100cqi * 66 / 358); }
+  .cp-mark { top: 44px; left: calc(50% - 100cqi * 25.5 / 358); height: calc(100cqi * 64 / 358); }
+  .page-contact .cp-info { display: none; }
+  .cp-center { gap: 12px; }
+  .cp-big { font-weight: 400; }
+  .cp-email a { flex-direction: column; align-items: center; gap: 0.2em; }
+  .cp-email .cp-l { display: block; }
+  .cp-city { flex-direction: column; align-items: center; gap: 12px; }
+  .cp-star { height: 0.697em; } /* 45 × 46 at 66 */
+  .cp-social { margin-top: 8px; } /* 20 under VIETNAM */
   .loader-bottom { --fs: calc(100cqi * 160 / 358); justify-content: flex-end; }
   .loader-bottom .seal {
     position: absolute;

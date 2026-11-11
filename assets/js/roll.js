@@ -163,5 +163,27 @@
     document.fonts.ready.then(function () { live.slice().forEach(function (r) { r.resplit(); }); });
   }
 
-  window.DzRoll = { text: text, box: box };
+  /* Leaving for another page: every piece that shows rolls away (text) or
+     slides up out of its window (pictures), quickly, then the browser goes
+     on. pieces: elements; boxes: elements drawn as pictures. Needs GSAP. */
+  function shown(el) {
+    if (!el || !el.getClientRects().length) return false;
+    var cs = getComputedStyle(el), r = el.getBoundingClientRect();
+    return cs.visibility !== "hidden" && +cs.opacity > 0.05 &&
+           r.bottom > 0 && r.top < innerHeight && r.right > 0 && r.left < innerWidth;
+  }
+  function leave(href, pieces, boxes) {
+    var gsap = window.gsap, reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!gsap || reduce) { location.href = href; return; }
+    var rs = pieces.filter(function (el) { return shown(el) && !el.classList.contains("is-rolling"); })
+                   .map(function (el) { return text(el, "out"); })
+      .concat((boxes || []).filter(shown).map(function (el) { return box(el, "out"); }));
+    var o = { v: 0 }, gone = false;
+    function go() { if (!gone) { gone = true; location.href = href; } }
+    gsap.to(o, { v: 1, duration: 0.5, ease: "none", onComplete: go,
+                 onUpdate: function () { rs.forEach(function (r, i) { r.set(o.v * 1.25 - i * 0.03); }); } });
+    setTimeout(go, 1200); // never get stuck here
+  }
+
+  window.DzRoll = { text: text, box: box, leave: leave };
 })();
