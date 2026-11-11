@@ -22,6 +22,7 @@
   --paper: #f0efee;
   --green-900: #215028;
   --green-500: #749674;
+  --green-flap: #10291a; /* digit half turned edge-on during a flip */
 
   --gutter: max(16px, calc(100vw * 40 / 1512));
   --text-sm: max(14px, calc(100vw * 20 / 1512));
@@ -186,8 +187,61 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 }
 .loader-count { text-align: right; }
 
+/* Split-flap count. Each digit cell stacks four layers in one grid area:
+   static top half (new digit), static bottom half (old digit), and two
+   flaps — the old top half falls away, then the new bottom half drops in. */
+.flip {
+  display: inline-grid;
+  perspective: 2.5em;
+  --flip-ms: 160ms;
+}
+.flip > span {
+  grid-area: 1 / 1;
+  text-align: center;
+  background: var(--paper); /* each half is an opaque card over the one below */
+}
+.flip-top,
+.flip-flap-top    { clip-path: inset(-0.1em -0.1em 50% -0.1em); }
+.flip-bottom,
+.flip-flap-bottom { clip-path: inset(50% -0.1em -0.1em -0.1em); }
+.flip-flap-top,
+.flip-flap-bottom {
+  visibility: hidden;
+  transform-origin: 50% 50%;
+  backface-visibility: hidden;
+}
+.flip.is-flipping .flip-flap-top {
+  visibility: visible;
+  animation: flap-top var(--flip-ms) ease-in forwards;
+}
+.flip.is-flipping .flip-flap-bottom {
+  visibility: visible;
+  animation: flap-bottom var(--flip-ms) ease-out forwards;
+}
+@keyframes flap-top {
+  0%        { transform: rotateX(0deg); }
+  50%, 100% { transform: rotateX(90deg);  color: var(--green-flap); }
+}
+@keyframes flap-bottom {
+  0%, 50% { transform: rotateX(-90deg); color: var(--green-flap); }
+  100%    { transform: rotateX(0deg); }
+}
+
+/* WebGL curtain: drawn over the loader, which hides once the first
+   curtain frame is on screen (the two look identical at rest). */
+.curtain {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 101;
+  pointer-events: none;
+}
+.is-curtain .loader { visibility: hidden; }
+
 @media (prefers-reduced-motion: reduce) {
   .is-loading .loader { transition: none; }
+  .flip { --flip-ms: 0ms; }
 }
 
 /* ---------- Mobile (Figma Home 13:8, 390 × 844) ---------- */
