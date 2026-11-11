@@ -145,6 +145,70 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
   height: calc(var(--fs) * 0.7);
 }
 
+/* Home seal as a thin cut-out card: no backing, just the seal shape with a
+   little thickness. Front and back faces are the seal; between them 24
+   stacked copies in a darker green form the cut edge (dense enough to read
+   as solid), each a hair smaller than the faces so face-on the faces cover
+   them completely. Like a real cut-out, the back is the same shape seen
+   from behind (so it reads mirrored) — any other artwork wouldn't line up
+   with the edge. Thickness ≈ 2.5% of the height.
+   It starts turning only once the loader is gone, from 0°, so it carries
+   on exactly where the stamp left it. */
+.seal-coin {
+  --t: calc(var(--fs) * 0.7 * 0.025);
+  position: relative;
+  display: block;
+  flex: none;
+  height: calc(var(--fs) * 0.7);
+  aspect-ratio: 197 / 231;
+  transform-style: preserve-3d;
+}
+.seal-coin > * {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.coin-face { backface-visibility: hidden; }
+.coin-face .seal { width: 100%; height: 100%; }
+/* the front sits on the page plane (so face-on it is exactly the flat seal);
+   the thickness goes back from it */
+.coin-front { transform: none; }
+.coin-back  { transform: translateZ(calc(var(--t) * -1)); }
+.coin-rim {
+  transform: translateZ(calc(var(--t) * (var(--i) / 23) * -0.97 - var(--t) * 0.015)) scale(0.992);
+  filter: brightness(0.62);
+  opacity: 0; /* only while turned: face-on, 24 anti-aliased edges would darken the outline */
+}
+html:not(.is-loading) .seal-coin { animation: coin-turn 9s linear infinite; }
+html:not(.is-loading) .coin-front { animation: coin-light-front 9s linear infinite; }
+html:not(.is-loading) .coin-back  { animation: coin-light-back 9s linear infinite; }
+html:not(.is-loading) .coin-rim   { animation: coin-rim 9s linear infinite; }
+@keyframes coin-rim {
+  0%, 100%        { opacity: 0; }
+  6%, 44%, 56%, 94% { opacity: 1; }
+  50%             { opacity: 0; }
+}
+@keyframes coin-turn {
+  from { transform: perspective(calc(var(--fs) * 4)) rotateY(0deg); }
+  to   { transform: perspective(calc(var(--fs) * 4)) rotateY(360deg); }
+}
+/* each face darkens as it turns away from the light */
+@keyframes coin-light-front {
+  0%, 100% { filter: brightness(1); }
+  25%, 75% { filter: brightness(0.86); }
+}
+@keyframes coin-light-back {
+  0%, 100% { filter: brightness(0.86); }
+  50%      { filter: brightness(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  html:not(.is-loading) .seal-coin,
+  html:not(.is-loading) .coin-front,
+  html:not(.is-loading) .coin-back,
+  html:not(.is-loading) .coin-rim { animation: none; }
+}
+
 /* Desktop info blocks, placed against the type rows (units of 1432) */
 .services {
   position: absolute;
