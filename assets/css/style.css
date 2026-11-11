@@ -328,7 +328,7 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
     container-type: inline-size;
     overflow: hidden;
   }
-  .has-scrub .scroll-space { display: block; height: 320svh; }
+  .has-scrub .scroll-space { display: block; height: 760svh; } /* room for the carousel's wrap-round */
 
   .has-scrub .work { position: absolute; inset: var(--gutter); margin: 0; pointer-events: none; }
   .has-scrub .work-mark, .has-scrub .work-title, .has-scrub .work-card { opacity: 0; }
@@ -347,11 +347,10 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
     position: absolute;
     width: calc(100cqi * 328 / 1432);
   }
-  .has-scrub .wc-1 { left: 0;                          top: calc(100cqi * 275 / 1432); }
-  .has-scrub .wc-2 { left: calc(100cqi * 368 / 1432);  top: calc(100cqi * 379 / 1432); }
-  .has-scrub .wc-3 { left: calc(100cqi * 736 / 1432);  top: calc(100cqi * 320 / 1432); }
-  .has-scrub .wc-4 { left: calc(100cqi * 1104 / 1432); top: calc(100cqi * 275 / 1432); }
+  .has-scrub .work-card { left: 0; top: 0; } /* placed along the wave by work.js */
   .has-scrub .work-card.is-on { pointer-events: auto; }
+  /* what moves with the scroll gets its own GPU layer */
+  .has-scrub .hero .contact, .has-scrub .work-title, .has-scrub .work-card { will-change: transform; }
 }
 /* small screens: no Work layout in Figma yet */
 @media (max-width: 720px) {

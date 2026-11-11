@@ -1,21 +1,22 @@
 /* Home → Work, driven by scroll (Figma Home → Work-01 → Work-02 → Work-03).
    Desktop only (≥ 721 px); on small screens Work simply follows Home.
 
-   The page is one pinned stage; scrolling through the spacer below it moves
-   a progress value p from 0 (Home) to 1 (Work-03), and every element is a
-   pure function of p, so scrolling back plays it all in reverse.
+   The page is one pinned stage. Scrolling moves it through, in viewport
+   heights (V) of scroll:
 
-     0.00–0.26  text that only Home has soaks back into the paper
-     0.04–0.30  what both pages share moves to its Work place: the contact
-                block slides to the top, the seal shrinks to the top centre
-                and turns into the small "đs" mark; the menu marks WORK
-     0.22–0.38  WORK prints in (ink soak) low on the page — Work-01
-     0.42–0.62  scrolling on pushes WORK up to the top, turning light green;
-                the mark leaves; the first project slides in — Work-02
-     0.62–0.94  the other projects follow — Work-03
+     0    – 0.6 V  text and seal that only Home has soak back into the paper
+     0.1  – 0.7 V  the contact block slides to its Work place; the menu marks
+                   WORK at 0.45 V
+     0.5  – 0.85V  WORK and Work's own small "đs" mark print in — Work-01
+     1.0  – 1.6 V  WORK is pushed up to the top and lightens; the mark leaves;
+                   the first project arrives from the right — Work-02
+     1.6 V →       the projects travel right to left along a gentle wave, as
+                   an endless carousel (Work-03 is where four are in view);
+                   the scroll wraps round so it never runs out
 
-   Project images hang like sheets of paper pinned at the top: they sway a
-   little on their own and swing with the speed of the scroll. */
+   Everything is a function of the (smoothed) scroll position, so scrolling
+   back plays it in reverse. Project images hang like sheets of paper pinned
+   at the top: they sway on their own and swing with the speed of scroll. */
 (function () {
   "use strict";
 
@@ -48,6 +49,33 @@
     return n;
   }
   var S = 8, I_HIDDEN = -S * 1.25, I_SHOWN = 1;
+
+  /* Paper-fibre noise, drawn once into a small tile and repeated (feImage +
+     feTile). Generating turbulence inside the filter on every scroll frame
+     was what made the scroll stutter. Smoothed value noise, 3 octaves. */
+  var tileCache = {};
+  function noiseTile(size) {
+    if (tileCache[size]) return tileCache[size];
+    var c = document.createElement("canvas");
+    c.width = c.height = size;
+    var x = c.getContext("2d");
+    x.fillStyle = "#808080"; x.fillRect(0, 0, size, size);
+    [[8, 0.55], [16, 0.3], [32, 0.15]].forEach(function (o) {
+      var n = o[0], small = document.createElement("canvas");
+      small.width = small.height = n;
+      var sx = small.getContext("2d"), img = sx.createImageData(n, n);
+      for (var i = 0; i < n * n; i++) {
+        var v = Math.random() * 255;
+        img.data[i * 4] = img.data[i * 4 + 1] = img.data[i * 4 + 2] = v; img.data[i * 4 + 3] = 255;
+      }
+      sx.putImageData(img, 0, 0);
+      x.globalAlpha = o[1];
+      x.imageSmoothingEnabled = true;
+      // draw 3×3 so the smoothed tile wraps without seams
+      for (var a = -1; a <= 1; a++) for (var b = -1; b <= 1; b++) x.drawImage(small, a * size, b * size, size, size);
+    });
+    return (tileCache[size] = c.toDataURL("image/png"));
+  }
   /* Returns set(v): v = 1 fully printed (no filter at all), 0 gone.
      shown: the opacity to leave when printed ("" = the stylesheet's). */
   function soak(el, shown) {
@@ -55,13 +83,19 @@
     var h = Math.max(el.getBoundingClientRect().height, 40);
     var f = node("filter", { id: "dz-wsoak-" + (uid++), x: "-5%", y: "-10%", width: "110%", height: "120%",
                              "color-interpolation-filters": "sRGB" }, svg);
-    node("feTurbulence", { type: "fractalNoise", baseFrequency: Math.min(0.09, 0.022 * Math.max(1, 231 / h)).toFixed(4),
-                           numOctaves: "3", seed: String(17 + uid * 13), result: "fibre" }, f);
+    // blotch size follows the type size (a 330 px line gets ~360 px tiles)
+    var T = Math.max(48, Math.round(h * 1.55));
+    var fe = node("feImage", { x: "0", y: "0", width: String(T), height: String(T),
+                               preserveAspectRatio: "none", result: "tile" }, f);
+    fe.setAttribute("href", noiseTile(128));
+    fe.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", noiseTile(128));
+    node("feTile", { "in": "tile", result: "fibre" }, f);
     node("feColorMatrix", { "in": "fibre", type: "matrix", result: "fibreA",
                             values: "0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  1 0 0 0 0" }, f);
-    node("feGaussianBlur", { "in": "SourceAlpha", stdDeviation: Math.max(1.2, h * 0.02).toFixed(2), result: "core" }, f);
-    node("feComposite", { "in": "fibreA", in2: "core", operator: "arithmetic",
-                          k1: "0", k2: "0.45", k3: "0.75", k4: "0", result: "mix" }, f);
+    // no blur here (unlike the loading hand-off): this filter is re-run while
+    // scrolling, so the ink comes and goes by paper-fibre blotches alone
+    node("feComposite", { "in": "fibreA", in2: "SourceAlpha", operator: "arithmetic",
+                          k1: "0", k2: "0.75", k3: "0.45", k4: "0", result: "mix" }, f);
     var ct = node("feComponentTransfer", { "in": "mix", result: "level" }, f);
     var fa = node("feFuncA", { type: "linear", slope: String(S), intercept: String(I_HIDDEN) }, ct);
     node("feComposite", { "in": "SourceGraphic", in2: "level", operator: "in" }, f);
@@ -69,6 +103,8 @@
     return function (v) {
       v = clamp01(v);
       if (v === last) return;
+      // re-filter only on a visible change; ends always land exactly
+      if (v > 0 && v < 1 && last > 0 && last < 1 && Math.abs(v - last) < 0.045) return;
       last = v;
       if (v >= 1) { el.style.filter = ""; el.style.opacity = shown; return; }
       if (v <= 0) { el.style.filter = ""; el.style.opacity = "0"; return; }
@@ -81,47 +117,45 @@
   /* ---------- elements ---------- */
 
   var q = function (s) { return document.querySelector(s); };
-  var homeOnly = [".line-design", ".line-studio", ".line-est", ".line-year",
+  var homeOnly = [".line-design", ".line-studio", ".type-row .seal", ".line-est", ".line-year",
                   ".services", ".scroll-hint", ".social"].map(q).filter(Boolean);
   var contact = q(".hero .contact");
-  var seal = q(".type-row .seal");
   var mark = q(".work-mark");
   var title = q(".work-title");
-  var cards = [].slice.call(document.querySelectorAll(".work-card"));
+  var list = q(".work-list");
   var navHome = q('.nav-list a[data-go="home"]');
   var navWork = q('.nav-list a[data-go="work"]');
 
-  var on = false, soaks = null, unit = 1, m = null;
+  // the carousel needs eight sheets to fill the loop; extra ones are copies
+  var originals = [].slice.call(list.querySelectorAll(".work-card"));
+  var cards = originals.slice();
+  for (var ci = 0; cards.length < 8; ci++) {
+    var clone = originals[ci % originals.length].cloneNode(true);
+    clone.setAttribute("aria-hidden", "true");
+    clone.querySelector("a").setAttribute("tabindex", "-1");
+    list.appendChild(clone);
+    cards.push(clone);
+  }
+
+  var on = false, soaks = null, unit = 1;
 
   function measure() {
-    // clear what we move, then measure the resting layout
-    [contact, seal, title].concat(cards).forEach(function (el) { if (el) el.style.transform = ""; });
+    [contact, title].forEach(function (el) { if (el) el.style.transform = ""; });
     unit = work.getBoundingClientRect().width / 1432;
-    var sr = seal.getBoundingClientRect(), mr = mark.getBoundingClientRect();
-    // the seal's inner oval (where the "đs" mark sits): centre and height as
-    // fractions of the seal's box, from the Figma artwork
-    var s = mr.height / (sr.height * 0.6084);
-    m = {
-      s: s,
-      dx: (mr.left + mr.width / 2) - sr.left - 0.4974 * sr.width * s,
-      dy: (mr.top + mr.height / 2) - sr.top - 0.5014 * sr.height * s
-    };
   }
 
   function enable() {
     if (on) return;
     on = true;
     root.classList.add("has-scrub");
-    if (!soaks) soaks = { home: homeOnly.map(function (el) { return soak(el); }), title: soak(title, "1") };
+    if (!soaks) soaks = { home: homeOnly.map(function (el) { return soak(el); }), title: soak(title, "1"), mark: soak(mark, "1") };
     measure();
-    render(current, true);
   }
   function disable() {
     if (!on) return;
     on = false;
     root.classList.remove("has-scrub");
-    // hand everything back to the stylesheet
-    homeOnly.concat([contact, seal, mark, title]).concat(cards).forEach(function (el) {
+    homeOnly.concat([contact, mark, title]).concat(cards).forEach(function (el) {
       if (!el) return;
       el.style.transform = el.style.opacity = el.style.filter = el.style.color = "";
     });
@@ -154,68 +188,114 @@
     });
   }
 
-  /* ---------- progress → layout ---------- */
+  /* ---------- the carousel's wave ---------- */
 
-  var target = 0, current = 0;
-  function progress() {
-    var max = document.documentElement.scrollHeight - window.innerHeight;
-    return max > 0 ? clamp01(window.scrollY / max) : 0;
+  // Card tops in Work-03 (units of 1432, card lefts 0 / 368 / 736 / 1104):
+  // 275, 379, 320, 275. A periodic Catmull-Rom curve through them, repeating
+  // every 4 cards, is the wave the sheets ride along.
+  var PITCH = 368, WAVE = [275, 379, 320, 275], LOOP_CARDS = 8, SPAN = PITCH * LOOP_CARDS;
+  function waveY(x) {
+    var n = WAVE.length, t = x / PITCH, i = Math.floor(t), f = t - i;
+    function P(k) { return WAVE[((k % n) + n) % n]; }
+    var p0 = P(i - 1), p1 = P(i), p2 = P(i + 1), p3 = P(i + 2);
+    return 0.5 * ((2 * p1) + (-p0 + p2) * f + (2 * p0 - 5 * p1 + 4 * p2 - p3) * f * f + (-p0 + 3 * p1 - 3 * p2 + p3) * f * f * f);
   }
+
+  /* ---------- scroll → layout ---------- */
+
+  var V = window.innerHeight;
+  // carousel speed: one card pitch per 0.35 V of scroll
+  var RATE = PITCH / 0.35; // units per V
+  var CAROUSEL_AT = 1.6;   // V: Work-02
+  // the wrap-round zone (all eight sheets have entered by then)
+  var LO = 3.4, LOOP = LOOP_CARDS * 0.35, HI = LO + LOOP;
+  var loops = 0;
 
   function mixColor(a, b, k) {
     return "rgb(" + [0, 1, 2].map(function (i) { return Math.round(a[i] + (b[i] - a[i]) * k); }).join(",") + ")";
   }
   var DARK = [0x21, 0x50, 0x28], LIGHT = [0x74, 0x96, 0x74];
 
-  function render(p) {
-    // Home-only text soaks away, one after another
-    soaks.home.forEach(function (set, i) { set(1 - seg(p, i * 0.02, 0.12 + i * 0.02)); });
+  function render(y) {
+    var v = y / V;
 
-    // shared: contact slides up to the top (251 units)
-    var mv = ease(seg(p, 0.04, 0.30));
+    soaks.home.forEach(function (set, i) { set(1 - seg(v, i * 0.04, 0.3 + i * 0.04)); });
+
+    var mv = ease(seg(v, 0.1, 0.7));
     contact.style.transform = mv ? "translateY(" + (-251 * unit * mv).toFixed(2) + "px)" : "";
 
-    // shared: the seal flies to the top centre, then becomes the small mark
-    seal.style.transformOrigin = "0 0";
-    var s = 1 + (m.s - 1) * mv;
-    seal.style.transform = mv ? "translate(" + (m.dx * mv).toFixed(2) + "px," + (m.dy * mv).toFixed(2) + "px) scale(" + s.toFixed(4) + ")" : "";
-    var swap = seg(p, 0.22, 0.32);
-    seal.style.opacity = swap ? String(1 - swap) : "";
-    var markOut = seg(p, 0.42, 0.52);
-    mark.style.opacity = String(Math.max(0, swap - markOut));
-
-    // menu: WORK becomes the current page halfway through
-    var atWork = p >= 0.18;
+    var atWork = v >= 0.45;
     if (atWork !== (navWork.getAttribute("aria-current") === "page")) {
-      navWork.toggleAttribute("aria-current", atWork); if (atWork) navWork.setAttribute("aria-current", "page");
-      navHome.toggleAttribute("aria-current", !atWork); if (!atWork) navHome.setAttribute("aria-current", "page");
+      if (atWork) { navWork.setAttribute("aria-current", "page"); navHome.removeAttribute("aria-current"); }
+      else { navHome.setAttribute("aria-current", "page"); navWork.removeAttribute("aria-current"); }
     }
 
-    // WORK prints in low (Work-01), then is pushed up and lightens (Work-02)
-    soaks.title(seg(p, 0.22, 0.38));
-    var up = ease(seg(p, 0.42, 0.62));
+    soaks.title(seg(v, 0.5, 0.85));
+    soaks.mark(seg(v, 0.55, 0.85) - seg(v, 1.0, 1.2));
+    var up = ease(seg(v, 1.0, 1.6));
     title.style.transform = "translateY(" + (502 * unit * (1 - up)).toFixed(2) + "px)";
     title.style.color = mixColor(DARK, LIGHT, up);
 
-    // projects slide in with the scroll: the right one first, then the rest
-    var windows = [[0.66, 0.82], [0.72, 0.88], [0.78, 0.94], [0.48, 0.66]];
-    cards.forEach(function (c, i) {
-      var k = easeOut(seg(p, windows[i][0], windows[i][1]));
-      c.style.opacity = String(k);
-      c.style.transform = "translateY(" + ((1 - k) * window.innerHeight * 0.7).toFixed(1) + "px)";
-      c.classList.toggle("is-on", k > 0.6);
+    // carousel offset (units): 0 at Work-02, 1104 at Work-03, on and on after
+    var o = (v - CAROUSEL_AT) * RATE;
+    cards.forEach(function (c, k) {
+      // card k first comes in from the right when o reaches k·368 − 328;
+      // before that it waits off screen
+      var entered = o > k * PITCH - 328 - 520;
+      var x = 1104 + k * PITCH - o;
+      if (entered) x = ((x + PITCH) % SPAN + SPAN) % SPAN - PITCH;
+      var show = entered && x > -PITCH && x < 1432 + 40;
+      c.style.opacity = show ? "1" : "0";
+      c.classList.toggle("is-on", show && x > -200 && x < 1300);
+      if (show) {
+        c.style.transform = "translate(" + (x * unit).toFixed(1) + "px," + (waveY(x) * unit).toFixed(1) + "px)";
+      }
     });
   }
 
-  var lastT = performance.now();
+  var target = 0, current = 0, rendered = -1, lastT = performance.now();
+
+  // keep the scroll inside the wrap-round zone once the carousel is running
+  function wrap() {
+    var y = window.scrollY, d = LOOP * V;
+    if (y > HI * V) { jump(-d); loops++; }
+    else if (y < LO * V && loops > 0) { jump(d); loops--; }
+  }
+  function jump(d) {
+    window.scrollTo(0, window.scrollY + d);
+    current += d; target += d; rendered += d; lastY += d;
+  }
+
+  /* Menu jumps run on our own clock and curve (ease-in-out), not the
+     browser's smooth scroll, so the whole transition follows one curve. */
+  var tween = null;
+  function scrollToY(to) {
+    var from = window.scrollY, dist = Math.abs(to - from);
+    if (reduce || dist < 2) { window.scrollTo(0, to); return; }
+    // longer trips take longer, within 1.2–2.6 s
+    var dur = Math.max(1200, Math.min(2600, 900 + dist / V * 450));
+    tween = { from: from, to: to, t0: performance.now(), dur: dur };
+  }
+  ["wheel", "touchstart", "keydown"].forEach(function (ev) {
+    window.addEventListener(ev, function () { tween = null; }, { passive: true }); // the user takes over
+  });
+
   function loop(t) {
     var dt = Math.min(3, (t - lastT) / 16.67); lastT = t;
     if (on && !root.classList.contains("is-loading")) {
-      target = progress();
-      // a touch of inertia, so wheel steps glide
-      current += (target - current) * (reduce ? 1 : Math.min(1, 0.16 * dt));
-      if (Math.abs(target - current) < 0.0004) current = target;
-      render(current);
+      if (tween) {
+        var k = ease(clamp01((t - tween.t0) / tween.dur));
+        var y = tween.from + (tween.to - tween.from) * k;
+        window.scrollTo(0, y);
+        target = current = y; // no inertia on top of the curve
+        if (k >= 1) tween = null;
+      } else {
+        wrap();
+        target = window.scrollY;
+        current += (target - current) * (reduce ? 1 : Math.min(1, 0.16 * dt)); // a touch of inertia
+        if (Math.abs(target - current) < 0.5) current = target;
+      }
+      if (Math.abs(current - rendered) > 0.3) { render(current); rendered = current; }
       swayStep(dt, t);
     }
     requestAnimationFrame(loop);
@@ -227,15 +307,23 @@
     a.addEventListener("click", function (e) {
       if (!on) return; // small screens: the plain #anchors do the job
       e.preventDefault();
-      var max = document.documentElement.scrollHeight - window.innerHeight;
-      window.scrollTo({ top: a.dataset.go === "work" ? max : 0, behavior: reduce ? "auto" : "smooth" });
+      loops = 0;
+      if (a.dataset.go === "home" && window.scrollY > LO * V) { // far into the loop: go straight
+        window.scrollTo(0, LO * V); current = target = rendered = LO * V; lastY = window.scrollY;
+      }
+      scrollToY(a.dataset.go === "work" ? (CAROUSEL_AT + 1104 / RATE) * V : 0);
     });
   });
 
   function sync() { if (mq.matches) enable(); else disable(); }
   mq.addEventListener ? mq.addEventListener("change", sync) : mq.addListener(sync);
-  window.addEventListener("resize", function () { if (on) { measure(); render(current); } });
+  window.addEventListener("resize", function () {
+    var v = window.scrollY / V;
+    V = window.innerHeight;
+    if (on) { measure(); window.scrollTo(0, v * V); current = target = rendered = window.scrollY; render(current); }
+  });
   window.scrollTo(0, 0);
   sync();
+  if (on) render(0);
   requestAnimationFrame(loop);
 })();
