@@ -509,7 +509,7 @@ body::after {
 
 /* ---------- Contact (Figma Contact 10:1546, 1512 × 813) ----------
    Units of the 1432 content width. In the middle: SEND US YOUR PROBLEMS,
-   HELLO@DIZAI.STUDIO (Medium 155, ink), SAIGON ✱ VIETNAM (Medium 155,
+   HELLO@ / DIZAI.STUDIO on two lines (Medium 155, ink), SAIGON ✱ VIETNAM (Medium 155,
    pale green), LINKEDIN ✱ FACEBOOK, 20 apart; the "đs" mark top centre,
    the contact block top left, © 2024 at the bottom. */
 .cp { --u: calc(100cqi / 1432); --fs: calc(var(--u) * 155); position: relative; min-height: calc(100svh - 2 * var(--gutter)); }
@@ -542,7 +542,10 @@ body::after {
   top: -0.01em;
 }
 /* (no clipping here, unlike .display: the @ hangs well below the baseline) */
-.cp-email a { display: flex; justify-content: center; }
+/* the email on two lines, HELLO@ / DIZAI.STUDIO (line height 0.82:
+   0.12em between the cap boxes) */
+.cp-email a { display: flex; flex-direction: column; align-items: center; gap: 0.12em; }
+.cp-email .cp-l { display: block; }
 .cp-city {
   display: flex;
   align-items: flex-start;
