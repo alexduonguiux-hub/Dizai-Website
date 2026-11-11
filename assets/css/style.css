@@ -181,14 +181,14 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
   }
 
   /* type block centred in the screen, clear of the contact block
-     (top at gutter + 80px, 3 lines = 54px) and the social block */
+     (top at gutter + 46px, 3 lines = 54px) and the social block */
   .hero {
     position: static;
     flex: 1;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding-block: calc(var(--gutter) + 80px + 54px + 16px);
+    padding-block: calc(var(--gutter) + 46px + 54px + 16px);
   }
 
   /* Same three rows at 84px on 358: seal · EST · 2024 become one centred
@@ -217,6 +217,6 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
     right: var(--gutter);
     text-align: center;
   }
-  .contact { top: calc(var(--gutter) + 80px); }
+  .contact { top: calc(var(--gutter) + 46px); }
   .social  { top: auto; bottom: var(--gutter); }
 }
