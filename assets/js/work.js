@@ -15,7 +15,7 @@
                    its name rolls in — Work-02
      1.6 V →       the projects keep travelling as an endless list; the
                    scroll wraps round so it never runs out, and the name
-                   beside them comes into focus for the project the list comes to rest on
+                   beside them is soft while the list moves and sharp once it stops
 
    Everything but the names is a function of the (smoothed) scroll
    position, so scrolling back plays it in reverse. The project pictures
@@ -198,32 +198,43 @@
     if (h <= 1) { hintOut.set(0); hintIn.set(h); } else { hintIn.set(1); hintOut.set(h - 1); }
   }
 
-  /* the current project's name: blurs away, then the next one comes into
-     focus (name first, its line a beat after) */
-  var capCur = -1, capWant = -1, capBusy = false;
+  /* The current project's name and line. While the list moves they stay,
+     blurred and faint, and already show the project level with them; when
+     it stops they come into focus at once. So the name is never missing
+     and never the wrong one. */
   var capParts = [capName, capDesc];
+  var capShown = -1, capSoft = null, capOn = false;
+  // no single word alone on the last line: the last two words are tied
+  // with a no-break space (text-wrap: pretty in the CSS evens the rest)
+  function noWidow(t) {
+    var m = /^(.*\S)\s+(\S+)\s*$/.exec(t || "");
+    return m && m[1].indexOf(" ") > -1 ? m[1] + "\u00a0" + m[2] : (t || "");
+  }
   caption.style.visibility = "hidden";
-  gsap.set(capParts, { autoAlpha: 0, filter: "blur(10px)" });
-  function showCaption(k) { capWant = k; if (!capBusy) capStep(); }
-  function capStep() {
-    if (capWant === capCur) return;
-    capBusy = true;
-    function blurIn() {
-      capCur = -1;
-      var next = capWant; // whatever is current now
-      if (next < 0) { caption.style.visibility = "hidden"; capBusy = false; return capStep(); }
-      capName.textContent = cards[next].dataset.name || "";
-      capDesc.textContent = cards[next].dataset.desc || "";
-      caption.style.visibility = "";
-      gsap.fromTo(capParts, { autoAlpha: 0, filter: "blur(10px)", y: 6 },
-        { autoAlpha: 1, filter: "blur(0px)", y: 0, duration: reduce ? 0.01 : 0.6, stagger: reduce ? 0 : 0.08,
-          ease: "power2.out", clearProps: "filter,transform",
-          onComplete: function () { capCur = next; capBusy = false; capStep(); } });
+  function showCaption(k, moving) {
+    if (k < 0) { // before Work-02: not there at all
+      if (capOn) {
+        capOn = false; capSoft = null;
+        gsap.to(capParts, { autoAlpha: 0, filter: "blur(8px)", duration: 0.25, overwrite: true,
+                            onComplete: function () { if (!capOn) caption.style.visibility = "hidden"; } });
+      }
+      return;
     }
-    if (capCur >= 0) {
-      gsap.to(capParts, { autoAlpha: 0, filter: "blur(8px)", duration: reduce ? 0.01 : 0.25, ease: "power1.in",
-                          onComplete: blurIn });
-    } else blurIn();
+    if (k !== capShown) {
+      capShown = k;
+      capName.textContent = noWidow(cards[k].dataset.name);
+      capDesc.textContent = noWidow(cards[k].dataset.desc);
+      if (!moving) capSoft = null; // a new name at rest still blurs in briefly
+    }
+    if (!capOn) {
+      capOn = true; capSoft = null;
+      caption.style.visibility = "";
+      gsap.set(capParts, { autoAlpha: 0, filter: "blur(8px)" });
+    }
+    if (capSoft === moving) return;
+    capSoft = moving;
+    if (moving) gsap.to(capParts, { autoAlpha: 0.45, filter: "blur(5px)", duration: reduce ? 0.01 : 0.18, ease: "power1.out", overwrite: true });
+    else gsap.to(capParts, { autoAlpha: 1, filter: "blur(0px)", duration: reduce ? 0.01 : 0.32, stagger: reduce ? 0 : 0.05, ease: "power2.out", overwrite: true });
   }
 
   /* ---------- the endless list ---------- */
@@ -279,7 +290,7 @@
     smooth.y += d; lastY += d;
   }
 
-  var lastCards = -1, navTween = null, active = -1, stillFor = 0;
+  var lastCards = -1, navTween = null, active = -1, stillFor = 0, lastSeenY = 0;
   function tick(time, deltaTime) {
     if (!on || root.classList.contains("is-loading")) return;
     var dt = Math.min(3, deltaTime / 16.67);
@@ -290,9 +301,11 @@
     if (Math.abs(smooth.y - lastCards) > 0.3) { active = placeCards(v); lastCards = smooth.y; }
     // the name shows once the list has come to rest (a moving list would
     // always be a project or two ahead of it), so it is never the wrong one
-    var moving = navTween || Math.abs(window.scrollY - smooth.y) > 1.5;
-    if (moving) stillFor = 0; else stillFor += deltaTime;
-    showCaption(v >= CAPTION_AT && stillFor > 120 ? active : -1);
+    // moving = the page itself scrolled within the last few frames (not the
+    // smoothing still catching up), so the name sharpens as soon as you stop
+    if (window.scrollY !== lastSeenY || navTween) { lastSeenY = window.scrollY; stillFor = 0; }
+    else stillFor += deltaTime;
+    showCaption(v >= CAPTION_AT ? active : -1, stillFor < 90);
     swayStep(dt, time * 1000);
   }
 
@@ -384,7 +397,7 @@
         el.style.transform = el.style.opacity = el.style.color = "";
       });
       title.classList.remove("is-on"); marks.forEach(function (m) { m.classList.remove("is-on"); });
-      showCaption(-1);
+      showCaption(-1, false);
     };
   });
 
