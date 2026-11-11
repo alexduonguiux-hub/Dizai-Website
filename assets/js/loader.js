@@ -1,5 +1,5 @@
 /* Loading screen (Figma "Loading" 13:257)
-   1. Split-flap count 0 → 100%, following real load progress: it can climb
+   1. Rolling count 0 → 100% (digits slide up), following real load progress: it can climb
       to 90% on time alone and only reaches 100% after window "load".
    2. At 100% the whole screen turns into a WebGL curtain — the loader is
       painted onto a cloth mesh that parts in the middle and is drawn to both
@@ -18,62 +18,81 @@
   var HOLD_MS = reduce ? 0 : 350;   // pause on 100% before the curtain
   var CURTAIN_MS = 2000;
 
-  /* ---------------- Split-flap counter ---------------- */
+  /* ---------------- Rolling counter ---------------- */
 
-  function FlipCell(host) {
+  function RollCell(host) {
     var el = document.createElement("span");
-    el.className = "flip";
-    el.innerHTML =
-      '<span class="flip-top"></span>' +
-      '<span class="flip-bottom" data-gl-skip></span>' +
-      '<span class="flip-flap-top" data-gl-skip></span>' +
-      '<span class="flip-flap-bottom" data-gl-skip></span>';
+    el.className = "roll";
+    el.innerHTML = '<span class="roll-cur"></span><span class="roll-next" data-gl-skip></span>';
     host.appendChild(el);
-    var top = el.children[0], bottom = el.children[1],
-        flapTop = el.children[2], flapBottom = el.children[3];
+    var curEl = el.children[0], nextEl = el.children[1];
     var cur = "", pending = null, busy = false;
 
-    function rest(d) {
-      top.textContent = bottom.textContent = flapTop.textContent = flapBottom.textContent = d;
-    }
-    function flip(to) {
+    function roll(to) {
       busy = true;
-      top.textContent = to;        // new top half waits underneath
-      bottom.textContent = cur;    // old bottom half stays until covered
-      flapTop.textContent = cur;   // old top half falls
-      flapBottom.textContent = to; // new bottom half drops in
-      el.classList.remove("is-flipping");
-      void el.offsetWidth;         // restart the animation
-      el.classList.add("is-flipping");
+      nextEl.textContent = to;
+      el.classList.remove("is-rolling");
+      void el.offsetWidth; // restart the animation
+      el.classList.add("is-rolling");
     }
-    flapBottom.addEventListener("animationend", function () {
-      el.classList.remove("is-flipping");
-      cur = flapBottom.textContent;
-      rest(cur);
+    nextEl.addEventListener("animationend", function () {
+      cur = nextEl.textContent;
+      curEl.textContent = cur;
+      el.classList.remove("is-rolling");
       busy = false;
-      if (pending !== null && pending !== cur) { var d = pending; pending = null; flip(d); }
+      // the counter outruns the roll on the units digit: go straight to
+      // the latest value rather than queueing every step
+      if (pending !== null && pending !== cur) { var d = pending; pending = null; roll(d); }
       else pending = null;
     });
 
     return {
       set: function (d) {
-        if (reduce) { cur = d; rest(d); return; }
+        if (reduce) { cur = curEl.textContent = d; return; }
         if (busy) { pending = d; return; }
-        if (d !== cur) flip(d);
+        if (d !== cur) roll(d);
       },
-      idle: function () { return !busy && pending === null; }
+      idle: function () { return !busy && pending === null; },
+      el: el
     };
+  }
+
+  /* Digit cells break the font's kerning between neighbours ("10" is kerned
+     tighter than "1" + "0"), so put it back as a margin on each cell, measured
+     with the same font on a canvas and cached in em. */
+  var kernCtx = document.createElement("canvas").getContext("2d");
+  var kernCache = {};
+  function kern(a, b) {
+    if (!a || !b) return 0;
+    var key = a + b;
+    if (!(key in kernCache)) {
+      var cs = getComputedStyle(countEl);
+      kernCtx.font = cs.fontStyle + " " + cs.fontWeight + " 100px " + cs.fontFamily;
+      if (!document.fonts.check(kernCtx.font)) return 0; // retry once loaded
+      var m = function (t) { return kernCtx.measureText(t).width; };
+      kernCache[key] = (m(a + b) - m(a) - m(b)) / 100;
+    }
+    return kernCache[key];
   }
 
   var countEl = loader.querySelector(".loader-count");
   countEl.textContent = "";
-  var cells = [FlipCell(countEl), FlipCell(countEl), FlipCell(countEl)];
-  countEl.appendChild(document.createTextNode("%"));
+  var cells = [RollCell(countEl), RollCell(countEl), RollCell(countEl)];
+  var pctEl = document.createElement("span");
+  pctEl.textContent = "%";
+  countEl.appendChild(pctEl);
 
   function showCount(n) {
     var s = String(n);
     while (s.length < 3) s = " " + s;
-    for (var i = 0; i < 3; i++) cells[i].set(s[i] === " " ? "" : s[i]);
+    var prev = "";
+    for (var i = 0; i < 3; i++) {
+      var d = s[i] === " " ? "" : s[i];
+      cells[i].set(d);
+      cells[i].el.style.marginLeft = kern(prev, d) + "em";
+      if (d) prev = d;
+    }
+    pctEl.style.marginLeft = kern(prev, "%") + "em";
   }
   showCount(0);
 
@@ -92,13 +111,13 @@
     if (target - shown < 0.5) shown = target;
     var value = Math.floor(shown);
     showCount(value);
-    if (value >= 100) return waitForFlaps();
+    if (value >= 100) return waitForDigits();
     requestAnimationFrame(tick);
   }
 
-  function waitForFlaps() {
+  function waitForDigits() {
     if (cells.every(function (c) { return c.idle(); })) setTimeout(reveal, HOLD_MS);
-    else requestAnimationFrame(waitForFlaps);
+    else requestAnimationFrame(waitForDigits);
   }
 
   /* ---------------- Reveal ---------------- */
@@ -118,6 +137,7 @@
   }
 
   function reveal() {
+    loader.classList.add("is-done"); // dots stop, fully shown, for the paint
     if (reduce) return fadeOut();
     var curtain = null;
     try { curtain = Curtain(paintLoader()); } catch (e) { curtain = null; }
@@ -126,7 +146,7 @@
   }
 
   /* Paint the loader as it looks right now onto a 2D canvas: every visible
-     text node at its own position (so kerning and the split-flap cells
+     text node at its own position (so kerning and the rolling digit cells
      match the DOM exactly) and every image at its box. */
   function paintLoader() {
     var dpr = Math.min(window.devicePixelRatio || 1, 2);

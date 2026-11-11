@@ -22,7 +22,6 @@
   --paper: #f0efee;
   --green-900: #215028;
   --green-500: #749674;
-  --green-flap: #10291a; /* digit half turned edge-on during a flip */
 
   --gutter: max(16px, calc(100vw * 40 / 1512));
   --text-sm: max(14px, calc(100vw * 20 / 1512));
@@ -179,6 +178,17 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 }
 .loader-contact { text-align: right; }
 
+/* LOADING... — the three dots fade in one after another, then out */
+.loader .dot { animation: dot 1.6s infinite both; }
+.loader .dot:nth-child(2) { animation-delay: 0.2s; }
+.loader .dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes dot {
+  0%, 15%  { opacity: 0; }
+  25%, 80% { opacity: 1; }
+  95%, 100% { opacity: 0; }
+}
+.loader.is-done .dot { animation: none; opacity: 1; }
+
 .loader-bottom {
   --fs: calc(100cqi * 330 / 1432);
   display: flex;
@@ -187,45 +197,20 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 }
 .loader-count { text-align: right; }
 
-/* Split-flap count. Each digit cell stacks four layers in one grid area:
-   static top half (new digit), static bottom half (old digit), and two
-   flaps — the old top half falls away, then the new bottom half drops in. */
-.flip {
+/* Rolling count: each digit cell is a window; on change the old digit
+   slides up and out while the new one slides up into place. The window clips
+   just outside the cap box (overshoot is 0.014em), wide at the sides. */
+.roll {
   display: inline-grid;
-  perspective: 2.5em;
-  --flip-ms: 160ms;
+  clip-path: inset(-0.03em -0.2em);
+  --roll-ms: 200ms;
 }
-.flip > span {
-  grid-area: 1 / 1;
-  text-align: center;
-  background: var(--paper); /* each half is an opaque card over the one below */
-}
-.flip-top,
-.flip-flap-top    { clip-path: inset(-0.1em -0.1em 50% -0.1em); }
-.flip-bottom,
-.flip-flap-bottom { clip-path: inset(50% -0.1em -0.1em -0.1em); }
-.flip-flap-top,
-.flip-flap-bottom {
-  visibility: hidden;
-  transform-origin: 50% 50%;
-  backface-visibility: hidden;
-}
-.flip.is-flipping .flip-flap-top {
-  visibility: visible;
-  animation: flap-top var(--flip-ms) ease-in forwards;
-}
-.flip.is-flipping .flip-flap-bottom {
-  visibility: visible;
-  animation: flap-bottom var(--flip-ms) ease-out forwards;
-}
-@keyframes flap-top {
-  0%        { transform: rotateX(0deg); }
-  50%, 100% { transform: rotateX(90deg);  color: var(--green-flap); }
-}
-@keyframes flap-bottom {
-  0%, 50% { transform: rotateX(-90deg); color: var(--green-flap); }
-  100%    { transform: rotateX(0deg); }
-}
+.roll > span { grid-area: 1 / 1; text-align: center; }
+.roll-next { visibility: hidden; }
+.roll.is-rolling .roll-cur  { animation: roll-out var(--roll-ms) cubic-bezier(0.3, 0, 0.2, 1) forwards; }
+.roll.is-rolling .roll-next { visibility: visible; animation: roll-in var(--roll-ms) cubic-bezier(0.3, 0, 0.2, 1) forwards; }
+@keyframes roll-out { from { transform: translateY(0); }    to { transform: translateY(-120%); } }
+@keyframes roll-in  { from { transform: translateY(120%); } to { transform: translateY(0); } }
 
 /* WebGL curtain: drawn over the loader, which hides once the first
    curtain frame is on screen (the two look identical at rest). */
@@ -241,7 +226,7 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 
 @media (prefers-reduced-motion: reduce) {
   .is-loading .loader { transition: none; }
-  .flip { --flip-ms: 0ms; }
+  .loader .dot { animation: none; }
 }
 
 /* ---------- Mobile (Figma Home 13:8, 390 × 844) ---------- */
