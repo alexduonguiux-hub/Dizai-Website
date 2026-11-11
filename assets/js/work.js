@@ -15,7 +15,7 @@
                    its name rolls in — Work-02
      1.6 V →       the projects keep travelling as an endless list; the
                    scroll wraps round so it never runs out, and the name
-                   beside them rolls over to the current project's
+                   beside them rolls in for the project the list comes to rest on
 
    Everything but the names is a function of the (smoothed) scroll
    position, so scrolling back plays it in reverse. The project pictures
@@ -187,7 +187,7 @@
   function capStep() {
     if (capWant === capCur) return;
     capBusy = true;
-    var next = capWant;
+    var next;
     function roll(dir, dur, done) {
       var r = Roll.text(caption, dir), o = { v: 0 };
       r.set(0);
@@ -196,13 +196,14 @@
     }
     function rollIn() {
       capCur = -1;
+      next = capWant; // whatever is current now, not when the old name left
       if (next < 0) { capBusy = false; return capStep(); }
       capName.textContent = cards[next].dataset.name || "";
       capDesc.textContent = cards[next].dataset.desc || "";
       caption.style.visibility = "";
-      roll("in", 0.55, function () { capCur = next; capBusy = false; capStep(); });
+      roll("in", 0.4, function () { capCur = next; capBusy = false; capStep(); });
     }
-    if (capCur >= 0) roll("out", 0.35, function (r) { r.revert(); caption.style.visibility = "hidden"; rollIn(); });
+    if (capCur >= 0) roll("out", 0.22, function (r) { r.revert(); caption.style.visibility = "hidden"; rollIn(); });
     else rollIn();
   }
 
@@ -254,7 +255,7 @@
     smooth.y += d; lastY += d;
   }
 
-  var lastCards = -1, navTween = null;
+  var lastCards = -1, navTween = null, active = -1, stillFor = 0;
   function tick(time, deltaTime) {
     if (!on || root.classList.contains("is-loading")) return;
     var dt = Math.min(3, deltaTime / 16.67);
@@ -262,22 +263,24 @@
     // same smoothing feel as the timeline's scrub
     smooth.y += (window.scrollY - smooth.y) * (reduce || navTween ? 1 : Math.min(1, 0.12 * dt));
     var v = smooth.y / V;
-    if (Math.abs(smooth.y - lastCards) > 0.3) {
-      var active = placeCards(v); lastCards = smooth.y;
-      showCaption(v >= CAPTION_AT ? active : -1);
-    }
+    if (Math.abs(smooth.y - lastCards) > 0.3) { active = placeCards(v); lastCards = smooth.y; }
+    // the name shows once the list has come to rest (a moving list would
+    // always be a project or two ahead of it), so it is never the wrong one
+    var moving = navTween || Math.abs(window.scrollY - smooth.y) > 1.5;
+    if (moving) stillFor = 0; else stillFor += deltaTime;
+    showCaption(v >= CAPTION_AT && stillFor > 120 ? active : -1);
     swayStep(dt, time * 1000);
   }
 
-  /* ---------- snapping: come to rest on Home, Work-01 or one project ----------
+  /* ---------- snapping: the project list comes to rest on one project ----------
      Once the scroll has been still for a moment (and no finger is on the
      screen), it glides the last bit to the nearest resting point, so the
      list never stops with two projects half in view. */
 
-  var WORK01 = 0.95, snapTimer = null, touching = false;
+  // only the project list snaps; Home → Work-01 rests wherever you leave it
+  var snapTimer = null, touching = false;
   function snapTarget(v) {
-    if (v < WORK01 / 2) return 0;
-    if (v < (WORK01 + LIST_AT) / 2) return WORK01;
+    if (v < (ENTER_AT + LIST_AT) / 2) return null; // first project not yet in
     return LIST_AT + Math.max(0, Math.round((v - LIST_AT) / G.pitchV)) * G.pitchV;
   }
   function scheduleSnap() {
@@ -287,21 +290,36 @@
   }
   function snap() {
     if (!on || touching || navTween || root.classList.contains("is-loading")) return;
-    var to = snapTarget(window.scrollY / V) * V;
+    var t = snapTarget(window.scrollY / V);
+    if (t === null) return;
+    var to = t * V;
     // keep the glide inside the wrap-round zone
     if (to > HI * V) { jump(-LOOP * V); to -= LOOP * V; }
     var dist = Math.abs(to - window.scrollY);
     if (dist < 2) return;
     navTween = gsap.to(window, {
-      scrollTo: { y: to, autoKill: true },          // scrolling again takes over
+      scrollTo: { y: to, autoKill: false },         // see takeOver() below
       duration: reduce ? 0 : Math.min(0.9, 0.35 + dist / V * 0.8),
       ease: "power2.out",
       onComplete: function () { navTween = null; },
       onInterrupt: function () { navTween = null; }
     });
   }
+  /* The user takes over from a glide (menu jump or snap) by touching,
+     wheeling or pressing a key. GSAP's own autoKill is off: iOS reports the
+     scroll a little off from what was set, which it read as the user
+     scrolling, so the glide stopped halfway and then snapped back. */
+  function takeOver() { if (navTween) { navTween.kill(); navTween = null; } }
+  window.addEventListener("wheel", takeOver, { passive: true });
+  window.addEventListener("keydown", function (e) {
+    if (/^(Arrow|Page|Home|End| )/.test(e.key)) takeOver();
+  });
   window.addEventListener("scroll", scheduleSnap, { passive: true });
-  window.addEventListener("touchstart", function () { touching = true; clearTimeout(snapTimer); }, { passive: true });
+  window.addEventListener("touchstart", function (e) {
+    touching = true; clearTimeout(snapTimer);
+    // a tap on the menu starts its own glide; any other touch takes over
+    if (!(e.target.closest && e.target.closest(".nav-list a[data-go]"))) takeOver();
+  }, { passive: true });
   function release() { touching = false; scheduleSnap(); }
   window.addEventListener("touchend", release, { passive: true });
   window.addEventListener("touchcancel", release, { passive: true });
@@ -397,7 +415,7 @@
       var dist = Math.abs(to - window.scrollY) / V;
       if (navTween) navTween.kill();
       navTween = gsap.to(window, {
-        scrollTo: { y: to, autoKill: true },        // the user scrolling takes over
+        scrollTo: { y: to, autoKill: false },       // see takeOver() below
         duration: reduce ? 0 : Math.max(1.2, Math.min(2.6, 0.9 + dist * 0.45)),
         ease: "dz.nav",
         onComplete: function () { navTween = null; },
