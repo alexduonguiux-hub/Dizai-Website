@@ -191,17 +191,20 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
     padding-block: calc(var(--gutter) + 46px + 54px + 16px);
   }
 
-  /* Same three rows at 84px on 358: seal · EST · 2024 become one centred
-     group with 8px gaps. The group is ~0.7% wider than the column; flex
-     centring lets it overhang both edges equally, as in Figma. */
+  /* Four rows at 118px on 358: DESIGN centred, STUDIO right,
+     seal + EST centred (8px apart), 2024 centred on its own row. */
   .type {
-    --fs: calc(100cqi * 84 / 358);
-    row-gap: calc(100cqi * 8 / 358);
+    --fs: calc(100cqi * 118 / 358);
+    --gap: calc(100cqi * 8 / 358);
+    row-gap: var(--gap);
   }
+  .line-design { align-self: center; }
   .type-row {
+    flex-wrap: wrap;
     justify-content: center;
-    gap: calc(100cqi * 8 / 358);
+    gap: var(--gap);
   }
+  .line-year { flex-basis: 100%; text-align: center; }
 
   /* services sit 16px under the type block, centred, and centre with it */
   .services {
@@ -218,5 +221,21 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
     text-align: center;
   }
   .contact { top: calc(var(--gutter) + 46px); }
-  .social  { top: auto; bottom: var(--gutter); }
+
+  /* social: one centred row, LINKEDIN ✱ FACEBOOK, 6px either side of the star */
+  .social {
+    top: auto;
+    bottom: var(--gutter);
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+  }
+  .social li { display: flex; align-items: center; gap: 6px; }
+  .social li + li::before {
+    content: url("../img/star.svg");
+    display: block;
+    width: 10px;
+    height: 10px;
+    line-height: 0;
+  }
 }
