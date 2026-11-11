@@ -24,11 +24,13 @@
   }
 
   // strength by type size: big display lines, mobile display, 20px text
+  // B blur (spread) and R dilate grow further by up to CREEP× while held
   var TIERS = {
-    lg: { F: 0.035, B: 1.8, N: 0.55, K: -0.27, S: 7, I: -2.5, R: 1.8, drift: 9 },
-    md: { F: 0.08, B: 0.8, N: 0.45, K: -0.22, S: 7, I: -2.4, R: 0.8, drift: 5 },
-    sm: { F: 0.22, B: 0.45, N: 0.35, K: -0.17, S: 6, I: -2.1, R: 0.45, drift: 3 }
+    lg: { F: 0.022, B: 4, N: 0.9, K: -0.45, S: 7, I: -2.6, R: 3, drift: 16 },
+    md: { F: 0.05, B: 1.8, N: 0.8, K: -0.4, S: 7, I: -2.6, R: 1.4, drift: 9 },
+    sm: { F: 0.15, B: 0.9, N: 0.6, K: -0.3, S: 6, I: -2.2, R: 0.8, drift: 4 }
   };
+  var CREEP = 0.45, CREEP_MS = 2500;
   function tierOf(el) {
     var fs = parseFloat(getComputedStyle(el).fontSize);
     return fs >= 160 ? TIERS.lg : fs >= 60 ? TIERS.md : TIERS.sm;
@@ -40,7 +42,7 @@
      The bled version: blurred alpha + fibre noise, thresholded, filled from
      a dilated copy (keeps the colour), with the noise drifting over time. */
   function makeFilter(el, T) {
-    var f = node("filter", { id: "dz-wet-" + (uid++), x: "-3%", y: "-10%", width: "106%", height: "120%",
+    var f = node("filter", { id: "dz-wet-" + (uid++), x: "-6%", y: "-20%", width: "112%", height: "140%",
                              "color-interpolation-filters": "sRGB" }, svg);
     var turb = node("feTurbulence", { type: "fractalNoise", baseFrequency: String(T.F), numOctaves: "3",
                                       seed: String(3 + uid * 7), result: "fibre" }, f);
@@ -51,7 +53,9 @@
     var ct = node("feComponentTransfer", { "in": "wet", result: "edge" }, f);
     node("feFuncA", { type: "linear", slope: String(T.S), intercept: String(T.I) }, ct);
     var dil = node("feMorphology", { "in": "SourceGraphic", operator: "dilate", radius: "0", result: "ink" }, f);
-    node("feComposite", { "in": "ink", in2: "edge", operator: "in", result: "bled" }, f);
+    node("feComposite", { "in": "ink", in2: "edge", operator: "in", result: "spill" }, f);
+    // the ink only ever adds to the glyph, so thin strokes never break up
+    node("feComposite", { "in": "SourceGraphic", in2: "spill", operator: "over", result: "bled" }, f);
     var mix = node("feComposite", { "in": "SourceGraphic", in2: "bled", operator: "arithmetic",
                                     k1: "0", k2: "1", k3: "0", k4: "0" }, f);
     el.style.filter = "url(#" + f.id + ")";
@@ -68,7 +72,7 @@
     var s = state(el);
     if (!s) {
       var T = tierOf(el);
-      s = { el: el, T: T, a: 0, on: true, fx: makeFilter(el, T), phase: Math.random() * 10 };
+      s = { el: el, T: T, a: 0, creep: 0, on: true, fx: makeFilter(el, T), phase: Math.random() * 10 };
       active.push(s);
       if (active.length === 1) requestAnimationFrame(tick);
     }
@@ -91,9 +95,11 @@
         active.splice(i, 1);
         continue;
       }
-      var a = s.a, fx = s.fx;
-      fx.blur.setAttribute("stdDeviation", (T.B * a).toFixed(3));
-      fx.dil.setAttribute("radius", (T.R * a).toFixed(3));
+      // held: the ink keeps soaking further into the paper; released: it recedes
+      s.creep = Math.max(0, Math.min(1, s.creep + (s.on ? dt / CREEP_MS : -dt / 600)));
+      var a = s.a, fx = s.fx, grow = 1 + CREEP * s.creep;
+      fx.blur.setAttribute("stdDeviation", (T.B * a * grow).toFixed(3));
+      fx.dil.setAttribute("radius", (T.R * a * grow).toFixed(3));
       fx.mix.setAttribute("k2", (1 - a).toFixed(4));
       fx.mix.setAttribute("k3", a.toFixed(4));
       if (!reduce) {
