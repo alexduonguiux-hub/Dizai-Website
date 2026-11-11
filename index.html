@@ -8,8 +8,22 @@
   <meta name="theme-color" content="#f0efee">
   <link rel="preload" href="assets/fonts/AnNamSerif-VF.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="assets/css/style.css">
+  <script>document.documentElement.classList.add("is-loading")</script>
 </head>
 <body>
+  <!-- Loading screen (Figma "Loading" 13:257). Shown only when JS runs;
+       assets/js/loader.js counts it to 100% and fades it out. -->
+  <div class="loader" aria-hidden="true">
+    <div class="loader-top">
+      <p class="trim">Loading...</p>
+      <p class="loader-contact trim">hello@dizai.studio<br>+84 937 937 195<br>Saigon, Vietnam</p>
+    </div>
+    <div class="loader-bottom">
+      <img class="seal" src="assets/img/dizai-studio-seal.svg" width="197" height="231" alt="">
+      <p class="display loader-count">0%</p>
+    </div>
+  </div>
+
   <header class="site-nav">
     <nav aria-label="Main">
       <ul class="nav-list trim">
@@ -52,5 +66,7 @@
       <li><a href="https://www.facebook.com/" rel="noopener">Facebook</a></li>
     </ul>
   </main>
+
+  <script src="assets/js/loader.js"></script>
 </body>
 </html>

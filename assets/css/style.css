@@ -8,14 +8,14 @@
   src: url("../fonts/AnNamSerif-VF.woff2") format("woff2");
   font-weight: 400 700;
   font-style: normal;
-  font-display: swap;
+  font-display: block; /* no fallback-font flash on the loader count */
 }
 @font-face {
   font-family: "AnNam Serif";
   src: url("../fonts/AnNamSerif-Italic-VF.woff2") format("woff2");
   font-weight: 400 700;
   font-style: italic;
-  font-display: swap;
+  font-display: block; /* no fallback-font flash on the loader count */
 }
 
 :root {
@@ -153,6 +153,43 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 .contact { top: calc(100cqi * 251 / 1432); }
 .social  { bottom: calc(100cqi * 251 / 1432); }
 
+/* ---------- Loading screen (Figma Loading 13:257, 1512 × 813) ----------
+   LOADING... top left, contact top right, seal bottom left, count bottom right. */
+.loader { display: none; }
+.is-loading { overflow: hidden; }
+.is-loading .loader {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: var(--gutter);
+  background: var(--paper);
+  container-type: inline-size;
+  transition: opacity 0.6s ease, visibility 0.6s;
+}
+.is-loading.is-loaded .loader { opacity: 0; visibility: hidden; }
+
+.loader-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.loader-contact { text-align: right; }
+
+.loader-bottom {
+  --fs: calc(100cqi * 330 / 1432);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.loader-count { text-align: right; }
+
+@media (prefers-reduced-motion: reduce) {
+  .is-loading .loader { transition: none; }
+}
+
 /* ---------- Mobile (Figma Home 13:8, 390 × 844) ---------- */
 @media (max-width: 720px) {
   :root { --text-sm: 20px; }
@@ -238,4 +275,7 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
     height: 10px;
     line-height: 0;
   }
+
+  /* Loader: no mobile frame in Figma; the count uses the mobile display size */
+  .loader-bottom { --fs: calc(100cqi * 118 / 358); }
 }
