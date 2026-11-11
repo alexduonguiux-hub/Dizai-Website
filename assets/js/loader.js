@@ -2,8 +2,8 @@
    1. Rolling count 0 → 100% (digits slide up), following real load progress:
       it can climb to 90% on time alone and only reaches 100% after "load".
    2. Hand-off to Home: the loader's text soaks away into the paper while the
-      big seal shrinks and glides to its place on Home, where the coin takes
-      over (and starts turning). The Home elements then print in one by one:
+      big seal shrinks and glides to its place on Home, where Home's own seal
+      takes over. The Home elements then print in one by one:
       ink appears in the thick cores of the strokes first and bleeds out to
       the hairlines, with paper-fibre blotches.
    The soaking is an SVG filter per element: paper-fibre noise mixed with the
@@ -247,7 +247,7 @@
     function shown(el) { return el && el.getClientRects().length > 0; }
 
     var seal = loader.querySelector(".seal");
-    var coin = document.querySelector(".type-row .seal-coin");
+    var coin = document.querySelector(".type-row .seal");
 
     var out = [
       loader.querySelector(".loader-count"),
