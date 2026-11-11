@@ -330,7 +330,7 @@ body::after {
   white-space: nowrap;
 }
 /* the big lines clip what overshoots their cap box; not while letters rise */
-.display.is-rolling, .cp-big.is-rolling, .cp-big:has(.is-rolling) { overflow: visible; }
+.display.is-rolling { overflow: visible; }
 /* decorations that are not letters (the ✱ between LinkedIn and Facebook)
    fade while their text rolls */
 .is-rolling li + li::before { opacity: 0; transition: opacity 0.25s; }
@@ -535,9 +535,7 @@ body::after {
   position: relative;
   top: -0.01em;
 }
-@supports (overflow-clip-margin: 1px) {
-  .cp-big { overflow: clip; overflow-clip-margin: 0.03em; }
-}
+/* (no clipping here, unlike .display: the @ hangs well below the baseline) */
 .cp-email a { display: flex; justify-content: center; }
 .cp-city {
   display: flex;
@@ -668,8 +666,8 @@ body::after {
   /* Contact on a phone (Figma Contact 32:24558, 390 × 844): the mark under
      the menu, no small contact block; in the middle, 12 apart: the email on
      two lines, then SAIGON / ✱ / VIETNAM stacked, all Regular 66 (line
-     height 0.9: 13 between the two email lines), LinkedIn ✱ Facebook 20
-     under them */
+     height 0.9: 13 between the two email lines), LinkedIn ✱ Facebook 12
+     under them too */
   .cp { --fs: calc(100cqi * 66 / 358); }
   .cp-mark { top: 44px; left: calc(50% - 100cqi * 25.5 / 358); height: calc(100cqi * 64 / 358); }
   .page-contact .cp-info { display: none; }
@@ -679,7 +677,6 @@ body::after {
   .cp-email .cp-l { display: block; }
   .cp-city { flex-direction: column; align-items: center; gap: 12px; }
   .cp-star { height: 0.697em; } /* 45 × 46 at 66 */
-  .cp-social { margin-top: 8px; } /* 20 under VIETNAM */
   .loader-bottom { --fs: calc(100cqi * 160 / 358); justify-content: flex-end; }
   .loader-bottom .seal {
     position: absolute;
