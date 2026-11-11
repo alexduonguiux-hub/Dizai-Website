@@ -78,11 +78,11 @@
     unit = r.width / G.W;
     H = r.height / unit;
     if (G.axis === "x") {
-      // Figma Work-02: WORK 140–186, pictures from 271; the name's last line
-      // sits 77 under them (it grows upwards). Short screens: lift the
-      // pictures, but keep them clear of WORK.
-      cardTop = Math.max(186 + 24, Math.min(271, H - 24 - 77 - 262));
-      work.style.setProperty("--cap-top", ((cardTop + 262 + 77) * unit).toFixed(1) + "px");
+      // Figma Work-02: WORK 140–186, pictures from 271; the name starts 44
+      // under them and runs on downwards (up to ~4 lines, ~110). Short
+      // screens: lift the pictures, but keep them clear of WORK.
+      cardTop = Math.max(186 + 24, Math.min(271, H - 16 - 110 - 44 - 262));
+      work.style.setProperty("--cap-top", ((cardTop + 262 + 44) * unit).toFixed(1) + "px");
     } else work.style.removeProperty("--cap-top");
     if (typeof sizeSheets === "function") sizeSheets();
   }
@@ -268,6 +268,43 @@
     }
     swayStep(dt, time * 1000);
   }
+
+  /* ---------- snapping: come to rest on Home, Work-01 or one project ----------
+     Once the scroll has been still for a moment (and no finger is on the
+     screen), it glides the last bit to the nearest resting point, so the
+     list never stops with two projects half in view. */
+
+  var WORK01 = 0.95, snapTimer = null, touching = false;
+  function snapTarget(v) {
+    if (v < WORK01 / 2) return 0;
+    if (v < (WORK01 + LIST_AT) / 2) return WORK01;
+    return LIST_AT + Math.max(0, Math.round((v - LIST_AT) / G.pitchV)) * G.pitchV;
+  }
+  function scheduleSnap() {
+    clearTimeout(snapTimer);
+    if (!on || touching || navTween) return;
+    snapTimer = setTimeout(snap, 160);
+  }
+  function snap() {
+    if (!on || touching || navTween || root.classList.contains("is-loading")) return;
+    var to = snapTarget(window.scrollY / V) * V;
+    // keep the glide inside the wrap-round zone
+    if (to > HI * V) { jump(-LOOP * V); to -= LOOP * V; }
+    var dist = Math.abs(to - window.scrollY);
+    if (dist < 2) return;
+    navTween = gsap.to(window, {
+      scrollTo: { y: to, autoKill: true },          // scrolling again takes over
+      duration: reduce ? 0 : Math.min(0.9, 0.35 + dist / V * 0.8),
+      ease: "power2.out",
+      onComplete: function () { navTween = null; },
+      onInterrupt: function () { navTween = null; }
+    });
+  }
+  window.addEventListener("scroll", scheduleSnap, { passive: true });
+  window.addEventListener("touchstart", function () { touching = true; clearTimeout(snapTimer); }, { passive: true });
+  function release() { touching = false; scheduleSnap(); }
+  window.addEventListener("touchend", release, { passive: true });
+  window.addEventListener("touchcancel", release, { passive: true });
 
   /* ---------- GSAP: the scroll timeline ---------- */
 

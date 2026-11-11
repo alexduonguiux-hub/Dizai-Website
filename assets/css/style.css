@@ -87,6 +87,35 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
   margin-bottom: -0.14em;
 }
 
+/* ---------- Grain ----------
+   A faint film / paper grain over every page: a noise tile
+   (assets/img/noise.png, 256 px drawn at 128, so the grain is fine on
+   sharp screens) that jumps to a new spot about ten times a
+   second. Under the cursor, above everything else; never takes a click. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: -160px;
+  z-index: 999;
+  pointer-events: none;
+  background: url("../img/noise.png?v=2") 0 0 / 128px 128px repeat;
+  animation: grain 0.9s steps(1) infinite;
+}
+@keyframes grain {
+  0%   { transform: translate(0, 0); }
+  11%  { transform: translate(-37px, 52px); }
+  22%  { transform: translate(61px, -18px); }
+  33%  { transform: translate(-84px, -71px); }
+  44%  { transform: translate(23px, 96px); }
+  55%  { transform: translate(-112px, 9px); }
+  66%  { transform: translate(78px, 64px); }
+  77%  { transform: translate(-15px, -103px); }
+  88%  { transform: translate(104px, 31px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  body::after { animation: none; }
+}
+
 /* ---------- Navigation ---------- */
 .site-nav {
   position: absolute;
@@ -459,10 +488,10 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
   .has-scrub .work-caption {
     left: 0;
     width: 100%;
-    /* bottom-aligned 77 under the pictures (Figma 23:22538): a longer line
-       grows upwards; work.js sets the spot */
-    top: var(--cap-top, calc(var(--u) * 610));
-    transform: translateY(-100%);
+    /* top 44 under the pictures (Figma 23:22538, one line): a longer
+       line runs on downwards; work.js sets the spot */
+    top: var(--cap-top, calc(var(--u) * 577));
+    transform: none;
     text-align: center;
   }
 }
