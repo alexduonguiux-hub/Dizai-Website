@@ -432,24 +432,23 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
   .has-scrub .hero .contact, .has-scrub .work-title, .has-scrub .work-card { will-change: transform; }
 }
 /* Mobile Work (Figma Work-01 22:3, Work-02 22:66, 390 × 844; units of 358):
-   the "đs" mark (51 × 64) under the contact block. Work-01: WORK (66) in
-   the middle, SCROLL DOWN at the bottom. Work-02: WORK rises under the mark,
-   the projects (350 × 262) run right to left 16 apart under it, the current
-   one's name centred at the bottom of the screen */
+   no contact block; the "đs" mark (51 × 64) right under the menu. Work-01:
+   WORK (66) in the middle, SCROLL DOWN at the bottom. Work-02: WORK rises
+   under the mark, the projects (350 × 262) run right to left 16 apart under
+   it, the current one's name centred 16 under the pictures */
 @media (max-width: 720px) {
   .work { --fs: calc(100cqi * 66 / 358); --u: calc(100cqi / 358); }
   .work-mark { height: calc(var(--u) * 64); }
   .work-list { grid-template-columns: 1fr; }
   .has-scrub .stage { display: flex; flex-direction: column; }
-  .has-scrub .work-mark { top: 124px; left: calc(50% - var(--u) * 25.5); } /* under the contact block (px text) */
+  .has-scrub .work-mark { top: 44px; left: calc(50% - var(--u) * 25.5); } /* 30px under the menu (px text) */
   .has-scrub .work-title { right: 0; text-align: center; }
   .has-scrub .work-hint { top: auto; bottom: 27px; } /* Figma 23:23274: cap bottom 43px from the screen's */
   .has-scrub .work-card { left: 0; width: calc(var(--u) * 350); }
   .has-scrub .work-caption {
     left: 0;
     width: 100%;
-    top: auto;
-    bottom: 0; /* Figma: the last line on the content's bottom edge */
+    top: var(--cap-top, calc(var(--u) * 549)); /* 16 under the pictures (work.js) */
     transform: none;
     text-align: center;
   }

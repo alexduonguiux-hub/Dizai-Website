@@ -64,25 +64,26 @@
      left. Mobile: Work-01 22:3 / Work-02 22:66 (358 grid) — a row of
      350 × 262 pictures 16 apart under WORK, the name at the bottom. */
   // WORK: desktop 156 at the bottom left (cap top 620) in both frames;
-  // mobile 66, in the middle (402 on an 812-tall screen), then up to 220
+  // mobile 66, in the middle (402 on an 812-tall screen), then up to 140
   var DESK = { W: 1432, axis: "y", pitch: 470, len: 430, pitchV: 0.38,
                titleY: function () { return H - 109 - 4; }, titleY2: function () { return H - 109 - 4; },
                contactY: -251, hint: true };
   var MOB = { W: 358, axis: "x", pitch: 366, len: 350, pitchV: 0.35,
-              titleY: function () { return (H - 46) * 402 / 766; }, titleY2: function () { return 220; },
+              titleY: function () { return (H - 46) * 402 / 766; }, titleY2: function () { return 140; },
               contactY: 0, hint: true };
-  var G = DESK, unit = 1, H = 733, cardTop = 388;
+  var G = DESK, unit = 1, H = 733, cardTop = 271;
 
   function measure() {
     var r = work.getBoundingClientRect(); // transforms are GSAP's
     unit = r.width / G.W;
     H = r.height / unit;
     if (G.axis === "x") {
-      // Figma Work-02: WORK 220–266, pictures from 388, the name at the
-      // bottom (up to ~110 tall). Short screens: lift the pictures, but
-      // keep them clear of WORK.
-      cardTop = Math.max(266 + 24, Math.min(388, H - 110 - 24 - 262));
-    }
+      // Figma Work-02: WORK 140–186, pictures from 271, the name 16 under
+      // them (up to ~110 tall). Short screens: lift the pictures, but keep
+      // them clear of WORK.
+      cardTop = Math.max(186 + 24, Math.min(271, H - 110 - 16 - 262));
+      work.style.setProperty("--cap-top", ((cardTop + 262 + 16) * unit).toFixed(1) + "px");
+    } else work.style.removeProperty("--cap-top");
     if (typeof sizeSheets === "function") sizeSheets();
   }
 
@@ -165,6 +166,7 @@
 
   var outs = homeText.map(function (el) { return Roll.text(el, "out"); });
   var sealOut = seal ? Roll.box(seal, "out") : { set: function () {} };
+  var contactOut = Roll.text(contact, "out"); // mobile Work has no contact block
   var titleIn = Roll.text(title, "in");
   var markIn = Roll.box(mark, "in");
   var hintIn = hint ? Roll.text(hint, "in") : null, hintOut = hint ? Roll.text(hint, "out") : null;
@@ -309,8 +311,10 @@
     // the letters only Home has roll away, one line after another
     outs.forEach(function (r, i) { drive(r.set, 0, 1, i < 4 ? i * 0.06 : 0.04 + (i - 4) * 0.04, i < 4 ? 0.4 : 0.3); });
     drive(sealOut.set, 0, 1, 0.12, 0.35);
-    // desktop: the contact block slides up to its Work place (251 units)
+    // desktop: the contact block slides up to its Work place (251 units);
+    // mobile: it rolls away with the rest of Home
     if (G.contactY) tl.fromTo(contact, { y: 0 }, { y: function () { return G.contactY * unit; }, duration: 0.6, ease: "dz.move" }, 0.1);
+    else drive(contactOut.set, 0, 1, 0.08, 0.3);
     // Work-01: WORK rolls in at the bottom, the mark slides in
     gsap.set(title, { y: function () { return G.titleY() * unit; }, color: DARK });
     drive(showTitle, 0, 1, 0.45, 0.45);
@@ -332,6 +336,7 @@
       on = false;
       root.classList.remove("has-scrub");
       outs.forEach(function (r) { r.set(0); });
+      contactOut.set(0);
       sealOut.set(0); titleIn.revert(); markIn.set(1); showHint(0);
       [contact, title, mark].concat(cards).forEach(function (el) {
         el.style.transform = el.style.opacity = el.style.color = "";
