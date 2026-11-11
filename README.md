@@ -10,7 +10,7 @@ Website của Đìzai Studio. HTML/CSS tĩnh, không cần build: mở `index.ht
 
 ## Ghi chú dựng
 - **Desktop:** phóng to/thu nhỏ đúng tỉ lệ khung Figma. Mọi kích thước tính theo bề rộng nội dung 1432 px (`100cqi` của `body`). Ở 1512 px, vị trí khớp Figma từng pixel.
-- **Mobile (≤ 720 px):** theo frame `13:8`. Bốn dòng DESIGN / STUDIO / logo + EST / 2024 căn giữa màn hình, cỡ chữ tính theo bề rộng 358 px. Liên hệ ở góc trên trái, menu ở góc trên phải, LinkedIn và Facebook ở đáy. Danh sách dịch vụ và Dribbble ẩn trên mobile, đúng như thiết kế.
+- **Mobile (≤ 720 px):** theo frame `13:8`. Bốn dòng DESIGN / STUDIO / logo + EST / 2024 và danh sách dịch vụ (cách 16 px) căn giữa màn hình, cỡ chữ lớn tính theo bề rộng 358 px. Liên hệ ở góc trên trái, menu ở góc trên phải, LinkedIn và Facebook ở đáy.
 - **Cắt dòng chữ:** dòng chữ được cắt sát mép chữ hoa và đường chân chữ, giống `text-box-trim` trong Figma, tính theo metric của AnNam Serif (cap 700, ascender 960, descender 240).
 - **Mũi tên ←:** AnNam Serif chưa có glyph này, nên mũi tên ở menu đang dùng font hệ thống.
 - **Chưa xong:** các trang `work/` và `contact/` chưa có. Link mạng xã hội đang là trang chủ của từng nền tảng, cần thay bằng link profile của studio.

@@ -188,7 +188,12 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
   .line-est  { grid-column: 3; }
   .line-year { grid-column: 1 / -1; justify-self: center; }
 
-  .services { display: none; }
+  /* services sit 16px under the type block, centred, and centre with it */
+  .services {
+    position: static;
+    margin-top: calc(16px - 0.16em);
+    text-align: center;
+  }
 
   .contact { top: var(--gutter); left: var(--gutter); }
   .social {
@@ -199,5 +204,4 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
     display: flex;
     justify-content: space-between;
   }
-  .social-dribbble { display: none; }
 }
