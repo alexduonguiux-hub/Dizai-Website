@@ -15,7 +15,7 @@
                    its name rolls in — Work-02
      1.6 V →       the projects keep travelling as an endless list; the
                    scroll wraps round so it never runs out, and the name
-                   beside them is soft while the list moves and sharp once it stops
+                   beside them slide along, a step at a time, with the current project
 
    Everything but the names is a function of the (smoothed) scroll
    position, so scrolling back plays it in reverse. The project pictures
@@ -202,10 +202,9 @@
      its line under it. Desktop: three names above it and three below,
      going round; mobile: it comes first, the next four under it. When the
      current project changes the names slide one step, so the new one
-     moves into its place. While the list of pictures moves, the current
-     name and line are soft and faint; once it stops they sharpen. */
+     moves into its place. */
   var SLOT_H = 30;              // a name (14 cap) + the 16 gap, in px
-  var slots = [], capShown = -1, capSoft = null, capOn = false;
+  var slots = [], capShown = -1, capOn = false;
   // no single word alone on the last line: the last two words are tied
   // with a no-break space (text-wrap: pretty in the CSS evens the rest)
   function noWidow(t) {
@@ -221,7 +220,7 @@
       li.appendChild(n); li.appendChild(d); capList.appendChild(li);
       slots.push({ o: o, li: li, name: n, desc: d });
     });
-    capShown = -1; capSoft = null;
+    capShown = -1;
   }
   function fill(k) {
     slots.forEach(function (sl) {
@@ -229,22 +228,20 @@
       sl.name.textContent = noWidow(c.dataset.name);
       sl.desc.textContent = sl.o === 0 ? noWidow(c.dataset.desc) : "";
       sl.li.classList.toggle("is-active", sl.o === 0);
-      if (sl.o !== 0) gsap.set([sl.name, sl.desc], { clearProps: "filter,opacity,visibility" });
     });
   }
-  function activeParts() { var a = slots.filter(function (sl) { return sl.o === 0; })[0]; return a ? [a.name, a.desc] : []; }
   caption.style.visibility = "hidden";
-  function showCaption(k, moving) {
+  function showCaption(k) {
     if (!slots.length) buildSlots();
     if (k < 0) { // before Work-02: not there at all
       if (capOn) {
-        capOn = false; capSoft = null;
+        capOn = false;
         gsap.to(caption, { autoAlpha: 0, duration: 0.25, overwrite: true });
       }
       return;
     }
     if (!capOn) {
-      capOn = true; capSoft = null;
+      capOn = true;
       fill(k); capShown = k;
       gsap.fromTo(caption, { autoAlpha: 0 }, { autoAlpha: 1, duration: reduce ? 0.01 : 0.4, overwrite: true });
     }
@@ -254,13 +251,7 @@
       capShown = k;
       fill(k);
       if (!reduce) gsap.fromTo(capList, { y: d * SLOT_H }, { y: 0, duration: 0.4, ease: "power2.out", overwrite: true });
-      capSoft = null;
     }
-    if (capSoft === moving) return;
-    capSoft = moving;
-    var parts = activeParts();
-    if (moving) gsap.to(parts, { autoAlpha: 0.45, filter: "blur(5px)", duration: reduce ? 0.01 : 0.18, ease: "power1.out", overwrite: true });
-    else gsap.to(parts, { autoAlpha: 1, filter: "blur(0px)", duration: reduce ? 0.01 : 0.32, stagger: reduce ? 0 : 0.05, ease: "power2.out", overwrite: true });
   }
 
   /* ---------- the endless list ---------- */
@@ -316,7 +307,7 @@
     smooth.y += d; lastY += d;
   }
 
-  var lastCards = -1, navTween = null, active = -1, stillFor = 0, lastSeenY = 0;
+  var lastCards = -1, navTween = null, active = -1;
   function tick(time, deltaTime) {
     if (!on || root.classList.contains("is-loading")) return;
     var dt = Math.min(3, deltaTime / 16.67);
@@ -325,13 +316,8 @@
     smooth.y += (window.scrollY - smooth.y) * (reduce || navTween ? 1 : Math.min(1, 0.12 * dt));
     var v = smooth.y / V;
     if (Math.abs(smooth.y - lastCards) > 0.3) { active = placeCards(v); lastCards = smooth.y; }
-    // the name shows once the list has come to rest (a moving list would
-    // always be a project or two ahead of it), so it is never the wrong one
-    // moving = the page itself scrolled within the last few frames (not the
-    // smoothing still catching up), so the name sharpens as soon as you stop
-    if (window.scrollY !== lastSeenY || navTween) { lastSeenY = window.scrollY; stillFor = 0; }
-    else stillFor += deltaTime;
-    showCaption(v >= CAPTION_AT ? active : -1, stillFor < 90);
+    // the names follow the picture level with them, sliding a step at a time
+    showCaption(v >= CAPTION_AT ? active : -1);
     swayStep(dt, time * 1000);
   }
 
@@ -432,7 +418,7 @@
       if (keepV > 0) {
         var y = Math.min(keepV, HI - 0.01) * V;
         keepV = 0;
-        window.scrollTo(0, y); smooth.y = lastY = lastSeenY = y; lastCards = -1;
+        window.scrollTo(0, y); smooth.y = lastY = y; lastCards = -1;
         tl.scrollTrigger && tl.scrollTrigger.update();
       }
       requestAnimationFrame(settle);
@@ -456,7 +442,7 @@
         el.style.transform = el.style.opacity = el.style.color = "";
       });
       title.classList.remove("is-on"); marks.forEach(function (m) { m.classList.remove("is-on"); });
-      showCaption(-1, false);
+      showCaption(-1);
     };
   });
 
