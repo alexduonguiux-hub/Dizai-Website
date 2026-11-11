@@ -137,19 +137,20 @@
     cards.push(clone);
   }
 
-  var on = false, soaks = null, unit = 1, H = 733;
+  var on = false, soaks = null, unit = 1, H = 733, cs = 1; // cs: sheet scale (mobile)
 
   /* Layout per screen size, in units of the content width (G.W).
-     Desktop is Figma Work-01/02/03. Mobile has no Work frame in Figma yet:
-     the same story on the 358 grid of mobile Home — WORK (118) prints in at
-     the bottom, rises under the contact block, and one sheet at a time
-     rides the wave across the screen. */
+     Desktop is Figma Work-01/02/03 (1432 grid). Mobile is Figma Work-01
+     22:3 / Work-02 22:66 (358 grid): WORK (96) prints in at the bottom with
+     the mark under the contact block, rises under the contact block, and
+     3 : 4 sheets come in from the right in a straight row. */
   var DESK = { W: 1432, pitch: 368, cardW: 328, rest0: 1104, navAt: 1104,
                wave: [275, 379, 320, 275], contactY: -251,
-               titleFrom: function () { return 502; }, titleTo: 0 };
-  var MOB = { W: 358, pitch: 272, cardW: 240, rest0: 59, navAt: 0,
-              waveOff: [0, 70, 30, 0], contactY: 0,
-              titleFrom: function () { return H - 83; }, titleTo: 132 };
+               titleFrom: function () { return 502; }, titleTo: function () { return 0; } };
+  var MOB = { W: 358, pitch: 344, cardW: 328, cardH: 437.33, rest0: 0, navAt: 0,
+              contactY: 0,
+              // WORK's top stays 132px down, clear of the contact block (px text)
+              titleFrom: function () { return H - 67 - 16; }, titleTo: function () { return 132 / unit; } };
   var G = DESK;
 
   function measure() {
@@ -158,10 +159,16 @@
     H = r.height / unit;
     if (G.wave) WAVE = G.wave;
     else { // mobile: the wave sits in the room left under WORK
-      var top = G.titleTo + 83, base = top + Math.max(24, (H - top - G.cardW - 70) / 2);
-      WAVE = G.waveOff.map(function (d) { return base + d; });
+      // Figma Work-02: sheets 115 under WORK and 61 above the bottom. With
+      // less room (wide or short screens) they shrink to keep 24 either side.
+      var top = G.titleTo() + 67;
+      cs = Math.min(1, (H - top - 48) / G.cardH);
+      var base = top + Math.max(24, (H - top - G.cardH * cs) * 115 / 176);
+      WAVE = [base, base, base, base]; // a straight row, as in Figma
+      list.style.setProperty("--cs", cs.toFixed(4));
     }
-    PITCH = G.pitch; SPAN = PITCH * LOOP_CARDS;
+    if (G.wave) { cs = 1; list.style.removeProperty("--cs"); }
+    PITCH = G.pitch * cs; SPAN = PITCH * LOOP_CARDS;
     if (typeof sizeSheets === "function") sizeSheets();
   }
 
@@ -202,7 +209,7 @@
       var band = document.createElement("span");
       band.className = "sheet-band";
       band.style.backgroundImage = "url(\"" + src + "\")";
-      band.style.backgroundPosition = "0 calc(var(--bh) * " + (-k) + ")";
+      band.style.backgroundPosition = "var(--bgx, 0px) calc(var(--bh) * " + (-k) + " + var(--bgy, 0px))";
       parent.appendChild(band);
       bands.push(band);
       parent = band;
@@ -214,7 +221,17 @@
   // band height in px (bands overlap a hair so no seams open as they bend)
   function sizeSheets() {
     sheets.forEach(function (sh) {
-      sh.sheet.style.setProperty("--bh", (sh.a.getBoundingClientRect().height / STRIPS).toFixed(3) + "px");
+      var r = sh.a.getBoundingClientRect(), img = sh.a.querySelector("img");
+      var ratio = (img.naturalWidth / img.naturalHeight) || (img.width / img.height) || 1;
+      // cover: fill the card, crop the overflow evenly
+      var bw = r.width, bh = r.width / ratio;
+      if (bh < r.height) { bh = r.height; bw = r.height * ratio; }
+      var st = sh.sheet.style;
+      st.setProperty("--bh", (r.height / STRIPS).toFixed(3) + "px");
+      st.setProperty("--bgw", bw.toFixed(2) + "px");
+      st.setProperty("--bgh", bh.toFixed(2) + "px");
+      st.setProperty("--bgx", ((r.width - bw) / 2).toFixed(2) + "px");
+      st.setProperty("--bgy", ((r.height - bh) / 2).toFixed(2) + "px");
     });
   }
   var lastY = window.scrollY, wind = 0;
@@ -291,7 +308,7 @@
     G = ctx.conditions.desk ? DESK : MOB;
     V = window.innerHeight;
     enable();
-    RATE = G.pitch / PITCH_V;
+    RATE = G.pitch * cs / PITCH_V;
     WORK03 = CAROUSEL_AT + G.navAt / RATE;
     loops = 0; smooth.y = window.scrollY; lastCards = -1;
     // the timeline's time is measured in V (viewport heights of scroll)
@@ -329,12 +346,15 @@
     soakTween(soaks.mark, 0, 1, 0.55, 0.3);
     // scroll on: WORK is pushed to the top and lightens, the mark leaves — Work-02
     tl.fromTo(title, { y: function () { return G.titleFrom() * unit; }, color: DARK },
-                     { y: function () { return G.titleTo * unit; }, color: LIGHT, duration: 0.6, ease: "dz.move" }, 1.0);
+                     { y: function () { return G.titleTo() * unit; }, color: LIGHT, duration: 0.6, ease: "dz.move" }, 1.0);
     var mk = { v: 1 };
     tl.to(mk, { v: 0, duration: 0.2, onUpdate: function () { soaks.mark(mk.v); } }, 1.0);
     tl.set({}, {}, CAROUSEL_AT); // timeline length = CAROUSEL_AT V
 
-    var onRefresh = function () { V = window.innerHeight; measure(); };
+    var onRefresh = function () {
+      V = window.innerHeight; measure();
+      RATE = G.pitch * cs / PITCH_V; WORK03 = CAROUSEL_AT + G.navAt / RATE;
+    };
     ScrollTrigger.addEventListener("refreshInit", onRefresh);
     gsap.ticker.add(tick);
 

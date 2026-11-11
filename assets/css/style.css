@@ -322,7 +322,9 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
   width: 100%;
   top: 0;
   height: calc(var(--bh, 5.556%) + 3px); /* overlap: corners lift a little as bands lean sideways */
-  background-size: 100% calc(var(--bh, 5.556%) * var(--n, 18));
+  /* the image covers the card (work.js sets the size for cards that are
+     not square, like the 3 : 4 ones on mobile) */
+  background-size: var(--bgw, 100%) var(--bgh, calc(var(--bh, 5.556%) * var(--n, 18)));
   background-repeat: no-repeat;
   transform-origin: 50% 0;
   transform-style: preserve-3d;
@@ -367,15 +369,18 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
   /* what moves with the scroll gets its own GPU layer */
   .has-scrub .hero .contact, .has-scrub .work-title, .has-scrub .work-card { will-change: transform; }
 }
-/* Mobile Work: no Figma frame yet — built on the mobile Home grid (358):
-   WORK at 118, the "đs" mark in the middle of the screen, sheets 240 wide */
+/* Mobile Work (Figma Work-01 22:3, Work-02 22:66, 390 × 844; units of 358):
+   WORK at 96, the "đs" mark (51 × 64) under the contact block, sheets
+   328 × 437 (3 : 4) in a row 16 apart */
 @media (max-width: 720px) {
-  .work { --fs: calc(100cqi * 118 / 358); }
+  .work { --fs: calc(100cqi * 96 / 358); }
   .work-mark { height: calc(100cqi * 64 / 358); }
   .work-list { grid-template-columns: 1fr; }
+  .work-card a { aspect-ratio: 3 / 4; }
+  .work-card img { height: 100%; object-fit: cover; }
   .has-scrub .stage { display: flex; flex-direction: column; }
-  .has-scrub .work-mark { top: 50%; transform: translate(-50%, -50%); }
-  .has-scrub .work-card { width: calc(100cqi * 240 / 358); }
+  .has-scrub .work-mark { top: 132px; } /* under the contact block (px text) */
+  .has-scrub .work-card { width: calc(100cqi * 328 / 358 * var(--cs, 1)); }
 }
 
 /* ---------- Mobile (Figma Home 13:8, 390 × 844) ---------- */
@@ -416,14 +421,16 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
     padding-block: calc(var(--gutter) + 46px + 54px + 16px);
   }
 
-  /* Four rows at 118px on 358: DESIGN centred, STUDIO right,
-     seal + EST centred (8px apart), 2024 centred on its own row. */
+  /* Four rows at 96px on 358 (Figma 13:8): every row centred,
+     seal + EST 8px apart, 2024 on its own row. On short screens the size
+     also follows the height, so the block (≈ 3.05 × size + 110px with the
+     services) always clears the contact block and SCROLL DOWN. */
   .type {
-    --fs: calc(100cqi * 118 / 358);
-    --gap: calc(100cqi * 8 / 358);
+    --fs: max(48px, min(calc(100cqi * 96 / 358), calc((100svh - 390px) / 3.05)));
+    --gap: calc(var(--fs) * 8 / 96);
     row-gap: var(--gap);
   }
-  .line-design { align-self: center; }
+  .line-design, .line-studio { align-self: center; }
   .type-row {
     flex-wrap: wrap;
     justify-content: center;
@@ -457,12 +464,12 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
   }
   .social li { display: flex; align-items: center; gap: 6px; }
 
-  /* centred, 32px above the social row (cap bottom 62px from the screen's) */
+  /* centred, just above the social row (cap bottom 36px from the screen's) */
   .scroll-hint {
     top: auto;
     left: var(--gutter);
     right: var(--gutter);
-    bottom: calc(var(--gutter) + 46px);
+    bottom: calc(var(--gutter) + 20px); /* 6px above the social row (Figma 13:330) */
     text-align: center;
   }
   .social li + li::before {
@@ -474,6 +481,6 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
   }
 
   /* Loader: no mobile frame in Figma; the count uses the mobile display size */
-  .loader-bottom { --fs: calc(100cqi * 118 / 358); }
+  .loader-bottom { --fs: calc(100cqi * 96 / 358); }
   .loader-bottom .seal { height: calc(var(--fs) * 0.7); } /* no mobile frame: keep it row height */
 }
