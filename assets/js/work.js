@@ -21,12 +21,12 @@
   "use strict";
 
   var root = document.documentElement;
-  var mq = window.matchMedia("(min-width: 721px)");
   var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var stage = document.querySelector(".stage");
   var work = document.querySelector(".work");
   if (!stage || !work) return;
 
+  if (!window.gsap || !window.ScrollTrigger) return; // GSAP missing: Work stays a plain section
   if ("scrollRestoration" in history) history.scrollRestoration = "manual";
 
   function clamp01(x) { return x < 0 ? 0 : x > 1 ? 1 : x; }
@@ -140,8 +140,7 @@
   var on = false, soaks = null, unit = 1;
 
   function measure() {
-    [contact, title].forEach(function (el) { if (el) el.style.transform = ""; });
-    unit = work.getBoundingClientRect().width / 1432;
+    unit = work.getBoundingClientRect().width / 1432; // transforms are GSAP's
     if (typeof sizeSheets === "function") sizeSheets();
   }
 
@@ -239,41 +238,86 @@
     return 0.5 * ((2 * p1) + (-p0 + p2) * f + (2 * p0 - 5 * p1 + 4 * p2 - p3) * f * f + (-p0 + 3 * p1 - 3 * p2 + p3) * f * f * f);
   }
 
-  /* ---------- scroll → layout ---------- */
+  /* ---------- GSAP: the scroll timeline ---------- */
+
+  var gsap = window.gsap;
+  gsap.registerPlugin(window.ScrollTrigger, window.CustomEase, window.ScrollToPlugin);
+  var ScrollTrigger = window.ScrollTrigger;
+
+  /* The motion curves. Each is an SVG path in a 0–1 box, exactly as an
+     animation graph draws it: paste a curve from Figma / After Effects /
+     the GSAP ease visualiser here and the motion follows it. */
+  window.CustomEase.create("dz.move", "M0,0 C0.62,0 0.28,1 1,1");   // things travelling: slow–fast–slow
+  window.CustomEase.create("dz.nav", "M0,0 C0.7,0 0.25,1 1,1");     // menu jumps (a touch longer at both ends)
 
   var V = window.innerHeight;
-  // carousel speed: one card pitch per 0.35 V of scroll
-  var RATE = PITCH / 0.35; // units per V
-  var CAROUSEL_AT = 1.6;   // V: Work-02
+  var PITCH_V = 0.35;            // V of scroll per card on the carousel
+  var RATE = PITCH / PITCH_V;    // carousel units per V
+  var CAROUSEL_AT = 1.6;         // V: Work-02
+  var WORK03 = CAROUSEL_AT + 1104 / RATE;
   // the wrap-round zone (all eight sheets have entered by then)
-  var LO = 3.4, LOOP = LOOP_CARDS * 0.35, HI = LO + LOOP;
+  var LO = 3.4, LOOP = LOOP_CARDS * PITCH_V, HI = LO + LOOP;
   var loops = 0;
 
-  function mixColor(a, b, k) {
-    return "rgb(" + [0, 1, 2].map(function (i) { return Math.round(a[i] + (b[i] - a[i]) * k); }).join(",") + ")";
-  }
-  var DARK = [0x21, 0x50, 0x28], LIGHT = [0x74, 0x96, 0x74];
+  var DARK = "#215028", LIGHT = "#749674";
+  var mm = gsap.matchMedia();
+  var smooth = { y: 0 };   // the carousel's own smoothed scroll (it runs past the timeline)
 
-  function render(y) {
-    var v = y / V;
+  mm.add("(min-width: 721px)", function () {
+    enable();
+    // the timeline's time is measured in V (viewport heights of scroll)
+    var tl = gsap.timeline({
+      defaults: { ease: "none" },
+      scrollTrigger: {
+        trigger: document.body,
+        start: 0,
+        end: function () { return CAROUSEL_AT * V; },
+        scrub: reduce ? true : 0.6,      // GSAP's smoothing replaces our inertia
+        invalidateOnRefresh: true
+      },
+      onUpdate: function () {
+        var atWork = this.time() >= 0.45;
+        if (atWork !== (navWork.getAttribute("aria-current") === "page")) {
+          if (atWork) { navWork.setAttribute("aria-current", "page"); navHome.removeAttribute("aria-current"); }
+          else { navHome.setAttribute("aria-current", "page"); navWork.removeAttribute("aria-current"); }
+        }
+      }
+    });
 
-    soaks.home.forEach(function (set, i) { set(1 - seg(v, i * 0.04, 0.3 + i * 0.04)); });
-
-    var mv = ease(seg(v, 0.1, 0.7));
-    contact.style.transform = mv ? "translateY(" + (-251 * unit * mv).toFixed(2) + "px)" : "";
-
-    var atWork = v >= 0.45;
-    if (atWork !== (navWork.getAttribute("aria-current") === "page")) {
-      if (atWork) { navWork.setAttribute("aria-current", "page"); navHome.removeAttribute("aria-current"); }
-      else { navHome.setAttribute("aria-current", "page"); navWork.removeAttribute("aria-current"); }
+    function soakTween(set, from, to, at, dur) {
+      var o = { v: from };
+      set(from);
+      tl.to(o, { v: to, duration: dur, onUpdate: function () { set(o.v); } }, at);
     }
 
-    soaks.title(seg(v, 0.5, 0.85));
-    soaks.mark(seg(v, 0.55, 0.85) - seg(v, 1.0, 1.2));
-    var up = ease(seg(v, 1.0, 1.6));
-    title.style.transform = "translateY(" + (502 * unit * (1 - up)).toFixed(2) + "px)";
-    title.style.color = mixColor(DARK, LIGHT, up);
+    // text and seal only Home has: soak away, one after another
+    soaks.home.forEach(function (set, i) { soakTween(set, 1, 0, i * 0.04, 0.3); });
+    // the contact block slides up to its Work place (251 units)
+    tl.fromTo(contact, { y: 0 }, { y: function () { return -251 * unit; }, duration: 0.6, ease: "dz.move" }, 0.1);
+    // WORK and the small mark print in — Work-01
+    soakTween(soaks.title, 0, 1, 0.5, 0.35);
+    soakTween(soaks.mark, 0, 1, 0.55, 0.3);
+    // scroll on: WORK is pushed to the top and lightens, the mark leaves — Work-02
+    tl.fromTo(title, { y: function () { return 502 * unit; }, color: DARK },
+                     { y: 0, color: LIGHT, duration: 0.6, ease: "dz.move" }, 1.0);
+    var mk = { v: 1 };
+    tl.to(mk, { v: 0, duration: 0.2, onUpdate: function () { soaks.mark(mk.v); } }, 1.0);
+    tl.set({}, {}, CAROUSEL_AT); // timeline length = CAROUSEL_AT V
 
+    var onRefresh = function () { V = window.innerHeight; measure(); };
+    ScrollTrigger.addEventListener("refreshInit", onRefresh);
+    gsap.ticker.add(tick);
+
+    return function () { // leaving desktop: undo everything
+      gsap.ticker.remove(tick);
+      ScrollTrigger.removeEventListener("refreshInit", onRefresh);
+      disable();
+    };
+  });
+
+  /* ---------- the carousel (past the timeline, endless) ---------- */
+
+  function placeCards(v) {
     // carousel offset (units): 0 at Work-02, 1104 at Work-03, on and on after
     var o = (v - CAROUSEL_AT) * RATE;
     cards.forEach(function (c, k) {
@@ -285,83 +329,59 @@
       var show = entered && x > -PITCH && x < 1432 + 40;
       c.style.opacity = show ? "1" : "0";
       c.classList.toggle("is-on", show && x > -200 && x < 1300);
-      if (show) {
-        c.style.transform = "translate(" + (x * unit).toFixed(1) + "px," + (waveY(x) * unit).toFixed(1) + "px)";
-      }
+      if (show) gsap.set(c, { x: x * unit, y: waveY(x) * unit });
     });
   }
-
-  var target = 0, current = 0, rendered = -1, lastT = performance.now();
 
   // keep the scroll inside the wrap-round zone once the carousel is running
   function wrap() {
     var y = window.scrollY, d = LOOP * V;
     if (y > HI * V) { jump(-d); loops++; }
-    else if (y < LO * V && loops > 0) { jump(d); loops--; }
+    else if (y < LO * V && loops > 0) {
+      // scrolling back through the loop wraps; a leap far up (scrollbar,
+      // Home key) means "take me back": stop looping and let it go
+      if (y > (LO - 0.6) * V) { jump(d); loops--; } else loops = 0;
+    }
   }
   function jump(d) {
     window.scrollTo(0, window.scrollY + d);
-    current += d; target += d; rendered += d; lastY += d;
+    smooth.y += d; lastY += d;
   }
 
-  /* Menu jumps run on our own clock and curve (ease-in-out), not the
-     browser's smooth scroll, so the whole transition follows one curve. */
-  var tween = null;
-  function scrollToY(to) {
-    var from = window.scrollY, dist = Math.abs(to - from);
-    if (reduce || dist < 2) { window.scrollTo(0, to); return; }
-    // longer trips take longer, within 1.2–2.6 s
-    var dur = Math.max(1200, Math.min(2600, 900 + dist / V * 450));
-    tween = { from: from, to: to, t0: performance.now(), dur: dur };
-  }
-  ["wheel", "touchstart", "keydown"].forEach(function (ev) {
-    window.addEventListener(ev, function () { tween = null; }, { passive: true }); // the user takes over
-  });
-
-  function loop(t) {
-    var dt = Math.min(3, (t - lastT) / 16.67); lastT = t;
-    if (on && !root.classList.contains("is-loading")) {
-      if (tween) {
-        var k = ease(clamp01((t - tween.t0) / tween.dur));
-        var y = tween.from + (tween.to - tween.from) * k;
-        window.scrollTo(0, y);
-        target = current = y; // no inertia on top of the curve
-        if (k >= 1) tween = null;
-      } else {
-        wrap();
-        target = window.scrollY;
-        current += (target - current) * (reduce ? 1 : Math.min(1, 0.16 * dt)); // a touch of inertia
-        if (Math.abs(target - current) < 0.5) current = target;
-      }
-      if (Math.abs(current - rendered) > 0.3) { render(current); rendered = current; }
-      swayStep(dt, t);
-    }
-    requestAnimationFrame(loop);
+  var lastCards = -1;
+  function tick(time, deltaTime) {
+    if (!on || root.classList.contains("is-loading")) return;
+    var dt = Math.min(3, deltaTime / 16.67);
+    if (!navTween) wrap();
+    // same smoothing feel as the timeline's scrub
+    smooth.y += (window.scrollY - smooth.y) * (reduce || navTween ? 1 : Math.min(1, 0.12 * dt));
+    if (Math.abs(smooth.y - lastCards) > 0.3) { placeCards(smooth.y / V); lastCards = smooth.y; }
+    swayStep(dt, time * 1000);
   }
 
-  /* ---------- menu ---------- */
+  /* ---------- menu: scroll along the dz.nav curve ---------- */
 
+  var navTween = null;
   document.querySelectorAll(".nav-list a[data-go]").forEach(function (a) {
     a.addEventListener("click", function (e) {
       if (!on) return; // small screens: the plain #anchors do the job
       e.preventDefault();
       loops = 0;
       if (a.dataset.go === "home" && window.scrollY > LO * V) { // far into the loop: go straight
-        window.scrollTo(0, LO * V); current = target = rendered = LO * V; lastY = window.scrollY;
+        window.scrollTo(0, LO * V); smooth.y = LO * V; lastY = window.scrollY;
       }
-      scrollToY(a.dataset.go === "work" ? (CAROUSEL_AT + 1104 / RATE) * V : 0);
+      var to = a.dataset.go === "work" ? WORK03 * V : 0;
+      var dist = Math.abs(to - window.scrollY) / V;
+      if (navTween) navTween.kill();
+      navTween = gsap.to(window, {
+        scrollTo: { y: to, autoKill: true },        // the user scrolling takes over
+        duration: reduce ? 0 : Math.max(1.2, Math.min(2.6, 0.9 + dist * 0.45)),
+        ease: "dz.nav",
+        onComplete: function () { navTween = null; },
+        onInterrupt: function () { navTween = null; }
+      });
     });
   });
 
-  function sync() { if (mq.matches) enable(); else disable(); }
-  mq.addEventListener ? mq.addEventListener("change", sync) : mq.addListener(sync);
-  window.addEventListener("resize", function () {
-    var v = window.scrollY / V;
-    V = window.innerHeight;
-    if (on) { measure(); window.scrollTo(0, v * V); current = target = rendered = window.scrollY; render(current); }
-  });
   window.scrollTo(0, 0);
-  sync();
-  if (on) render(0);
-  requestAnimationFrame(loop);
 })();

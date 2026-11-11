@@ -5,14 +5,14 @@
 
 @font-face {
   font-family: "AnNam Serif";
-  src: url("../fonts/AnNamSerif-VF.woff2") format("woff2");
+  src: url("../fonts/AnNamSerif-VF.woff2?v=0.912") format("woff2");
   font-weight: 400 700;
   font-style: normal;
   font-display: block; /* no fallback-font flash on the loader count */
 }
 @font-face {
   font-family: "AnNam Serif";
-  src: url("../fonts/AnNamSerif-Italic-VF.woff2") format("woff2");
+  src: url("../fonts/AnNamSerif-Italic-VF.woff2?v=0.912") format("woff2");
   font-weight: 400 700;
   font-style: italic;
   font-display: block; /* no fallback-font flash on the loader count */
