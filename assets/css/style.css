@@ -31,7 +31,14 @@
 *::before,
 *::after { box-sizing: border-box; }
 
-html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  /* Give html its own background so body paints its own too (no propagation):
+     body is a stacking context (container-type), and the cursor's blend
+     modes need the paper colour inside that group. */
+  background: var(--paper);
+}
 
 body {
   margin: 0;
@@ -227,6 +234,39 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 @media (prefers-reduced-motion: reduce) {
   .is-loading .loader { transition: none; }
   .loader .dot { animation: none; }
+}
+
+/* ---------- Cursor ----------
+   A dot in the text colour that inverts where it overlaps dark ink.
+   Two stacked dots compute out = (P + G) − backdrop per channel:
+   .cursor-invert  white, difference      → 255 − backdrop
+   .cursor-tint    rgb(18 64 23), plus-lighter → + (P + G − 255)
+   so paper #f0efee → ink #215028 and ink → paper, exactly. Light green
+   (#749674) comes out a light grey-green. Only for a fine pointer. */
+.cursor { display: none; }
+@media (hover: hover) and (pointer: fine) {
+  .has-cursor,
+  .has-cursor * { cursor: none !important; }
+  .has-cursor .cursor {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    width: var(--cursor-size, 12px);
+    height: var(--cursor-size, 12px);
+    margin: calc(var(--cursor-size, 12px) / -2) 0 0 calc(var(--cursor-size, 12px) / -2);
+    border-radius: 50%;
+    pointer-events: none;
+    transition: width 0.25s ease, height 0.25s ease, margin 0.25s ease, opacity 0.2s;
+  }
+  .has-cursor.cursor-on-link { --cursor-size: 48px; }
+  .has-cursor.cursor-away .cursor { opacity: 0; }
+  .cursor-invert { background: #fff; mix-blend-mode: difference; }
+  .cursor-tint   { background: rgb(18 64 23); mix-blend-mode: plus-lighter; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .has-cursor .cursor { transition: opacity 0.2s; }
 }
 
 /* ---------- Mobile (Figma Home 13:8, 390 × 844) ---------- */
