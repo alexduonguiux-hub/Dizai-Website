@@ -162,15 +162,32 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
     flex-direction: column;
   }
 
-  /* type block centred in the screen, clear of the corner blocks
-     (3 lines of 20px = 54px + 2 gutters) */
+  /* Nav: one row, three equal columns (left / centre / right);
+     the current page's arrow moves in front: →HOME */
+  .site-nav { left: var(--gutter); }
+  .nav-list { display: flex; }
+  .nav-list li { flex: 1 1 0; text-align: center; }
+  .nav-list li:first-child { text-align: left; }
+  .nav-list li:last-child { text-align: right; }
+  .nav-list a[aria-current="page"]::after,
+  .nav-list a:hover::after { content: none; }
+  .nav-list a[aria-current="page"]::before,
+  .nav-list a:hover::before {
+    content: "→";
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-style: normal;
+    font-weight: 400;
+  }
+
+  /* type block centred in the screen, clear of the contact block
+     (top at gutter + 80px, 3 lines = 54px) and the social block */
   .hero {
     position: static;
     flex: 1;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding-block: calc(54px + var(--gutter));
+    padding-block: calc(var(--gutter) + 80px + 54px + 16px);
   }
 
   /* DESIGN, 2024 and the seal + EST pair are centred; STUDIO fills the
@@ -195,13 +212,13 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
     text-align: center;
   }
 
-  .contact { top: var(--gutter); left: var(--gutter); }
+  /* contact under the nav, social at the bottom — both centred */
+  .contact,
   .social {
-    top: auto;
-    bottom: var(--gutter);
     left: var(--gutter);
     right: var(--gutter);
-    display: flex;
-    justify-content: space-between;
+    text-align: center;
   }
+  .contact { top: calc(var(--gutter) + 80px); }
+  .social  { top: auto; bottom: var(--gutter); }
 }
