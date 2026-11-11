@@ -570,7 +570,11 @@ body::after {
 /* the email on two lines, HELLO@ / DIZAI.STUDIO (line height 0.8: 0.1em
    between the cap boxes); a phone breaks DIZAI. / STUDIO too */
 .cp-email a { display: flex; flex-direction: column; align-items: center; gap: 0.1em; }
-.cp-email .cp-l { display: flex; justify-content: center; }
+/* lines are plain blocks: their letters (split into boxes while they move)
+   must stay inline, never flex items — on a phone a column flex stacked
+   HELLO@ one letter per line */
+.cp-email .cp-l { display: block; text-align: center; }
+.cp-email .cp-p { display: inline; }
 .cp-social { display: flex; justify-content: center; gap: 8px; }
 .cp-social li { display: flex; align-items: center; gap: 8px; }
 .cp-social li + li::before {
@@ -701,5 +705,6 @@ body::after {
   .page-contact .cp-info { display: none; }
   .cp-center { gap: 12px; margin-top: 0; }
   .cp-email a { gap: 0.2em; }
-  .cp-email .cp-l { flex-direction: column; align-items: center; gap: 0.2em; }
+  .cp-email .cp-p { display: block; }
+  .cp-email .cp-p + .cp-p { margin-top: 0.2em; }
 }
