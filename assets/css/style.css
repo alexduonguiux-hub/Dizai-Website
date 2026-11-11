@@ -177,7 +177,7 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 .coin-back  { transform: translateZ(calc(var(--t) * -1)); }
 .coin-rim {
   transform: translateZ(calc(var(--t) * (var(--i) / 23) * -0.97 - var(--t) * 0.015)) scale(0.992);
-  filter: brightness(0.62);
+  filter: brightness(0.7);
   opacity: 0; /* only while turned: face-on, 24 anti-aliased edges would darken the outline */
 }
 html:not(.is-loading) .seal-coin { animation: coin-turn 9s linear infinite; }
@@ -277,7 +277,7 @@ html:not(.is-loading) .coin-rim   { animation: coin-rim 9s linear infinite; }
 }
 /* desktop loader: the seal is drawn large, 381 px tall (Figma 17:323) */
 .loader-bottom .seal { height: calc(100cqi * 381 / 1432); }
-.loader-count { text-align: right; }
+.loader-count { text-align: right; color: var(--green-500); }
 
 /* Rolling count: each digit cell is a window; on change the old digit
    slides up and out while the new one slides up into place. The window clips
@@ -346,6 +346,18 @@ html:not(.is-loading) .coin-rim   { animation: coin-rim 9s linear infinite; }
 }
 @media (prefers-reduced-motion: reduce) {
   .has-cursor .cursor { transition: opacity 0.2s; }
+}
+
+/* ---------- Ink bleed ("lem mực in") ----------
+   SVG filters defined at the top of index.html, one strength per type size.
+   The turning seal is left crisp: a filter on it would be recomputed on
+   every frame of the turn. */
+svg.defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+.display { filter: url(#dz-bleed-lg); }
+.nav-list, .services, .contact, .social, .scroll-hint,
+.loader-top > p { filter: url(#dz-bleed-sm); }
+@media (max-width: 720px) {
+  .display { filter: url(#dz-bleed-md); }
 }
 
 /* ---------- Mobile (Figma Home 13:8, 390 × 844) ---------- */

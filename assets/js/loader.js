@@ -237,7 +237,9 @@
       var ct = node("feComponentTransfer", { "in": "mix", result: "level" }, f);
       var fa = node("feFuncA", { type: "linear", slope: String(S), intercept: String(I_HIDDEN) }, ct);
       node("feComposite", { "in": "SourceGraphic", in2: "level", operator: "in" }, f);
-      el.style.filter = "url(#" + f.id + ")";
+      // soak first, then the element's own ink bleed on what has soaked in
+      var base = getComputedStyle(el).filter;
+      el.style.filter = "url(#" + f.id + ")" + (base && base !== "none" ? " " + base : "");
       return fa;
     }
 

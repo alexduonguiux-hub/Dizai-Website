@@ -7,10 +7,50 @@
   <meta name="description" content="Đìzai Studio — design studio in Saigon, Vietnam. User interface, user experience, design systems, mobile app and website design.">
   <meta name="theme-color" content="#f0efee">
   <link rel="preload" href="assets/fonts/AnNamSerif-VF.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="assets/css/style.css?v=202611111311">
+  <link rel="stylesheet" href="assets/css/style.css?v=202611111317">
   <script>document.documentElement.classList.add("is-loading")</script>
 </head>
 <body>
+  <!-- Ink-bleed ("lem mực in") filters for the type: the glyph is spread a
+       little (blur + paper-fibre noise, thresholded, filled from a slightly
+       dilated copy so the colour carries) and given a faint grain where the
+       ink didn't take. Three strengths by type size. -->
+  <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false">
+    <filter id="dz-bleed-lg" x="-2%" y="-8%" width="104%" height="116%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="3" seed="3" result="fibre" />
+      <feGaussianBlur in="SourceAlpha" stdDeviation="1.6" result="spread" />
+      <feComposite in="spread" in2="fibre" operator="arithmetic" k2="1" k3="0.55" k4="-0.27" result="wet" />
+      <feComponentTransfer in="wet" result="edge"><feFuncA type="linear" slope="7" intercept="-2.5" /></feComponentTransfer>
+      <feMorphology in="SourceGraphic" operator="dilate" radius="1.5" result="ink" />
+      <feComposite in="ink" in2="edge" operator="in" result="printed" />
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="9" result="g" />
+      <feColorMatrix in="g" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0.4 0 0 0 0.9" result="grain" />
+      <feComposite in="printed" in2="grain" operator="in" />
+    </filter>
+    <filter id="dz-bleed-md" x="-2%" y="-8%" width="104%" height="116%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.08" numOctaves="3" seed="3" result="fibre" />
+      <feGaussianBlur in="SourceAlpha" stdDeviation="0.7" result="spread" />
+      <feComposite in="spread" in2="fibre" operator="arithmetic" k2="1" k3="0.45" k4="-0.22" result="wet" />
+      <feComponentTransfer in="wet" result="edge"><feFuncA type="linear" slope="7" intercept="-2.4" /></feComponentTransfer>
+      <feMorphology in="SourceGraphic" operator="dilate" radius="0.6" result="ink" />
+      <feComposite in="ink" in2="edge" operator="in" result="printed" />
+      <feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="9" result="g" />
+      <feColorMatrix in="g" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0.4 0 0 0 0.9" result="grain" />
+      <feComposite in="printed" in2="grain" operator="in" />
+    </filter>
+    <filter id="dz-bleed-sm" x="-2%" y="-8%" width="104%" height="116%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.22" numOctaves="3" seed="3" result="fibre" />
+      <feGaussianBlur in="SourceAlpha" stdDeviation="0.35" result="spread" />
+      <feComposite in="spread" in2="fibre" operator="arithmetic" k2="1" k3="0.3" k4="-0.15" result="wet" />
+      <feComponentTransfer in="wet" result="edge"><feFuncA type="linear" slope="6" intercept="-2.0" /></feComponentTransfer>
+      <feMorphology in="SourceGraphic" operator="dilate" radius="0.25" result="ink" />
+      <feComposite in="ink" in2="edge" operator="in" result="printed" />
+      <feTurbulence type="fractalNoise" baseFrequency="1.4" numOctaves="2" seed="9" result="g" />
+      <feColorMatrix in="g" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0.35 0 0 0 0.92" result="grain" />
+      <feComposite in="printed" in2="grain" operator="in" />
+    </filter>
+  </svg>
+
   <!-- Loading screen (Figma "Loading" 13:257). Shown only when JS runs;
        assets/js/loader.js counts it to 100% and fades it out. -->
   <div class="loader" aria-hidden="true">
@@ -99,7 +139,7 @@
 
   <div class="cursor cursor-invert" aria-hidden="true"></div>
   <div class="cursor cursor-tint" aria-hidden="true"></div>
-  <script src="assets/js/loader.js?v=202611111311"></script>
-  <script src="assets/js/cursor.js?v=202611111311"></script>
+  <script src="assets/js/loader.js?v=202611111317"></script>
+  <script src="assets/js/cursor.js?v=202611111317"></script>
 </body>
 </html>

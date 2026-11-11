@@ -13,6 +13,8 @@ Website của Đìzai Studio. HTML/CSS tĩnh, không cần build: mở `index.ht
 
 ## Ghi chú dựng
 - **Desktop:** phóng to/thu nhỏ đúng tỉ lệ khung Figma. Mọi kích thước tính theo bề rộng nội dung 1432 px (`100cqi` của `body`). Ở 1512 px, vị trí khớp Figma từng pixel.
+- **Lem mực in:** chữ dùng bộ lọc SVG giả mực in thấm giấy. Nét chữ hơi loang và gồ ghề theo sợi giấy, góc trong đọng mực, lòng nét có vài đốm thiếu mực. Có ba mức theo cỡ chữ (`#dz-bleed-lg` cho chữ lớn desktop, `-md` cho chữ lớn mobile, `-sm` cho chữ 20 px), định nghĩa ở đầu `index.html`. Con dấu đang xoay không dùng bộ lọc, vì nếu dùng thì mỗi khung hình phải tính lại.
+- **Màu:** logo mark màu xanh đậm `#215028` ở cả Home và Loading; số 100% ở Loading màu xanh nhạt `#749674` (Figma).
 - **Con dấu ở Home:** là một miếng cắt mỏng hình con dấu, không có nền, xoay chậm quanh trục dọc (9 giây một vòng). Độ dày khoảng 2,5% chiều cao, làm từ 24 lớp con dấu xanh đậm xếp sát nhau; các lớp này chỉ hiện khi nghiêng, nên nhìn thẳng thì giống hệt Figma. Mặt sau là hình ngược của con dấu, như khi lật một miếng giấy cắt. Con dấu chỉ bắt đầu xoay khi màn loading kết thúc, từ góc 0°. Bật giảm chuyển động thì con dấu đứng yên.
 - **Desktop:** SCROLL DOWN màu xanh nhạt nằm ở góc dưới bên phải hàng DESIGN; LINKEDIN và FACEBOOK nằm ngay dưới khối liên hệ, cách 32 px.
 - **Mobile (≤ 720 px):** theo frame `13:8`. Bốn dòng chữ 118 px (trên bề rộng 358 px): DESIGN căn giữa, STUDIO căn phải, logo + EST căn giữa, 2024 căn giữa. Danh sách dịch vụ nằm dưới, cách 16 px; cả khối căn giữa màn hình theo chiều dọc. Menu là một hàng ngang trên cùng (→HOME · WORK · CONTACT), liên hệ căn giữa ngay dưới, mạng xã hội là một hàng LINKEDIN ✱ FACEBOOK ở đáy, phía trên có dòng SCROLL DOWN màu xanh nhạt, cách 32 px.
