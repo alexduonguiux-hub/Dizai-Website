@@ -92,18 +92,25 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
   font-weight: 400;
 }
 
-/* ---------- Hero ---------- */
-.hero {
-  display: flex;
-  flex-direction: column;
-  gap: calc(100cqi * 20 / 1432);
-}
+/* ---------- Hero ----------
+   .type is a grid so one set of elements serves both Figma frames:
+   desktop  DESIGN / STUDIO / seal · EST · 2024        (Home 10:1457, 1512 wide)
+   mobile   DESIGN / STUDIO / seal EST / 2024, centred (Home 13:8, 390 wide)
+   Columns: seal | free | EST | free | 2024 — the two 1fr tracks reproduce
+   Figma's space-between. */
+.hero { position: relative; }
 
-.hero-row { position: relative; }
+.type {
+  --fs: calc(100cqi * 330 / 1432);
+  display: grid;
+  grid-template-columns: auto 1fr auto 1fr auto;
+  align-items: center;
+  row-gap: calc(100cqi * 20 / 1432);
+}
 
 .display {
   font-weight: 400;
-  font-size: calc(100cqi * 330 / 1432);
+  font-size: var(--fs);
   white-space: nowrap;
   /* Box = cap height (0.7em). line-height 0.7 puts the baseline 0.71em down,
      the 0.01em nudge lands cap top / baseline exactly on the box edges, so the
@@ -113,59 +120,84 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
   top: -0.01em;
 }
 /* The inline content area (1.2em) hangs below the 0.7em box and would add
-   ~40px of empty scroll under the last row; clip it, keeping room for overshoot
+   empty scroll under the last row; clip it, keeping room for overshoot
    (S, O, U go 0.014em past cap / baseline). */
 @supports (overflow-clip-margin: 1px) {
   .display { overflow: clip; overflow-clip-margin: 0.03em; }
 }
 
-/* Row 1 — DESIGN + services */
+.line-design { grid-column: 1 / -1; justify-self: start; }
+.line-studio { grid-column: 1 / -1; justify-self: end; }
+.seal {
+  grid-column: 1;
+  display: block;
+  width: auto;
+  height: calc(var(--fs) * 0.7);
+}
+.line-est  { grid-column: 3; color: var(--green-500); }
+.line-year { grid-column: 5; color: var(--green-500); }
+
+/* Desktop info blocks, placed against the type rows (units of 1432) */
 .services {
   position: absolute;
   top: 0;
   left: calc(100% * 981 / 1432);
 }
-
-/* Row 2 — STUDIO (right) + contact (left, spans the row height) */
-.hero-row--studio .display { text-align: right; }
-.contact {
+/* contact sits at the top of the STUDIO row, social at its bottom */
+.contact,
+.social {
   position: absolute;
-  inset: 0 auto 0 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+  left: 0;
 }
+.contact { top: calc(100cqi * 251 / 1432); }
+.social  { bottom: calc(100cqi * 251 / 1432); }
 
-/* Row 3 — seal, EST, 2024 */
-.hero-row--est {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  color: var(--green-500);
-}
-.seal {
-  display: block;
-  width: auto;
-  height: calc(100cqi * 231 / 1432);
-}
-
-/* ---------- Small screens ---------- */
+/* ---------- Mobile (Figma Home 13:8, 390 × 844) ---------- */
 @media (max-width: 720px) {
-  .site-nav { position: static; margin-bottom: 40px; }
+  :root { --text-sm: 20px; }
 
-  .hero { display: grid; gap: 0; row-gap: calc(100cqi * 20 / 1432); }
-  .hero-row--design,
-  .hero-row--studio { display: contents; }
-
-  .hero-row--design .display { order: 1; }
-  .hero-row--studio .display { order: 2; }
-  .hero-row--est { order: 3; }
-
-  .services,
-  .contact {
-    position: static;
-    margin-top: 40px;
+  body {
+    position: relative;
+    display: flex;
+    flex-direction: column;
   }
-  .services { order: 4; }
-  .contact { order: 5; gap: 40px; justify-content: flex-start; }
+
+  /* type block centred in the screen, clear of the corner blocks
+     (3 lines of 20px = 54px + 2 gutters) */
+  .hero {
+    position: static;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-block: calc(54px + var(--gutter));
+  }
+
+  /* DESIGN, 2024 and the seal + EST pair are centred; STUDIO fills the
+     width (right-aligned, as in Figma). Seal → EST gap 8px. */
+  .type {
+    --fs: calc(100cqi * 118 / 358);
+    grid-template-columns: 1fr auto auto 1fr;
+    row-gap: calc(100cqi * 8 / 358);
+  }
+  .line-design { justify-self: center; }
+  .seal {
+    grid-column: 2;
+    margin-right: calc(100cqi * 8 / 358);
+  }
+  .line-est  { grid-column: 3; }
+  .line-year { grid-column: 1 / -1; justify-self: center; }
+
+  .services { display: none; }
+
+  .contact { top: var(--gutter); left: var(--gutter); }
+  .social {
+    top: auto;
+    bottom: var(--gutter);
+    left: var(--gutter);
+    right: var(--gutter);
+    display: flex;
+    justify-content: space-between;
+  }
+  .social-dribbble { display: none; }
 }
