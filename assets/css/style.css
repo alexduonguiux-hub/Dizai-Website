@@ -476,6 +476,12 @@ body::after {
   /* what moves with the scroll gets its own GPU layer */
   .has-scrub .hero .contact, .has-scrub .work-title, .has-scrub .work-card { will-change: transform; }
 }
+/* Desktop layout on a tall screen (an iPad held upright): Home's type block
+   is sized by the width, so it sits in the middle of the height instead of
+   leaving the bottom half empty (on a 1512 × 813 screen this is 0) */
+@media (min-width: 721px) {
+  .has-scrub .hero { margin-top: max(0px, calc((100svh - 2 * var(--gutter) - 100cqi * 733 / 1432) / 2)); }
+}
 /* Mobile Work (Figma Work-01 22:3, Work-02 22:66, 390 × 844; units of 358):
    no contact block; the "đs" mark (51 × 64) right under the menu. Work-01:
    WORK (66) in the middle, SCROLL DOWN at the bottom. Work-02: WORK rises
@@ -490,7 +496,7 @@ body::after {
   .has-scrub .work-mark { top: 44px; left: calc(50% - var(--u) * 25.5); } /* 30px under the menu (px text) */
   .has-scrub .work-title { right: 0; text-align: center; }
   .has-scrub .work-hint { top: auto; bottom: 27px; } /* Figma 23:23274: cap bottom 43px from the screen's */
-  .has-scrub .work-card { left: 0; width: calc(var(--u) * 350); }
+  .has-scrub .work-card { left: 0; width: calc(var(--u) * 350 * var(--cs, 1)); } /* --cs: smaller on short screens (work.js) */
   .has-scrub .work-caption {
     left: 0;
     width: 100%;

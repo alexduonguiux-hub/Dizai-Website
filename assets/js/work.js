@@ -84,10 +84,13 @@
   var DESK = { W: 1432, axis: "y", pitch: 470, len: 430, pitchV: 0.38,
                titleY: function () { return H - 109 - 4; }, titleY2: function () { return H - 109 - 4; },
                contactY: -251, hint: true };
+  // how far Home's block sits below the top on a tall screen (see the CSS)
+  function heroDrop() { var h = q(".hero"); return h ? parseFloat(getComputedStyle(h).marginTop) || 0 : 0; }
   var MOB = { W: 358, axis: "x", pitch: 358, len: 350, pitchV: 0.35,
               titleY: function () { return (H - 46) * 402 / 766; }, titleY2: function () { return 140; },
               contactY: 0, hint: true };
-  var G = DESK, unit = 1, H = 733, cardTop = 226;
+  var G = DESK, unit = 1, H = 733, cardTop = 226, cs = 1; // cs: picture scale (mobile)
+  var list = work.querySelector(".work-list");
 
   function measure() {
     var r = work.getBoundingClientRect(); // transforms are GSAP's
@@ -95,11 +98,14 @@
     H = r.height / unit;
     if (G.axis === "x") {
       // Figma Work-02: WORK 140–186, pictures 40 under it (226), the names
-      // 40 under them. Short screens: lift the pictures, but keep them clear
-      // of WORK.
-      cardTop = Math.max(186 + 24, Math.min(226, H - 16 - 151 - 40 - 262));
-      work.style.setProperty("--cap-top", ((cardTop + 262 + 40) * unit).toFixed(1) + "px");
-    } else work.style.removeProperty("--cap-top");
+      // (~151) 40 under them. Short screens for their width (a small tablet
+      // held upright): lift the pictures, then make them smaller.
+      var room = H - 16 - 151 - 40;              // where the pictures must end
+      cardTop = Math.max(186 + 24, Math.min(226, room - 262));
+      cs = Math.max(0.55, Math.min(1, (room - cardTop) / 262));
+      list.style.setProperty("--cs", cs.toFixed(4));
+      work.style.setProperty("--cap-top", ((cardTop + 262 * cs + 40) * unit).toFixed(1) + "px");
+    } else { cs = 1; list.style.removeProperty("--cs"); work.style.removeProperty("--cap-top"); }
     if (typeof sizeSheets === "function") sizeSheets();
   }
 
@@ -266,18 +272,19 @@
   var smooth = { y: 0 };
 
   function placeCards(v) {
-    var span = G.pitch * N;
+    var PIT = G.pitch * cs, LEN = G.len * cs; // mobile pictures may be scaled down
+    var span = PIT * N;
     // list offset (units): 0 at Work-02, growing as you scroll on; before
     // that the first picture travels in from just off screen
     var start = G.axis === "y" ? H : G.W;
     var o = v >= LIST_AT ? (v - LIST_AT) * RATE : -start * Math.min(1, (LIST_AT - v) / (LIST_AT - ENTER_AT)) - (v < ENTER_AT ? 1e5 : 0);
     var active = -1, best = 1e9;
     cards.forEach(function (c, k) {
-      var p = k * G.pitch - o;
-      if (o >= 0) p = ((p + G.pitch) % span + span) % span - G.pitch;
+      var p = k * PIT - o;
+      if (o >= 0) p = ((p + PIT) % span + span) % span - PIT;
       // past the content edge, into the gutter (the next one peeks in)
       var max = G.axis === "y" ? H : G.W + 16 / unit;
-      var show = p > -G.len && p < max;
+      var show = p > -LEN && p < max;
       c.style.opacity = show ? "1" : "0";
       c.classList.toggle("is-on", show);
       if (show) {
@@ -289,7 +296,7 @@
       // kept within the first picture on tall screens so Work-02 opens on it;
       // mobile, the one over the middle of the screen, above the name
       var at = G.axis === "y" ? Math.min(H / 2, 400) : G.W / 2;
-      var gap = at < p ? p - at : at > p + G.len ? at - p - G.len : 0;
+      var gap = at < p ? p - at : at > p + LEN ? at - p - LEN : 0;
       if (gap < best) { best = gap; active = k; }
     });
     return active;
@@ -352,7 +359,7 @@
     on = true;
     root.classList.add("has-scrub");
     measure();
-    RATE = G.pitch / G.pitchV; LOOP = N * G.pitchV; HI = LO + LOOP;
+    RATE = G.pitch * cs / G.pitchV; LOOP = N * G.pitchV; HI = LO + LOOP;
     loops = 0; lastCards = -1;
     smooth.y = window.scrollY;
 
@@ -409,7 +416,7 @@
     drive(sealOut.set, 0, 1, 0.12, 0.35);
     // desktop: the contact block slides up to its Work place (251 units);
     // mobile: it rolls away with the rest of Home
-    if (G.contactY) tl.fromTo(contact, { y: 0 }, { y: function () { return G.contactY * unit; }, duration: 0.6, ease: "dz.move" }, 0.1);
+    if (G.contactY) tl.fromTo(contact, { y: 0 }, { y: function () { return G.contactY * unit - heroDrop(); }, duration: 0.6, ease: "dz.move" }, 0.1);
     else drive(contactOut.set, 0, 1, 0.08, 0.3);
     // Work-01: WORK rolls in at the bottom, the mark slides in
     gsap.set(title, { y: function () { return G.titleY() * unit; }, color: DARK });
@@ -422,7 +429,7 @@
     if (G.hint) drive(showHint, 1, 2, 1.0, 0.25);
     tl.set({}, {}, LIST_AT); // timeline length = LIST_AT V
 
-    var onRefresh = function () { V = window.innerHeight; measure(); lastCards = -1; };
+    var onRefresh = function () { V = window.innerHeight; measure(); RATE = G.pitch * cs / G.pitchV; lastCards = -1; };
     ScrollTrigger.addEventListener("refreshInit", onRefresh);
     // after every re-measure (resize), put each piece back where the scroll is
     var onRefreshed = function () {
@@ -496,27 +503,36 @@
   });
 
   window.scrollTo(0, 0);
+  // remembered for a reload (see below)
+  window.addEventListener("pagehide", function () {
+    try { sessionStorage.setItem("dz-v", (window.scrollY / V).toFixed(3)); } catch (e) {}
+  });
 
   // coming back: no loading screen (once per visit); Home rolls in, or,
   // for "#work", the page glides on to Work
   if (root.classList.contains("is-return")) {
     root.classList.add("is-back"); // the letters below start blank
-    if (location.hash === "#work") {
-      // straight to Work-02: the scroll and the timeline are put there
-      // before anything shows, then Work's own pieces come in
-      history.replaceState(null, "", location.pathname);
-      var y = LIST_AT * V;
+    // where to open: "#work" from another page → Work-02; a reload →
+    // wherever you were (not Home with Work's scroll under it)
+    var openV = 0, nav = performance.getEntriesByType && performance.getEntriesByType("navigation")[0];
+    if (location.hash === "#work") openV = LIST_AT;
+    else if (nav && nav.type === "reload") { try { openV = +sessionStorage.getItem("dz-v") || 0; } catch (e) {} }
+    if (openV > 0.05) {
+      // the scroll and the timeline are put there before anything shows,
+      // then Work's own pieces come in
+      if (location.hash) history.replaceState(null, "", location.pathname);
+      var y = Math.min(openV, HI - 0.01) * V;
       window.scrollTo(0, y); smooth.y = lastY = y; lastCards = -1;
       ScrollTrigger.update();
       if (curTl) {
         var st = curTl.scrollTrigger, scrub = st && st.getTween && st.getTween();
         if (scrub) scrub.progress(1);
-        curTl.progress(1);
-        if (curSettle) curSettle(); // every piece at its Work-02 state, now
+        curTl.progress(Math.min(1, openV / LIST_AT));
+        if (curSettle) curSettle(); // every piece at its state for this point, now
       }
-      var inWork = [q(".nav-list"), title].concat(G.contactY ? [contact] : [])
+      var inWork = [q(".nav-list")].concat(openV >= 0.9 ? [title] : [], G.contactY ? [contact] : [])
         .map(function (el) { var r = Roll.text(el, "in"); r.set(0); return r; })
-        .concat(marks.map(function (m) { var r = Roll.box(m, "in"); r.set(0); return r; }));
+        .concat(openV >= 0.9 ? marks.map(function (m) { var r = Roll.box(m, "in"); r.set(0); return r; }) : []);
       gsap.fromTo(q(".work-list"), { autoAlpha: 0, y: 24 },
                   { autoAlpha: 1, y: 0, duration: reduce ? 0.01 : 0.9, delay: reduce ? 0 : 0.15, ease: "power2.out",
                     clearProps: "transform" });
