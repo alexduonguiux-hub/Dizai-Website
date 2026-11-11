@@ -3,9 +3,12 @@
    Desktop is a proportional scale of the Figma frame: every size is expressed as a
    fraction of the 1432 px content width (100cqi = body content box). */
 
+/* the upright file carries both axes, weight and slant (slnt 0 → −10 is
+   the italic), so links can lean over smoothly instead of jumping to the
+   italic font (dizai-serif v0.913, AnNamSerif[slnt,wght]) */
 @font-face {
   font-family: "AnNam Serif";
-  src: url("../fonts/AnNamSerif-VF.woff2?v=0.913") format("woff2");
+  src: url("../fonts/AnNamSerif-VF.woff2?v=0.913s") format("woff2");
   font-weight: 400 700;
   font-style: normal;
   font-display: block; /* no fallback-font flash on the loader count */
@@ -68,7 +71,13 @@ a[x-apple-data-detectors] {
   text-decoration: none !important;
   font: inherit !important;
 }
-a:hover { font-style: italic; }
+/* hover: the letters lean over along the font's slant axis */
+@property --slnt { syntax: "<number>"; inherits: true; initial-value: 0; }
+a {
+  font-variation-settings: "slnt" var(--slnt);
+  transition: --slnt 0.35s cubic-bezier(0.3, 0.7, 0.2, 1);
+}
+a:hover { --slnt: -10; }
 a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 
 .visually-hidden {
@@ -125,7 +134,7 @@ body::after {
   z-index: 1;
 }
 .nav-list { text-align: right; }
-.nav-list a[aria-current="page"] { font-style: italic; }
+.nav-list a[aria-current="page"] { --slnt: -10; } /* leans over as the page changes */
 .nav-list a[aria-current="page"]::after,
 .nav-list a:hover::after {
   content: "←";
