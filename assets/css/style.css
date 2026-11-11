@@ -61,6 +61,12 @@ ul { list-style: none; }
 address { font-style: normal; }
 
 a { color: inherit; text-decoration: none; }
+/* links iOS adds by itself (data detectors) look like the text around them */
+a[x-apple-data-detectors] {
+  color: inherit !important;
+  text-decoration: none !important;
+  font: inherit !important;
+}
 a:hover { font-style: italic; }
 a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 
@@ -302,6 +308,8 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 /* decorations that are not letters (the ✱ between LinkedIn and Facebook)
    fade while their text rolls */
 .is-rolling li + li::before { opacity: 0; transition: opacity 0.25s; }
+/* no underline drawn across the letter windows while they roll */
+.is-rolling, .is-rolling * { text-decoration: none !important; }
 .rc-r {
   position: absolute;
   left: 50%;
