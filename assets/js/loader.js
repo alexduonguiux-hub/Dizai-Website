@@ -17,6 +17,7 @@
   var MIN_MS = reduce ? 300 : 1800; // shortest time from 0 to 100
   var HOLD_MS = reduce ? 0 : 350;   // pause on 100% before the curtain
   var CURTAIN_MS = 2000;
+  var SETTLE_MS = reduce ? 0 : 400;  // matches .is-settled transition in CSS
 
   /* ---------------- Rolling counter ---------------- */
 
@@ -87,19 +88,45 @@
   pctEl.className = "roll-pct";
   pctEl.textContent = "%";
 
-  /* Each cell gets an explicit width (the digit it is rolling to) and a
-     kerning margin, both transitioned in CSS over the roll's duration, so
-     the row glides instead of snapping when a 1 turns into a 0. */
+  /* While counting, every digit cell has the same width (the widest digit),
+     so the row never shifts sideways as narrow and wide digits pass through.
+     At 100% the cells ease once to each digit's real width plus the font's
+     kerning, which is how Figma sets "100%". Width and margin transitions
+     live in CSS. */
+  var settled = false;
+  var finalDigits = ["1", "0", "0"]; // where the row ends up
+  var digitW = null;
+  function widestDigit() {
+    if (digitW === null) {
+      var w = 0;
+      for (var i = 0; i <= 9; i++) {
+        var a = advance(String(i));
+        if (a === null) return null;
+        w = Math.max(w, a);
+      }
+      digitW = w;
+    }
+    return digitW;
+  }
   function layout() {
-    var prev = "";
+    var prev = "", tab = widestDigit();
     for (var i = 0; i < cells.length; i++) {
-      var d = cells[i].target, w = advance(d), k = kern(prev, d);
+      // once settling, aim straight at the final "100%" so a digit still
+      // rolling 9 → 0 can't retarget the move halfway
+      var d = settled ? finalDigits[i] : cells[i].target;
+      var w = settled ? advance(d) : (d ? tab : 0);
+      var k = settled ? kern(prev, d) : 0;
       if (w !== null) cells[i].el.style.width = w + "em";
       if (k !== null) cells[i].el.style.marginLeft = k + "em";
       if (d) prev = d;
     }
-    var kp = kern(prev, "%");
+    var kp = settled ? kern(prev, "%") : 0;
     if (kp !== null) pctEl.style.marginLeft = kp + "em";
+  }
+  function settle() {
+    settled = true;
+    countEl.classList.add("is-settled");
+    layout();
   }
   for (var c = 0; c < 3; c++) cells.push(RollCell(countEl, layout));
   countEl.appendChild(pctEl);
@@ -108,6 +135,12 @@
   function showCount(n) {
     var s = String(n);
     while (s.length < 3) s = " " + s;
+    if (n >= 100 && !settled) {
+      // last roll eases out, and the leading 1 arrives straight into
+      // Figma's spacing: one sideways move instead of two
+      countEl.classList.add("is-final");
+      settle();
+    }
     for (var i = 0; i < 3; i++) cells[i].set(s[i] === " " ? "" : s[i]);
   }
   showCount(0);
@@ -132,8 +165,9 @@
   }
 
   function waitForDigits() {
-    if (cells.every(function (c) { return c.idle(); })) setTimeout(reveal, HOLD_MS);
-    else requestAnimationFrame(waitForDigits);
+    if (cells.every(function (c) { return c.idle(); })) {
+      setTimeout(reveal, SETTLE_MS + HOLD_MS);   // let the settle finish
+    } else requestAnimationFrame(waitForDigits);
   }
 
   /* ---------------- Reveal ---------------- */

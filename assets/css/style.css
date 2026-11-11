@@ -207,20 +207,25 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 /* Rolling count: each digit cell is a window; on change the old digit
    slides up and out while the new one slides up into place. The window clips
    just outside the cap box (overshoot is 0.014em), wide at the sides. */
+.loader-count {
+  --roll-ms: 180ms;
+  --roll-ease: linear;       /* back-to-back rolls read as one steady motion */
+  --settle: 400ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.loader-count.is-final { --roll-ms: 420ms; --roll-ease: cubic-bezier(0.2, 0.7, 0.2, 1); }
 .roll {
   display: inline-grid;
   clip-path: inset(-0.03em -0.2em);
-  --roll-ms: 200ms;
-  --roll-ease: cubic-bezier(0.3, 0, 0.2, 1);
-  transition: width var(--roll-ms) var(--roll-ease), margin-left var(--roll-ms) var(--roll-ease);
+  /* width only changes when a leading digit appears (tabular while counting) */
+  transition: width var(--settle), margin-left var(--settle);
 }
-.roll-pct { transition: margin-left 200ms cubic-bezier(0.3, 0, 0.2, 1); }
+.roll-pct { transition: margin-left var(--settle); }
 .roll > span { grid-area: 1 / 1; text-align: center; }
 .roll-next { visibility: hidden; }
 .roll.is-rolling .roll-cur  { animation: roll-out var(--roll-ms) var(--roll-ease) forwards; }
 .roll.is-rolling .roll-next { visibility: visible; animation: roll-in var(--roll-ms) var(--roll-ease) forwards; }
-@keyframes roll-out { from { transform: translateY(0); }    to { transform: translateY(-120%); } }
-@keyframes roll-in  { from { transform: translateY(120%); } to { transform: translateY(0); } }
+@keyframes roll-out { from { transform: translateY(0); }    to { transform: translateY(-115%); } }
+@keyframes roll-in  { from { transform: translateY(115%); } to { transform: translateY(0); } }
 
 /* WebGL curtain: drawn over the loader, which hides once the first
    curtain frame is on screen (the two look identical at rest). */
