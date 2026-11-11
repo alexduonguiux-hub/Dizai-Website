@@ -463,13 +463,15 @@ body::after {
   }
   .has-scrub .work-card.is-on { pointer-events: auto; }
   /* the names, beside the pictures: three above the current one, three
-     below; the current one starts at 351 (Figma: list at 261, 30 a name) */
+     below, the whole list always centred on the screen's middle line
+     (Figma: 301–512 on the 813-tall frame) */
   .has-scrub .work-caption {
     display: block;
     position: absolute;
     left: calc(var(--u) * 368);
-    top: calc(var(--u) * 351 - 90px);
+    top: 50%;
     width: calc(var(--u) * 328);
+    transform: translateY(-50%);
   }
   /* what moves with the scroll gets its own GPU layer */
   .has-scrub .hero .contact, .has-scrub .work-title, .has-scrub .work-card { will-change: transform; }

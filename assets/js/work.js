@@ -285,9 +285,10 @@
         else gsap.set(c, { x: p * unit, y: cardTop * unit });
       }
       // the current project is the picture level with its name: desktop,
-      // the one spanning the name's height (y 366, the name's middle);
+      // the one spanning the screen's middle line (where the names sit),
+      // kept within the first picture on tall screens so Work-02 opens on it;
       // mobile, the one over the middle of the screen, above the name
-      var at = G.axis === "y" ? 366 : G.W / 2;
+      var at = G.axis === "y" ? Math.min(H / 2, 400) : G.W / 2;
       var gap = at < p ? p - at : at > p + G.len ? at - p - G.len : 0;
       if (gap < best) { best = gap; active = k; }
     });
@@ -340,7 +341,7 @@
 
   /* ---------- GSAP: the scroll timeline ---------- */
 
-  var DARK = "#215028", LIGHT = "#749674", keepV = 0;
+  var DARK = "#215028", LIGHT = "#749674", keepV = 0, curTl = null, curSettle = null;
   var mm = gsap.matchMedia();
   ScrollTrigger.config({ ignoreMobileResize: true }); // phone URL bar: no re-layout
 
@@ -356,7 +357,7 @@
     smooth.y = window.scrollY;
 
     // the timeline's time is measured in V (viewport heights of scroll)
-    var tl = gsap.timeline({
+    var tl = curTl = gsap.timeline({
       defaults: { ease: "none" },
       scrollTrigger: {
         trigger: document.body,
@@ -385,6 +386,7 @@
       tl.fromTo(o, { v: from }, { v: to, duration: dur, immediateRender: false,
                                   onUpdate: function () { fn(o.v); } }, at);
     }
+    curSettle = settle;
     function settle() {
       var t = tl.time();
       // one value per piece: a piece driven twice (SCROLL DOWN rolls in,
@@ -432,7 +434,8 @@
         window.scrollTo(0, y); smooth.y = lastY = y; lastCards = -1;
         tl.scrollTrigger && tl.scrollTrigger.update();
       }
-      requestAnimationFrame(settle);
+      settle();                         // right away: not one frame of Home
+      requestAnimationFrame(settle);    // and once more after the scrub catches up
     };
     ScrollTrigger.addEventListener("refresh", onRefreshed);
     gsap.ticker.add(tick);
@@ -499,10 +502,30 @@
   if (root.classList.contains("is-return")) {
     root.classList.add("is-back"); // the letters below start blank
     if (location.hash === "#work") {
+      // straight to Work-02: the scroll and the timeline are put there
+      // before anything shows, then Work's own pieces come in
       history.replaceState(null, "", location.pathname);
-      requestAnimationFrame(function () {
-        navTween = gsap.to(window, { scrollTo: { y: LIST_AT * V, autoKill: false }, duration: reduce ? 0 : 1.6,
-                                     ease: "dz.nav", onComplete: function () { navTween = null; } });
+      var y = LIST_AT * V;
+      window.scrollTo(0, y); smooth.y = lastY = y; lastCards = -1;
+      ScrollTrigger.update();
+      if (curTl) {
+        var st = curTl.scrollTrigger, scrub = st && st.getTween && st.getTween();
+        if (scrub) scrub.progress(1);
+        curTl.progress(1);
+        if (curSettle) curSettle(); // every piece at its Work-02 state, now
+      }
+      var inWork = [q(".nav-list"), title].concat(G.contactY ? [contact] : [])
+        .map(function (el) { var r = Roll.text(el, "in"); r.set(0); return r; })
+        .concat(marks.map(function (m) { var r = Roll.box(m, "in"); r.set(0); return r; }));
+      gsap.fromTo(q(".work-list"), { autoAlpha: 0, y: 24 },
+                  { autoAlpha: 1, y: 0, duration: reduce ? 0.01 : 0.9, delay: reduce ? 0 : 0.15, ease: "power2.out",
+                    clearProps: "transform" });
+      (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(function () {
+        inWork.forEach(function (r, i) {
+          var o = { v: 0 };
+          gsap.to(o, { v: 1, duration: reduce ? 0.01 : 0.8, delay: reduce ? 0 : 0.05 + i * 0.08, ease: "none",
+                       onUpdate: function () { r.set(o.v); } });
+        });
       });
     } else {
       var back = [q(".nav-list"), contact].concat(homeText)
