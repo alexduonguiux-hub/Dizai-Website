@@ -253,7 +253,12 @@
         if (G.axis === "y") gsap.set(c, { x: 0, y: p * unit });
         else gsap.set(c, { x: p * unit, y: cardTop * unit });
       }
-      if (Math.abs(p) < best) { best = Math.abs(p); active = k; }
+      // the current project is the picture level with its name: desktop,
+      // the one spanning the name's height (y 400, the name's middle);
+      // mobile, the one over the middle of the screen, above the name
+      var at = G.axis === "y" ? 400 : G.W / 2;
+      var gap = at < p ? p - at : at > p + G.len ? at - p - G.len : 0;
+      if (gap < best) { best = gap; active = k; }
     });
     return active;
   }
