@@ -158,10 +158,16 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
   left: 0;
 }
 .contact { top: calc(100cqi * 251 / 1432); }
-.social  { bottom: calc(100cqi * 251 / 1432); }
+.social  { top: calc(100cqi * 251 / 1432 + 4.3em); } /* 32px under the contact block (3 lines = 54px), in text units */
 
-/* "Scroll down" cue: mobile only (Figma Home 13:8) */
-.scroll-hint { display: none; color: var(--green-500); }
+/* "Scroll down" cue: desktop at the bottom right of the DESIGN row,
+   cap bottom on the row's bottom edge (Figma 10:1457 / 13:328) */
+.scroll-hint {
+  position: absolute;
+  right: 0;
+  top: calc(100cqi * 231 / 1432 - 0.7em);
+  color: var(--green-500);
+}
 
 /* ---------- Loading screen (Figma Loading 13:257, 1512 × 813) ----------
    LOADING... top left, contact top right, seal bottom left, count bottom right. */
@@ -237,17 +243,31 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 .is-loading:not(.is-emerging) .hero { visibility: hidden; }
 .is-emerging .loader { background: transparent; pointer-events: none; }
 
-/* WebGL pool covers everything while it runs; the DOM loader is hidden
-   under its first frame (they look the same) */
-.water {
+/* Stamp effects: the dent in the paper and the ring of ink */
+.stamp-fx {
   position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 101;
+  z-index: 102;
+  width: 0;
+  height: 0;
   pointer-events: none;
 }
-.is-water .loader { visibility: hidden; }
+.stamp-fx > span {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 50%;
+  opacity: 0;
+}
+.stamp-dent {
+  width: calc(var(--d) * 2.6);
+  height: calc(var(--d) * 2.6);
+  background: radial-gradient(closest-side, rgb(33 80 40 / 0.10), rgb(33 80 40 / 0.04) 55%, transparent);
+}
+.stamp-ring {
+  width: calc(var(--d) * 1.25);
+  height: calc(var(--d) * 1.25);
+  background: radial-gradient(closest-side, transparent 72%, rgb(116 150 116 / 0.45) 82%, rgb(116 150 116 / 0.2) 90%, transparent);
+}
 
 @media (prefers-reduced-motion: reduce) {
   .is-loading .loader { transition: none; }
@@ -368,8 +388,7 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 
   /* centred, 32px above the social row (cap bottom 62px from the screen's) */
   .scroll-hint {
-    display: block;
-    position: absolute;
+    top: auto;
     left: var(--gutter);
     right: var(--gutter);
     bottom: calc(var(--gutter) + 46px);
