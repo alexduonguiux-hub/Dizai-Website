@@ -160,6 +160,9 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 .contact { top: calc(100cqi * 251 / 1432); }
 .social  { bottom: calc(100cqi * 251 / 1432); }
 
+/* "Scroll down" cue: mobile only (Figma Home 13:8) */
+.scroll-hint { display: none; color: var(--green-500); }
+
 /* ---------- Loading screen (Figma Loading 13:257, 1512 × 813) ----------
    LOADING... top left, contact top right, seal bottom left, count bottom right. */
 .loader { display: none; }
@@ -227,9 +230,16 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 @keyframes roll-out { from { transform: translateY(0); }    to { transform: translateY(-115%); } }
 @keyframes roll-in  { from { transform: translateY(115%); } to { transform: translateY(0); } }
 
-/* WebGL curtain: drawn over the loader, which hides once the first
-   curtain frame is on screen (the two look identical at rest). */
-.curtain {
+/* Water hand-off: Home stays hidden under the loader until it starts
+   rising; then the loader's ground clears so Home shows through (same
+   paper colour, so nothing visibly changes). */
+.is-loading:not(.is-emerging) .site-nav,
+.is-loading:not(.is-emerging) .hero { visibility: hidden; }
+.is-emerging .loader { background: transparent; pointer-events: none; }
+
+/* WebGL pool covers everything while it runs; the DOM loader is hidden
+   under its first frame (they look the same) */
+.water {
   position: fixed;
   inset: 0;
   width: 100%;
@@ -237,7 +247,7 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
   z-index: 101;
   pointer-events: none;
 }
-.is-curtain .loader { visibility: hidden; }
+.is-water .loader { visibility: hidden; }
 
 @media (prefers-reduced-motion: reduce) {
   .is-loading .loader { transition: none; }
@@ -355,6 +365,16 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
     gap: 6px;
   }
   .social li { display: flex; align-items: center; gap: 6px; }
+
+  /* centred, 32px above the social row (cap bottom 62px from the screen's) */
+  .scroll-hint {
+    display: block;
+    position: absolute;
+    left: var(--gutter);
+    right: var(--gutter);
+    bottom: calc(var(--gutter) + 46px);
+    text-align: center;
+  }
   .social li + li::before {
     content: url("../img/star.svg");
     display: block;
