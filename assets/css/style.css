@@ -160,6 +160,9 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 .contact { top: calc(100cqi * 251 / 1432); }
 .social  { bottom: calc(100cqi * 251 / 1432); }
 
+/* "Scroll down" cue: mobile only (Figma Home 13:8) */
+.scroll-hint { display: none; color: var(--green-500); }
+
 /* ---------- Loading screen (Figma Loading 13:257, 1512 × 813) ----------
    LOADING... top left, contact top right, seal bottom left, count bottom right. */
 .loader { display: none; }
@@ -362,6 +365,16 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
     gap: 6px;
   }
   .social li { display: flex; align-items: center; gap: 6px; }
+
+  /* centred, 32px above the social row (cap bottom 62px from the screen's) */
+  .scroll-hint {
+    display: block;
+    position: absolute;
+    left: var(--gutter);
+    right: var(--gutter);
+    bottom: calc(var(--gutter) + 46px);
+    text-align: center;
+  }
   .social li + li::before {
     content: url("../img/star.svg");
     display: block;

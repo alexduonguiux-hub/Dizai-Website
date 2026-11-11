@@ -240,8 +240,9 @@
     // Home must be laid out (but invisible) to measure it
     var rising = [
       ".site-nav .nav-list", ".line-design", ".line-studio", ".type-row .seal",
-      ".line-est", ".line-year", ".services", ".contact", ".social"
-    ].map(function (q) { return document.querySelector(q); }).filter(Boolean);
+      ".line-est", ".line-year", ".services", ".contact", ".scroll-hint", ".social"
+    ].map(function (q) { return document.querySelector(q); })
+     .filter(function (el) { return el && el.getClientRects().length > 0; });
     rising.forEach(function (el) { el.style.opacity = "0"; });
     root.classList.add("is-emerging"); // home visible, loader ground clear
 
@@ -537,9 +538,10 @@
     if (!shared) sinking.push(loaderSeal);
     var rising = [".site-nav .nav-list", ".line-design", ".line-studio"]
       .concat(shared ? [] : [".type-row .seal"])
-      .concat([".line-est", ".line-year", ".services", ".contact", ".social"])
+      .concat([".line-est", ".line-year", ".services", ".contact", ".scroll-hint", ".social"])
       .map(function (q) { return document.querySelector(q); });
-    sinking = sinking.filter(Boolean); rising = rising.filter(Boolean);
+    function shown(el) { return el && el.getClientRects().length > 0; }
+    sinking = sinking.filter(shown); rising = rising.filter(shown);
 
     var chans = [];
     sinking.forEach(function (el, i) { chans.push({ el: el, kind: "sink", start: i * GL_STAGGER, dur: GL_SINK_MS }); });
