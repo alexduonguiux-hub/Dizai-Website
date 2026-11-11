@@ -227,17 +227,12 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 @keyframes roll-out { from { transform: translateY(0); }    to { transform: translateY(-115%); } }
 @keyframes roll-in  { from { transform: translateY(115%); } to { transform: translateY(0); } }
 
-/* WebGL curtain: drawn over the loader, which hides once the first
-   curtain frame is on screen (the two look identical at rest). */
-.curtain {
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 101;
-  pointer-events: none;
-}
-.is-curtain .loader { visibility: hidden; }
+/* Water hand-off: Home stays hidden under the loader until it starts
+   rising; then the loader's ground clears so Home shows through (same
+   paper colour, so nothing visibly changes). */
+.is-loading:not(.is-emerging) .site-nav,
+.is-loading:not(.is-emerging) .hero { visibility: hidden; }
+.is-emerging .loader { background: transparent; pointer-events: none; }
 
 @media (prefers-reduced-motion: reduce) {
   .is-loading .loader { transition: none; }

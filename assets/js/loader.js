@@ -1,11 +1,13 @@
 /* Loading screen (Figma "Loading" 13:257)
-   1. Rolling count 0 → 100% (digits slide up), following real load progress: it can climb
-      to 90% on time alone and only reaches 100% after window "load".
-   2. At 100% the whole screen turns into a WebGL curtain — the loader is
-      painted onto a cloth mesh that parts in the middle and is drawn to both
-      sides, pleating as it bunches up, hem trailing the top rail.
-   Falls back to a fade without WebGL, and skips motion for
-   prefers-reduced-motion. */
+   1. Rolling count 0 → 100% (digits slide up), following real load progress:
+      it can climb to 90% on time alone and only reaches 100% after "load".
+   2. Water hand-off: what exists only on the loader (LOADING..., the count,
+      its contact block) sinks below a water line, rippling as it goes; then
+      the Home elements rise up through the same water line, one after another,
+      the ripples calming as they settle. An element that sits in the same
+      place on both screens (the seal on desktop) simply stays.
+   Ripples are an SVG turbulence + displacement filter per element.
+   prefers-reduced-motion gets a short fade instead. */
 (function () {
   "use strict";
 
@@ -15,8 +17,7 @@
 
   var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var MIN_MS = reduce ? 300 : 1800; // shortest time from 0 to 100
-  var HOLD_MS = reduce ? 0 : 350;   // pause on 100% before the curtain
-  var CURTAIN_MS = 2000;
+  var HOLD_MS = reduce ? 0 : 350;   // pause on 100% before the hand-off
   var SETTLE_MS = reduce ? 0 : 400;  // matches .is-settled transition in CSS
 
   /* ---------------- Rolling counter ---------------- */
@@ -46,7 +47,7 @@
   function RollCell(host, onTarget) {
     var el = document.createElement("span");
     el.className = "roll";
-    el.innerHTML = '<span class="roll-cur"></span><span class="roll-next" data-gl-skip></span>';
+    el.innerHTML = '<span class="roll-cur"></span><span class="roll-next"></span>';
     host.appendChild(el);
     var curEl = el.children[0], nextEl = el.children[1];
     var cell = { el: el, target: "" };
@@ -173,7 +174,7 @@
   /* ---------------- Reveal ---------------- */
 
   function cleanup() {
-    root.classList.remove("is-loading", "is-loaded", "is-curtain");
+    root.classList.remove("is-loading", "is-loaded", "is-emerging");
     loader.remove();
   }
 
@@ -187,194 +188,139 @@
   }
 
   function reveal() {
-    loader.classList.add("is-done"); // dots stop, fully shown, for the paint
+    loader.classList.add("is-done"); // dots stop, all three shown
     if (reduce) return fadeOut();
-    var curtain = null;
-    try { curtain = Curtain(paintLoader()); } catch (e) { curtain = null; }
-    if (!curtain) return fadeOut();
-    curtain.open(CURTAIN_MS, cleanup);
+    try { water(); } catch (e) { fadeOut(); }
   }
 
-  /* Paint the loader as it looks right now onto a 2D canvas: every visible
-     text node at its own position (so kerning and the rolling digit cells
-     match the DOM exactly) and every image at its box. */
-  function paintLoader() {
-    var dpr = Math.min(window.devicePixelRatio || 1, 2);
-    var W = window.innerWidth, H = window.innerHeight;
-    var c = document.createElement("canvas");
-    c.width = Math.round(W * dpr);
-    c.height = Math.round(H * dpr);
-    var ctx = c.getContext("2d");
-    ctx.scale(dpr, dpr);
-    ctx.fillStyle = getComputedStyle(loader).backgroundColor;
-    ctx.fillRect(0, 0, W, H);
+  /* ---------------- Water hand-off ---------------- */
 
-    var walker = document.createTreeWalker(loader, NodeFilter.SHOW_TEXT);
-    var range = document.createRange();
-    for (var node = walker.nextNode(); node; node = walker.nextNode()) {
-      var text = node.nodeValue.replace(/\s+/g, " ").trim();
-      var el = node.parentElement;
-      if (!text || el.closest("[data-gl-skip]")) continue;
-      var cs = getComputedStyle(el);
-      if (cs.visibility === "hidden") continue;
-      if (cs.textTransform === "uppercase") text = text.toUpperCase();
-      var size = parseFloat(cs.fontSize);
-      ctx.font = cs.fontStyle + " " + cs.fontWeight + " " + size + "px " + cs.fontFamily;
-      ctx.fillStyle = cs.color;
-      ctx.textBaseline = "alphabetic";
-      range.selectNodeContents(node);
-      var r = range.getBoundingClientRect();
-      // the text's content area starts at the font ascender (960 / 1000)
-      ctx.fillText(text, r.left, r.top + 0.96 * size);
+  var SINK_MS = 800, RISE_MS = 1000;
+  var SINK_STAGGER = 90, RISE_STAGGER = 90;
+  var RISE_AT = 450; // home starts rising while the loader is still sinking
+
+  function water() {
+    var NS = "http://www.w3.org/2000/svg";
+    var svg = document.createElementNS(NS, "svg");
+    svg.setAttribute("aria-hidden", "true");
+    svg.style.cssText = "position:absolute;width:0;height:0;overflow:hidden";
+    document.body.appendChild(svg);
+
+    // one ripple filter per element so each can be at its own point in time
+    function ripple(el, i) {
+      var f = document.createElementNS(NS, "filter");
+      f.id = "dz-water-" + i;
+      f.setAttribute("x", "-10%"); f.setAttribute("y", "-40%");
+      f.setAttribute("width", "120%"); f.setAttribute("height", "180%");
+      f.setAttribute("color-interpolation-filters", "sRGB");
+      var turb = document.createElementNS(NS, "feTurbulence");
+      turb.setAttribute("type", "fractalNoise");
+      turb.setAttribute("numOctaves", "1"); // smooth swell, no grit
+      turb.setAttribute("seed", String(3 + i * 7));
+      turb.setAttribute("result", "noise");
+      var disp = document.createElementNS(NS, "feDisplacementMap");
+      disp.setAttribute("in", "SourceGraphic");
+      disp.setAttribute("in2", "noise");
+      disp.setAttribute("xChannelSelector", "R");
+      disp.setAttribute("yChannelSelector", "G");
+      disp.setAttribute("scale", "0");
+      f.appendChild(turb); f.appendChild(disp); svg.appendChild(f);
+      el.style.filter = "url(#" + f.id + ")";
+      return { turb: turb, disp: disp };
     }
-    loader.querySelectorAll("img").forEach(function (img) {
-      var r = img.getBoundingClientRect();
-      ctx.drawImage(img, r.left, r.top, r.width, r.height);
+
+    function rectOf(el) { return el.getBoundingClientRect(); }
+    function same(a, b) {
+      return Math.abs(a.left - b.left) < 2 && Math.abs(a.top - b.top) < 2 &&
+             Math.abs(a.width - b.width) < 2 && Math.abs(a.height - b.height) < 2;
+    }
+
+    // Home must be laid out (but invisible) to measure it
+    var rising = [
+      ".site-nav .nav-list", ".line-design", ".line-studio", ".type-row .seal",
+      ".line-est", ".line-year", ".services", ".contact", ".social"
+    ].map(function (q) { return document.querySelector(q); }).filter(Boolean);
+    rising.forEach(function (el) { el.style.opacity = "0"; });
+    root.classList.add("is-emerging"); // home visible, loader ground clear
+
+    var loaderSeal = loader.querySelector(".seal");
+    var homeSeal = document.querySelector(".type-row .seal");
+    var sinking = [
+      loader.querySelector(".loader-top > p:first-child"),
+      loader.querySelector(".loader-contact"),
+      loader.querySelector(".loader-count")
+    ];
+    if (loaderSeal && homeSeal && same(rectOf(loaderSeal), rectOf(homeSeal))) {
+      // shared element: the home seal is already exactly where the loader's is
+      rising.splice(rising.indexOf(homeSeal), 1);
+      homeSeal.style.opacity = "";
+    } else if (loaderSeal) {
+      sinking.push(loaderSeal);
+    }
+    sinking = sinking.filter(Boolean);
+
+    var items = [];
+    sinking.forEach(function (el, i) {
+      items.push({ el: el, sink: true, start: i * SINK_STAGGER, dur: SINK_MS,
+                   h: Math.max(rectOf(el).height, 40), fx: ripple(el, i) });
     });
-    return c;
-  }
+    rising.forEach(function (el, i) {
+      items.push({ el: el, sink: false, start: RISE_AT + i * RISE_STAGGER, dur: RISE_MS,
+                   h: Math.max(rectOf(el).height, 40), fx: ripple(el, 100 + i) });
+    });
+    // ripple strength and size follow the element: ~20% of its height,
+    // wavelengths relative to a 231px display line
+    items.forEach(function (it) {
+      it.amp = Math.min(44, it.h * 0.2);
+      it.k = Math.min(3, 231 / it.h);
+    });
+    var total = Math.max.apply(null, items.map(function (it) { return it.start + it.dur; }));
 
-  /* ---------------- WebGL curtain ---------------- */
-
-  var VS = [
-    "attribute vec2 aUV;",      // u: 0 outer edge → 1 centre seam; v: 0 top → 1 hem
-    "attribute float aSide;",   // -1 left half, +1 right half
-    "uniform float uP;",        // 0 closed → 1 fully drawn aside
-    "uniform float uT;",        // seconds, for the flutter
-    "uniform float uN;",        // pleats per half, from the screen width
-    "varying vec2 vTex;",
-    "varying float vShade;",
-    "void main() {",
-    "  float u = aUV.x, v = aUV.y;",
-    // the rail pulls the top first; the hem follows a beat later
-    "  float lag = 0.3;",
-    "  float pp = clamp((uP - v * lag) / (1.0 - lag), 0.0, 1.0);",
-    "  float e = pp * pp * (3.0 - 2.0 * pp);",
-    // bunch the cloth toward the outer edge, then carry it off screen
-    "  float g = 1.0 - 0.84 * e;",
-    "  float off = -0.26 * smoothstep(0.45, 1.0, pp);",
-    "  float X = off + u * 0.5 * g;",
-    // pleats deepen as the cloth gathers; a little life at the leading edge
-    "  float k = 6.2831853 * uN;",
-    "  float A = (0.11 / uN) * e * (0.75 + 0.25 * v);",
-    "  float s = sin(u * k), c = cos(u * k);",
-    "  float bell = sin(3.14159265 * pp);",
-    "  float z = A * s + 0.006 * sin(uT * 4.0 + v * 7.0) * bell * u;",
-    "  float slope = 0.45 * (A * k * c) / (0.5 * max(g, 0.05));",
-    "  vec3 n = normalize(vec3(-slope * -aSide, 0.0, 1.0));",
-    "  vec3 L = normalize(vec3(-0.45, 0.25, 1.0));",
-    // flat cloth shades to exactly 1.0, so frame 0 matches the DOM loader
-    "  float shade = 1.0 + (dot(n, L) - L.z) * 1.15;",
-    "  shade -= 0.22 * e * smoothstep(0.82, 1.0, u);",       // seam edge turns away
-    "  shade -= 0.10 * e * (1.0 - smoothstep(0.0, 0.15, u));", // folds stacked at the side
-    "  shade = clamp(shade, 0.62, 1.06);",
-    "  float Y = v - 0.015 * bell * v * v;",                   // hem lifts as it swings
-    "  if (aSide > 0.0) X = 1.0 - X;",
-    "  vTex = vec2(aSide > 0.0 ? 1.0 - u * 0.5 : u * 0.5, v);",
-    "  vShade = shade;",
-    "  float w = 1.0 - z * 1.3;",
-    "  gl_Position = vec4(X * 2.0 - 1.0, 1.0 - Y * 2.0, -z, w);",
-    "}"
-  ].join("\n");
-
-  var FS = [
-    "precision mediump float;",
-    "uniform sampler2D uTex;",
-    "varying vec2 vTex;",
-    "varying float vShade;",
-    "void main() {",
-    "  vec3 c = texture2D(uTex, vTex).rgb;",
-    "  gl_FragColor = vec4(c * vShade, 1.0);",
-    "}"
-  ].join("\n");
-
-  function Curtain(texCanvas) {
-    var canvas = document.createElement("canvas");
-    canvas.className = "curtain";
-    var gl = canvas.getContext("webgl", { antialias: true, alpha: true, premultipliedAlpha: true });
-    if (!gl) return null;
-
-    function shader(type, src) {
-      var sh = gl.createShader(type);
-      gl.shaderSource(sh, src);
-      gl.compileShader(sh);
-      if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(sh));
-      return sh;
+    function mask(el, line) {
+      // visible above the water line (in % of the element's height), soft edge
+      var m = "linear-gradient(to bottom, #000 " + (line - 10) + "%, transparent " + (line + 6) + "%)";
+      el.style.webkitMaskImage = el.style.maskImage = m;
     }
-    var prog = gl.createProgram();
-    gl.attachShader(prog, shader(gl.VERTEX_SHADER, VS));
-    gl.attachShader(prog, shader(gl.FRAGMENT_SHADER, FS));
-    gl.linkProgram(prog);
-    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
-    gl.useProgram(prog);
 
-    // two halves, each a (COLS × ROWS) grid
-    var COLS = 180, ROWS = 48, verts = [], idx = [];
-    [-1, 1].forEach(function (side, h) {
-      var base = h * (COLS + 1) * (ROWS + 1);
-      for (var j = 0; j <= ROWS; j++)
-        for (var i = 0; i <= COLS; i++) verts.push(i / COLS, j / ROWS, side);
-      for (j = 0; j < ROWS; j++)
-        for (i = 0; i < COLS; i++) {
-          var a = base + j * (COLS + 1) + i, b = a + 1, c = a + COLS + 1, d = c + 1;
-          idx.push(a, b, c, b, d, c);
+    var t0 = performance.now();
+    (function frame() {
+      var now = performance.now(), t = now - t0, sec = t / 1000;
+      items.forEach(function (it) {
+        var q = Math.min(1, Math.max(0, (t - it.start) / it.dur));
+        var el = it.el, e, dy, line, amp, alpha;
+        if (it.sink) {
+          e = q * q * q;                          // ease-in: slips under
+          dy = e * it.h;                          // goes down by its own height
+          line = (1 - e) * 110;                   // water line stays put on screen
+          amp = it.amp * Math.min(1, q * 1.6);    // ripples build as it goes under
+          alpha = 1 - e * 0.5;
+        } else {
+          e = 1 - Math.pow(1 - q, 3);             // ease-out: surfaces, settles
+          dy = (1 - e) * it.h * 0.7;
+          line = e * 116;
+          amp = it.amp * 1.1 * Math.pow(1 - q, 1.4); // ripples calm down
+          alpha = q === 0 ? 0 : Math.min(1, 0.15 + e * 1.2);
         }
-    });
-    var vbo = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
-    var ibo = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(idx), gl.STATIC_DRAW);
-    var aUV = gl.getAttribLocation(prog, "aUV"), aSide = gl.getAttribLocation(prog, "aSide");
-    gl.enableVertexAttribArray(aUV);
-    gl.vertexAttribPointer(aUV, 2, gl.FLOAT, false, 12, 0);
-    gl.enableVertexAttribArray(aSide);
-    gl.vertexAttribPointer(aSide, 1, gl.FLOAT, false, 12, 8);
-
-    var tex = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, tex);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, texCanvas); // throws if tainted
-
-    var uP = gl.getUniformLocation(prog, "uP"), uT = gl.getUniformLocation(prog, "uT");
-    // about one pleat per 90 CSS px of each half
-    gl.uniform1f(gl.getUniformLocation(prog, "uN"), Math.max(3, Math.round(window.innerWidth / 2 / 90)));
-    canvas.width = texCanvas.width;
-    canvas.height = texCanvas.height;
-    gl.viewport(0, 0, canvas.width, canvas.height);
-    gl.enable(gl.DEPTH_TEST);
-    gl.clearColor(0, 0, 0, 0);
-
-    function draw(p, t) {
-      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-      gl.uniform1f(uP, p);
-      gl.uniform1f(uT, t);
-      gl.drawElements(gl.TRIANGLES, idx.length, gl.UNSIGNED_SHORT, 0);
-    }
-
-    return {
-      open: function (ms, onDone) {
-        document.body.appendChild(canvas);
-        draw(0, 0);
-        root.classList.add("is-curtain"); // hide the DOM loader under frame 0
-        var t0 = performance.now();
-        (function frame() {
-          var now = performance.now();
-          var t = Math.min(1, (now - t0) / ms);
-          var p = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; // ease-in-out
-          draw(p, (now - t0) / 1000);
-          if (t < 1) return requestAnimationFrame(frame);
-          canvas.remove();
-          var lose = gl.getExtension("WEBGL_lose_context");
-          if (lose) lose.loseContext();
-          onDone();
-        })();
-      }
-    };
+        el.style.transform = "translate3d(0," + dy.toFixed(2) + "px,0)";
+        el.style.opacity = String(alpha);
+        mask(el, line);
+        it.fx.disp.setAttribute("scale", amp.toFixed(2));
+        // moving water: the ripple pattern breathes and drifts
+        // (frequencies scale with the element so small text gets the same
+        // number of waves per letter as the big lines)
+        var fy = it.k * (0.024 + 0.006 * Math.sin(sec * 5 + it.start / 200));
+        var fx = it.k * (0.003 + 0.001 * Math.cos(sec * 3.2 + it.start / 300));
+        it.fx.turb.setAttribute("baseFrequency", fx.toFixed(5) + " " + fy.toFixed(5));
+      });
+      if (t < total) return requestAnimationFrame(frame);
+      // hand back clean elements
+      rising.forEach(function (el) {
+        el.style.transform = el.style.opacity = el.style.filter = "";
+        el.style.webkitMaskImage = el.style.maskImage = "";
+      });
+      svg.remove();
+      cleanup();
+    })();
   }
 
   requestAnimationFrame(tick);
