@@ -1,0 +1,171 @@
+/* Đìzai Studio — Home
+   Built from Figma "Đìzai Studio – Website – NEW", frame Home (10:1457), 1512 × 813.
+   Desktop is a proportional scale of the Figma frame: every size is expressed as a
+   fraction of the 1432 px content width (100cqi = body content box). */
+
+@font-face {
+  font-family: "AnNam Serif";
+  src: url("../fonts/AnNamSerif-VF.woff2") format("woff2");
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "AnNam Serif";
+  src: url("../fonts/AnNamSerif-Italic-VF.woff2") format("woff2");
+  font-weight: 400 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+:root {
+  --paper: #f0efee;
+  --green-900: #215028;
+  --green-500: #749674;
+
+  --gutter: max(16px, calc(100vw * 40 / 1512));
+  --text-sm: max(14px, calc(100vw * 20 / 1512));
+}
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  min-height: 100svh;
+  padding: var(--gutter);
+  container-type: inline-size;
+  background: var(--paper);
+  color: var(--green-900);
+  font-family: "AnNam Serif", Georgia, serif;
+  font-weight: 600;
+  font-size: var(--text-sm);
+  line-height: 1;
+  text-transform: uppercase;
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+p, ul, address { margin: 0; padding: 0; }
+ul { list-style: none; }
+address { font-style: normal; }
+
+a { color: inherit; text-decoration: none; }
+a:hover { font-style: italic; }
+a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0;
+  overflow: hidden; clip: rect(0 0 0 0);
+  white-space: nowrap; border: 0;
+}
+
+/* Trim the line box to cap height → baseline, like Figma's text-box-trim
+   (cap / alphabetic). AnNam Serif: ascender 960, descender 240, cap 700 (UPM 1000),
+   so with line-height 1 the cap top sits 0.16em below the box and the baseline
+   0.14em above its bottom. */
+.trim {
+  margin-top: -0.16em;
+  margin-bottom: -0.14em;
+}
+
+/* ---------- Navigation ---------- */
+.site-nav {
+  position: absolute;
+  top: var(--gutter);
+  right: var(--gutter);
+  z-index: 1;
+}
+.nav-list { text-align: right; }
+.nav-list a[aria-current="page"] { font-style: italic; }
+.nav-list a[aria-current="page"]::after,
+.nav-list a:hover::after {
+  content: "←";
+  /* AnNam Serif has no arrow glyph yet; use a system face for it */
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-style: normal;
+  font-weight: 400;
+}
+
+/* ---------- Hero ---------- */
+.hero {
+  display: flex;
+  flex-direction: column;
+  gap: calc(100cqi * 20 / 1432);
+}
+
+.hero-row { position: relative; }
+
+.display {
+  font-weight: 400;
+  font-size: calc(100cqi * 330 / 1432);
+  white-space: nowrap;
+  /* Box = cap height (0.7em). line-height 0.7 puts the baseline 0.71em down,
+     the 0.01em nudge lands cap top / baseline exactly on the box edges, so the
+     big lines don't push scrollable overflow past the page. */
+  line-height: 0.7;
+  position: relative;
+  top: -0.01em;
+}
+/* The inline content area (1.2em) hangs below the 0.7em box and would add
+   ~40px of empty scroll under the last row; clip it, keeping room for overshoot
+   (S, O, U go 0.014em past cap / baseline). */
+@supports (overflow-clip-margin: 1px) {
+  .display { overflow: clip; overflow-clip-margin: 0.03em; }
+}
+
+/* Row 1 — DESIGN + services */
+.services {
+  position: absolute;
+  top: 0;
+  left: calc(100% * 981 / 1432);
+}
+
+/* Row 2 — STUDIO (right) + contact (left, spans the row height) */
+.hero-row--studio .display { text-align: right; }
+.contact {
+  position: absolute;
+  inset: 0 auto 0 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* Row 3 — seal, EST, 2024 */
+.hero-row--est {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--green-500);
+}
+.seal {
+  display: block;
+  width: auto;
+  height: calc(100cqi * 231 / 1432);
+}
+
+/* ---------- Small screens ---------- */
+@media (max-width: 720px) {
+  .site-nav { position: static; margin-bottom: 40px; }
+
+  .hero { display: grid; gap: 0; row-gap: calc(100cqi * 20 / 1432); }
+  .hero-row--design,
+  .hero-row--studio { display: contents; }
+
+  .hero-row--design .display { order: 1; }
+  .hero-row--studio .display { order: 2; }
+  .hero-row--est { order: 3; }
+
+  .services,
+  .contact {
+    position: static;
+    margin-top: 40px;
+  }
+  .services { order: 4; }
+  .contact { order: 5; gap: 40px; justify-content: flex-start; }
+}
