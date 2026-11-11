@@ -118,8 +118,13 @@
      it ripples and settles. */
 
   var STRIPS = 18;
+  /* Phones and touch screens: one flat sheet that sways on its pin. The
+     18 nested 3D bands tear into white seams on high-density phone screens
+     (and iOS Safari is unreliable with 3D nested that deep). */
+  var FLAT = window.matchMedia("(max-width: 720px), (pointer: coarse)").matches;
   var sheets = cards.map(function (c, i) {
     var a = c.querySelector("a"), img = a.querySelector("img");
+    if (FLAT) return { sheet: null, a: a, bands: [], ph: i * 1.9, swing: 0, vswing: 0 };
     var src = img.currentSrc || img.src;
     var sheet = document.createElement("span");
     sheet.className = "sheet";
@@ -141,6 +146,7 @@
   });
   // band height in px (bands overlap a hair so no seams open as they bend)
   function sizeSheets() {
+    if (FLAT) return;
     sheets.forEach(function (sh) {
       var r = sh.a.getBoundingClientRect(), img = sh.a.querySelector("img");
       var ratio = (img.naturalWidth / img.naturalHeight) || (img.width / img.height) || 1;
@@ -167,6 +173,11 @@
       // the whole sheet swings on its pin with a little lag (damped spring)
       var gust = Math.max(-1, Math.min(1, wind / 40));
       sh.vswing += (gust * 10 - sh.swing) * 0.08 * dt; sh.vswing *= Math.pow(0.86, dt); sh.swing += sh.vswing * dt;
+      if (FLAT) { // one flat sheet: a slow sway on its pin, a swing with the scroll
+        var tilt = (reduce ? 0 : Math.sin(sec * 1.3 + sh.ph) * 0.6) + sh.swing * 0.12;
+        sh.a.style.transform = "rotate(" + tilt.toFixed(3) + "deg)";
+        return;
+      }
       for (var k = 0; k < STRIPS; k++) {
         var f = k / (STRIPS - 1);            // 0 at the pin, 1 at the free end
         // breeze: a wave travelling down the sheet, stronger towards the end
@@ -352,6 +363,14 @@
   /* ---------- GSAP: the scroll timeline ---------- */
 
   var DARK = "#215028", LIGHT = "#749674", keepV = 0, curTl = null, curSettle = null;
+  // the menu marks WORK from 0.45 V on
+  function markNav(t) {
+    var atWork = t >= 0.45;
+    if (atWork !== (navWork.getAttribute("aria-current") === "page")) {
+      if (atWork) { navWork.setAttribute("aria-current", "page"); navHome.removeAttribute("aria-current"); }
+      else { navHome.setAttribute("aria-current", "page"); navWork.removeAttribute("aria-current"); }
+    }
+  }
   var mm = gsap.matchMedia();
   ScrollTrigger.config({ ignoreMobileResize: true }); // phone URL bar: no re-layout
 
@@ -376,13 +395,7 @@
         scrub: reduce ? true : 0.6,      // GSAP's smoothing
         invalidateOnRefresh: true
       },
-      onUpdate: function () {
-        var atWork = this.time() >= 0.45;
-        if (atWork !== (navWork.getAttribute("aria-current") === "page")) {
-          if (atWork) { navWork.setAttribute("aria-current", "page"); navHome.removeAttribute("aria-current"); }
-          else { navHome.setAttribute("aria-current", "page"); navWork.removeAttribute("aria-current"); }
-        }
-      }
+      onUpdate: function () { markNav(this.time()); }
     });
     /* fn(v) runs from → to over [at, at + dur] of the timeline. The value
        is worked out from the timeline's own time (not a tween's recorded
@@ -399,6 +412,7 @@
     curSettle = settle;
     function settle() {
       var t = tl.time();
+      markNav(t);
       // one value per piece: a piece driven twice (SCROLL DOWN rolls in,
       // later rolls away) takes the last part that has begun, else the first
       var pick = [];
@@ -533,6 +547,7 @@
         curTl.progress(Math.min(1, openV / LIST_AT));
         if (curSettle) curSettle(); // every piece at its state for this point, now
       }
+      markNav(Math.min(openV, LIST_AT));
       var inWork = [q(".nav-list")].concat(openV >= 0.9 ? [title] : [], G.contactY ? [contact] : [])
         .map(function (el) { var r = Roll.text(el, "in"); r.set(0); return r; })
         .concat(openV >= 0.9 ? marks.map(function (m) { var r = Roll.box(m, "in"); r.set(0); return r; }) : []);

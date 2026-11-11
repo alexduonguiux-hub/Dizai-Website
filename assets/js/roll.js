@@ -21,6 +21,15 @@
 
   function clamp01(x) { return x < 0 ? 0 : x > 1 ? 1 : x; }
 
+  var ctx2d = null;
+  function measureCh(font, ch) {
+    try {
+      ctx2d = ctx2d || document.createElement("canvas").getContext("2d");
+      ctx2d.font = font;
+      return ctx2d.measureText(ch).width;
+    } catch (e) { return 0; }
+  }
+
   function textNodes(el) {
     var out = [], w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
     while (w.nextNode()) if (/\S/.test(w.currentNode.nodeValue)) out.push(w.currentNode);
@@ -44,11 +53,29 @@
         return items;
       });
       // advance = distance to the next letter on the same line
-      var flat = [];
-      plan.forEach(function (items) { items.forEach(function (it) { if (it.w != null) flat.push(it); }); });
-      flat.forEach(function (it, j) {
-        var nx = flat[j + 1];
-        it.adv = nx && Math.abs(nx.top - it.top) < 2 && nx.left > it.left ? nx.left - it.left : it.w;
+      // (within one text node: the next text node may be another link on
+      // the same row, like the next menu item)
+      plan.forEach(function (items) {
+        var flat = items.filter(function (it) { return it.w != null; });
+        flat.forEach(function (it, j) {
+          var nx = flat[j + 1];
+          it.adv = nx && Math.abs(nx.top - it.top) < 2 && nx.left > it.left ? nx.left - it.left : null;
+        });
+      });
+      // the last letter of a line has nothing after it to measure against,
+      // and its box can run on to the end of the line (a menu column on a
+      // phone gave "E" 4.5em): measure its own advance instead
+      plan.forEach(function (items, ni) {
+        var cs = getComputedStyle(nodes[ni].parentNode);
+        var font = cs.fontStyle + " " + cs.fontWeight + " " + cs.fontSize + " " + cs.fontFamily;
+        var tt = cs.textTransform;
+        items.forEach(function (it) {
+          if (it.w == null || it.adv != null) return;
+          var ch = tt === "uppercase" ? it.ch.toUpperCase() : tt === "lowercase" ? it.ch.toLowerCase() : it.ch;
+          var m = measureCh(font, ch);
+          it.adv = m > 0 ? Math.min(it.w, m) : it.w;
+          it.w = it.adv;
+        });
       });
       // 2. swap the text for letter windows
       nodes.forEach(function (tn, ni) {

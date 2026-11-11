@@ -338,6 +338,9 @@ body::after {
   text-align: center;
   white-space: nowrap;
 }
+/* letters in their own boxes may not wrap apart (the phone menu's narrow
+   columns broke "WORK" into "WOR / K"); the real line breaks are <br>s */
+.is-rolling { white-space: nowrap; }
 /* the big lines clip what overshoots their cap box; not while letters rise */
 .display.is-rolling { overflow: visible; }
 /* decorations that are not letters (the ✱ between LinkedIn and Facebook)
