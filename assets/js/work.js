@@ -62,26 +62,27 @@
      Desktop: Figma Work-01 10:1481 / Work-02 23:10013 (1432 grid) — a
      column of 573 × 430 pictures 40 apart at x 736, WORK at the bottom
      left. Mobile: Work-01 22:3 / Work-02 22:66 (358 grid) — a row of
-     350 × 262 pictures 16 apart, WORK centred at the bottom. */
+     350 × 262 pictures 16 apart under WORK, the name at the bottom. */
+  // WORK: desktop 156 at the bottom left (cap top 620) in both frames;
+  // mobile 66, in the middle (402 on an 812-tall screen), then up to 220
   var DESK = { W: 1432, axis: "y", pitch: 470, len: 430, pitchV: 0.38,
-               titleY: function () { return 502; }, titleY2: function () { return 508; },
+               titleY: function () { return H - 109 - 4; }, titleY2: function () { return H - 109 - 4; },
                contactY: -251, hint: true };
   var MOB = { W: 358, axis: "x", pitch: 366, len: 350, pitchV: 0.35,
-              titleY: function () { return H - 67 - 16; }, titleY2: function () { return H - 67 - 16; },
-              contactY: 0, hint: false };
-  var G = DESK, unit = 1, H = 733, cardTop = 240;
+              titleY: function () { return (H - 46) * 402 / 766; }, titleY2: function () { return 220; },
+              contactY: 0, hint: true };
+  var G = DESK, unit = 1, H = 733, cardTop = 388;
 
   function measure() {
     var r = work.getBoundingClientRect(); // transforms are GSAP's
     unit = r.width / G.W;
     H = r.height / unit;
     if (G.axis === "x") {
-      // Figma: pictures at 240, name at 534 (61 tall), WORK from H − 83.
-      // Short screens: lift them, but keep them under the contact block.
-      var room = H - 83 - 24 - (262 + 32 + 61);
-      cardTop = Math.max(116 / unit, Math.min(240, room));
-      work.style.setProperty("--cap-top", ((cardTop + 262 + 32) * unit).toFixed(1) + "px");
-    } else work.style.removeProperty("--cap-top");
+      // Figma Work-02: WORK 220–266, pictures from 388, the name at the
+      // bottom (up to ~110 tall). Short screens: lift the pictures, but
+      // keep them clear of WORK.
+      cardTop = Math.max(266 + 24, Math.min(388, H - 110 - 24 - 262));
+    }
     if (typeof sizeSheets === "function") sizeSheets();
   }
 
@@ -315,7 +316,7 @@
     drive(showTitle, 0, 1, 0.45, 0.45);
     drive(showMark, 0, 1, 0.55, 0.3);
     if (G.hint) drive(showHint, 0, 1, 0.6, 0.3); else showHint(0);
-    // Work-02: WORK lightens (desktop: settles 6 units lower), SCROLL DOWN leaves
+    // Work-02: WORK lightens (mobile: rises under the mark), SCROLL DOWN leaves
     tl.fromTo(title, { y: function () { return G.titleY() * unit; }, color: DARK },
                      { y: function () { return G.titleY2() * unit; }, color: LIGHT, duration: 0.6, ease: "dz.move" }, 1.0);
     if (G.hint) drive(showHint, 1, 2, 1.0, 0.25);

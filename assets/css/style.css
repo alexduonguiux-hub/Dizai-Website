@@ -313,7 +313,7 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
    "đs" mark top centre, SCROLL DOWN in the middle. Work-02: the projects
    (573 × 430) run up a column 40 apart, the current one's name beside it.
    Without JS the section simply follows Home in the page. */
-.work { --fs: calc(100cqi * 330 / 1432); --u: calc(100cqi / 1432); position: relative; margin-top: 15vh; }
+.work { --fs: calc(100cqi * 156 / 1432); --u: calc(100cqi / 1432); position: relative; margin-top: 15vh; }
 .work-mark {
   display: block;
   height: calc(var(--u) * 104);
@@ -431,22 +431,24 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
   .has-scrub .hero .contact, .has-scrub .work-title, .has-scrub .work-card { will-change: transform; }
 }
 /* Mobile Work (Figma Work-01 22:3, Work-02 22:66, 390 × 844; units of 358):
-   WORK (96) stays at the bottom, the "đs" mark (51 × 64) under the contact
-   block; the projects (350 × 262) run right to left 16 apart, the current
-   one's name centred under them */
+   the "đs" mark (51 × 64) under the contact block. Work-01: WORK (66) in
+   the middle, SCROLL DOWN at the bottom. Work-02: WORK rises under the mark,
+   the projects (350 × 262) run right to left 16 apart under it, the current
+   one's name centred at the bottom of the screen */
 @media (max-width: 720px) {
-  .work { --fs: calc(100cqi * 96 / 358); --u: calc(100cqi / 358); }
+  .work { --fs: calc(100cqi * 66 / 358); --u: calc(100cqi / 358); }
   .work-mark { height: calc(var(--u) * 64); }
   .work-list { grid-template-columns: 1fr; }
   .has-scrub .stage { display: flex; flex-direction: column; }
   .has-scrub .work-mark { top: 124px; left: calc(50% - var(--u) * 25.5); } /* under the contact block (px text) */
   .has-scrub .work-title { right: 0; text-align: center; }
-  .has-scrub .work-hint { display: none; }
+  .has-scrub .work-hint { top: auto; bottom: 27px; } /* Figma 23:23274: cap bottom 43px from the screen's */
   .has-scrub .work-card { left: 0; width: calc(var(--u) * 350); }
   .has-scrub .work-caption {
     left: 0;
     width: 100%;
-    top: var(--cap-top, calc(var(--u) * 534));
+    top: auto;
+    bottom: 0; /* Figma: the last line on the content's bottom edge */
     transform: none;
     text-align: center;
   }
