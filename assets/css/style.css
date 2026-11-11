@@ -187,10 +187,11 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 }
 .is-loading.is-loaded .loader { opacity: 0; visibility: hidden; }
 
+/* LOADING... sits on the line of the contact block's last line (Figma: y 79) */
 .loader-top {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: flex-end;
 }
 .loader-contact { text-align: right; }
 
@@ -551,7 +552,16 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
     line-height: 0;
   }
 
-  /* Loader: no mobile frame in Figma; the count uses the mobile display size */
-  .loader-bottom { --fs: calc(100cqi * 96 / 358); }
-  .loader-bottom .seal { height: calc(var(--fs) * 0.7); } /* no mobile frame: keep it row height */
+  /* Loader (Figma Loading 29:24425, 390 × 844): LOADING... top left beside
+     the contact block, the seal (232 × 269) in the middle of the screen,
+     100% (160) at the bottom right */
+  .loader-top { align-items: flex-start; }
+  .loader-bottom { --fs: calc(100cqi * 160 / 358); justify-content: flex-end; }
+  .loader-bottom .seal {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    height: calc(100cqi * 269 / 358);
+    translate: -50% -50%; /* own property: the hand-off flies it with transform */
+  }
 }
