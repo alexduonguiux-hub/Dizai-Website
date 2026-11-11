@@ -298,24 +298,39 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 .work-title { color: var(--green-500); text-align: center; margin: 6vh 0; }
 .work-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--gutter); }
 /* each project hangs like a sheet of paper pinned at its top edge (work.js
-   sways it); the light on it follows the tilt through --sheen */
+   makes it flutter) */
 .work-card a {
   position: relative;
   display: block;
   transform-origin: 50% 0;
   will-change: transform;
 }
-.work-card a::after {
-  content: "";
+.work-card img { display: block; width: 100%; height: auto; }
+/* the fluttering sheet (work.js) draws the image in nested bands; the <img>
+   stays underneath for its size and alt text */
+.work-card a.has-sheet { perspective: 1100px; }
+.work-card a.has-sheet img { visibility: hidden; }
+.sheet {
   position: absolute;
   inset: 0;
+  transform-style: preserve-3d;
   pointer-events: none;
-  background: linear-gradient(180deg,
-    rgb(255 255 255 / calc(var(--sheen, 0.5) * 0.22)),
-    transparent 45%,
-    rgb(0 0 0 / calc((1 - var(--sheen, 0.5)) * 0.22)));
 }
-.work-card img { display: block; width: 100%; height: auto; }
+.sheet-band {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  top: 0;
+  height: calc(var(--bh, 5.556%) + 3px); /* overlap: corners lift a little as bands lean sideways */
+  background-size: 100% calc(var(--bh, 5.556%) * var(--n, 18));
+  background-repeat: no-repeat;
+  transform-origin: 50% 0;
+  transform-style: preserve-3d;
+  backface-visibility: visible;
+}
+/* every band after the first hangs from the bottom edge of its parent */
+.sheet-band .sheet-band { top: var(--bh); }
+
 .scroll-space { display: none; }
 
 /* Desktop with JS: one pinned stage, scroll drives Home → Work */

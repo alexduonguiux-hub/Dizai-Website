@@ -142,6 +142,7 @@
   function measure() {
     [contact, title].forEach(function (el) { if (el) el.style.transform = ""; });
     unit = work.getBoundingClientRect().width / 1432;
+    if (typeof sizeSheets === "function") sizeSheets();
   }
 
   function enable() {
@@ -161,30 +162,67 @@
     });
   }
 
-  /* ---------- paper sway ---------- */
+  /* ---------- paper flutter ----------
+     Each image becomes a hanging sheet made of STRIPS horizontal bands,
+     nested so that every band hinges on the bottom edge of the one above.
+     Small per-band angles add up into a real bend: a wave runs down from
+     the pinned top edge, and scrolling blows the free end up, after which
+     it ripples and settles. */
 
-  var sway = cards.map(function (c, i) {
-    return { a: c.querySelector("a"), rx: 0, vx: 0, rz: 0, vz: 0, ph: i * 1.7 };
+  var STRIPS = 18;
+  var sheets = cards.map(function (c, i) {
+    var a = c.querySelector("a"), img = a.querySelector("img");
+    var src = img.currentSrc || img.src;
+    var sheet = document.createElement("span");
+    sheet.className = "sheet";
+    sheet.style.setProperty("--n", STRIPS);
+    sheet.setAttribute("aria-hidden", "true");
+    var parent = sheet, bands = [];
+    for (var k = 0; k < STRIPS; k++) {
+      var band = document.createElement("span");
+      band.className = "sheet-band";
+      band.style.backgroundImage = "url(\"" + src + "\")";
+      band.style.backgroundPosition = "0 calc(var(--bh) * " + (-k) + ")";
+      parent.appendChild(band);
+      bands.push(band);
+      parent = band;
+    }
+    a.appendChild(sheet);
+    a.classList.add("has-sheet");
+    return { sheet: sheet, a: a, bands: bands, ph: i * 1.9, swing: 0, vswing: 0 };
   });
+  // band height in px (bands overlap a hair so no seams open as they bend)
+  function sizeSheets() {
+    sheets.forEach(function (sh) {
+      sh.sheet.style.setProperty("--bh", (sh.a.getBoundingClientRect().height / STRIPS).toFixed(3) + "px");
+    });
+  }
   var lastY = window.scrollY, wind = 0;
 
   function swayStep(dt, t) {
     var vy = window.scrollY - lastY; lastY = window.scrollY;
     // gusts from scrolling, easing off
-    wind += (Math.max(-80, Math.min(80, vy)) - wind) * 0.35;
-    wind *= 0.95;
-    sway.forEach(function (s) {
-      var breeze = reduce ? 0 : Math.sin(t * 0.0011 + s.ph) * 2.2 + Math.sin(t * 0.0023 + s.ph * 2) * 0.9;
-      var targetX = breeze + Math.max(-14, Math.min(14, wind * 0.3)); // swing on the pin
-      var targetZ = Math.sin(t * 0.0008 + s.ph) * 0.9 + wind * 0.05;
-      // damped springs, so a gust overshoots a little and settles
-      s.vx += (targetX - s.rx) * 0.12 * dt; s.vx *= Math.pow(0.84, dt); s.rx += s.vx * dt;
-      s.vz += (targetZ - s.rz) * 0.09 * dt; s.vz *= Math.pow(0.86, dt); s.rz += s.vz * dt;
-      var ry = Math.sin(t * 0.0013 + s.ph * 1.3) * 1.5 + wind * 0.08;
-      s.a.style.transform = "perspective(900px) rotateX(" + (-s.rx).toFixed(2) + "deg) rotateY(" +
-        ry.toFixed(2) + "deg) rotateZ(" + s.rz.toFixed(2) + "deg)";
-      // light on the sheet follows its tilt
-      s.a.style.setProperty("--sheen", (0.5 + s.rx * 0.03).toFixed(3));
+    wind += (Math.max(-90, Math.min(90, vy)) - wind) * 0.3;
+    wind *= 0.94;
+    var sec = t / 1000;
+    sheets.forEach(function (sh) {
+      // the whole sheet swings on its pin with a little lag (damped spring)
+      var gust = Math.max(-1, Math.min(1, wind / 40));
+      sh.vswing += (gust * 10 - sh.swing) * 0.08 * dt; sh.vswing *= Math.pow(0.86, dt); sh.swing += sh.vswing * dt;
+      for (var k = 0; k < STRIPS; k++) {
+        var f = k / (STRIPS - 1);            // 0 at the pin, 1 at the free end
+        // breeze: a wave travelling down the sheet, stronger towards the end
+        var per = 12 / STRIPS; // angles were tuned for 12 bands
+        var wave = reduce ? 0 : (Math.sin(sec * 2.1 + sh.ph - k * 0.55 * per) * (0.6 + 2.2 * f)
+                              + Math.sin(sec * 3.4 + sh.ph * 1.7 - k * 0.9 * per) * 0.5 * f) * per;
+        // gust: the free end lifts most, the top barely moves
+        var ang = (k === 0 ? sh.swing * 0.6 : 0) + wave + sh.swing * 0.55 * f * per;
+        // a sideways S-curve, so the flutter reads face-on (no twist: bands of
+        // different widths would show steps along the edges)
+        var side = reduce ? 0 : (Math.sin(sec * 1.5 + sh.ph - k * 0.45 * per) * 0.5 * (0.3 + f) + sh.swing * 0.03) * per;
+        var b = sh.bands[k];
+        b.style.transform = "rotateX(" + (-ang).toFixed(2) + "deg) rotateZ(" + side.toFixed(2) + "deg)";
+      }
     });
   }
 
