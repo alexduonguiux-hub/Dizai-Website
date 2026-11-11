@@ -234,6 +234,18 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 .is-loading:not(.is-emerging) .hero { visibility: hidden; }
 .is-emerging .loader { background: transparent; pointer-events: none; }
 
+/* WebGL pool covers everything while it runs; the DOM loader is hidden
+   under its first frame (they look the same) */
+.water {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 101;
+  pointer-events: none;
+}
+.is-water .loader { visibility: hidden; }
+
 @media (prefers-reduced-motion: reduce) {
   .is-loading .loader { transition: none; }
   .loader .dot { animation: none; }
