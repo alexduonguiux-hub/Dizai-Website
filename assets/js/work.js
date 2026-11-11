@@ -78,11 +78,11 @@
     unit = r.width / G.W;
     H = r.height / unit;
     if (G.axis === "x") {
-      // Figma Work-02: WORK 140–186, pictures from 271, the name 16 under
-      // them (up to ~110 tall). Short screens: lift the pictures, but keep
-      // them clear of WORK.
-      cardTop = Math.max(186 + 24, Math.min(271, H - 110 - 16 - 262));
-      work.style.setProperty("--cap-top", ((cardTop + 262 + 16) * unit).toFixed(1) + "px");
+      // Figma Work-02: WORK 140–186, pictures from 271; the name's last line
+      // sits 77 under them (it grows upwards). Short screens: lift the
+      // pictures, but keep them clear of WORK.
+      cardTop = Math.max(186 + 24, Math.min(271, H - 24 - 77 - 262));
+      work.style.setProperty("--cap-top", ((cardTop + 262 + 77) * unit).toFixed(1) + "px");
     } else work.style.removeProperty("--cap-top");
     if (typeof sizeSheets === "function") sizeSheets();
   }
