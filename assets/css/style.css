@@ -321,32 +321,21 @@ body::after {
   .has-cursor .cursor { transition: opacity 0.2s; }
 }
 
-/* ---------- Rolling letters (assets/js/roll.js) ----------
-   Each letter is a window one line tall; the column of letters inside rolls
-   up through it (--r 0 → 1 = three rows up). */
+/* ---------- Letters rising (assets/js/roll.js) ----------
+   While text comes or goes, each letter is its own box (keeping its exact
+   advance, so the kerning holds) that roll.js moves up and blurs. */
 .rc {
   display: inline-block;
-  position: relative;
   text-align: center;
   white-space: nowrap;
-  clip-path: inset(0 -0.06em); /* the window: exactly the letter's line, so no sliver of a passing letter shows above or below */
 }
-.rc-w {
-  display: block;
-  transform: translateY(calc(var(--r, 0) * -3em));
-}
+/* the big lines clip what overshoots their cap box; not while letters rise */
+.display.is-rolling, .cp-big.is-rolling, .cp-big:has(.is-rolling) { overflow: visible; }
 /* decorations that are not letters (the ✱ between LinkedIn and Facebook)
    fade while their text rolls */
 .is-rolling li + li::before { opacity: 0; transition: opacity 0.25s; }
 /* no underline drawn across the letter windows while they roll */
 .is-rolling, .is-rolling * { text-decoration: none !important; }
-.rc-r {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  white-space: nowrap;
-}
-
 /* ---------- Work (Figma Work-01 10:1481, Work-02 23:10013) ----------
    Units of the 1432 content width. Work-01: WORK at the bottom left, the
    "đs" mark top centre, SCROLL DOWN in the middle. Work-02: the projects

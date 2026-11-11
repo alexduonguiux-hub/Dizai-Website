@@ -1,7 +1,6 @@
-/* Rolling letters — the site's one transition, after the loading counter:
-   every letter is a little window; a column of letters rolls up through it
-   (the letter, the same letter twice more, then blank — or the other way
-   round), so a line only ever shows its own letters while it rolls.
+/* Letters rising — the site's one transition: going, every letter slides
+   up and blurs away; coming, every letter rises from below out of a blur
+   into focus. The letters go one after another along the line.
 
    DzRoll.text(el, "out" | "in")  → { set(v), revert() }
      v 0 → 1. "out": the text rolls away (v 0 = as it is, 1 = gone).
@@ -11,17 +10,16 @@
      Each letter keeps the exact advance it had in the original text, so
      kerning holds while rolling too.
    DzRoll.box(el, "out" | "in")   → { set(v) }
-     The same move for an image (seal, mark): it slides up through a
-     window the size of its own box.
+     The same move for an image (seal, mark): it rises and blurs.
    No dependencies; the motion is driven by whoever calls set() (GSAP). */
 (function () {
   "use strict";
 
-  var ROWS = 4; // the letter, itself twice more, blank
+  var RISE = 0.45;  // em: how far a letter travels
+  var BLUR = 0.07;  // em of blur when furthest out (+ 2 px so small type blurs too)
   var live = [];
 
   function clamp01(x) { return x < 0 ? 0 : x > 1 ? 1 : x; }
-  function ease(x) { return x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2; }
 
   function textNodes(el) {
     var out = [], w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
@@ -66,21 +64,10 @@
           c.className = "rc";
           var wpx = nextSpace ? it.w : it.adv;
           c.style.width = (wpx / fs).toFixed(4) + "em";
-          var wrap = document.createElement("span");
-          wrap.className = "rc-w";
-          var rows = dir === "out" ? [it.ch, it.ch, it.ch, " "]
-                                   : [" ", it.ch, it.ch, it.ch];
-          wrap.textContent = rows[0];
-          for (var r = 1; r < ROWS; r++) {
-            var row = document.createElement("span");
-            row.className = "rc-r";
-            row.style.top = r + "em";
-            row.textContent = rows[r];
-            wrap.appendChild(row);
-          }
-          c.appendChild(wrap);
+          c.textContent = it.ch;
+          c.dataset.blur = (fs * BLUR + 2).toFixed(1);
           frag.appendChild(c);
-          cells.push(wrap);
+          cells.push(c);
         });
         flush();
         tn.parentNode.replaceChild(frag, tn);
@@ -92,13 +79,10 @@
 
     function doRevert() {
       if (!split) return;
-      // every text node was replaced by a run of siblings; rebuild from the
-      // letter windows' own text (row 0 is the real letter for "out",
-      // row 3 for "in"), which is exactly the original text
+      // every letter span holds its own letter: put the plain text back
       var cells = el.querySelectorAll(".rc");
       [].forEach.call(cells, function (c) {
-        var w = c.firstChild, ch = dir === "out" ? w.firstChild.nodeValue : w.lastChild.textContent;
-        c.parentNode.replaceChild(document.createTextNode(ch), c);
+        c.parentNode.replaceChild(document.createTextNode(c.textContent), c);
       });
       el.normalize();
       el.classList.remove("is-rolling");
@@ -110,8 +94,14 @@
       var cs = split.cells, n = cs.length, spread = n > 1 ? Math.min(0.6, 0.04 * n) : 0;
       for (var i = 0; i < n; i++) {
         var start = n > 1 ? spread * i / (n - 1) : 0;
-        var q = ease(clamp01((v - start) / (1 - spread)));
-        cs[i].style.setProperty("--r", q.toFixed(4));
+        var q = clamp01((v - start) / (1 - spread));
+        // away: up and into a blur (slow start); in: up from below, out of
+        // the blur (soft landing). a = how far from resting, 0 … 1
+        var a = dir === "out" ? q * q : (1 - q) * (1 - q);
+        var st = cs[i].style;
+        st.transform = a ? "translateY(" + ((dir === "out" ? -RISE : RISE) * a).toFixed(3) + "em)" : "";
+        st.filter = a ? "blur(" + (a * +cs[i].dataset.blur).toFixed(2) + "px)" : "";
+        st.opacity = (1 - a).toFixed(3);
       }
     }
 
@@ -140,20 +130,14 @@
         v = clamp01(v);
         if (v === last) return;
         last = v;
-        var e = ease(v);
-        // the window is exactly the box (no margin above or below, or a
-        // hairline of the picture stays on screen); gone = hidden outright
-        var gone = dir === "out" ? e >= 1 : e <= 0;
-        el.style.visibility = gone ? "hidden" : "";
-        if (dir === "out") {
-          if (e <= 0) { el.style.clipPath = el.style.translate = ""; return; }
-          el.style.translate = "0 " + (-e * 100).toFixed(2) + "%";
-          el.style.clipPath = "inset(" + (e * 100).toFixed(2) + "% -2px 0 -2px)";
-        } else {
-          if (e >= 1) { el.style.clipPath = el.style.translate = ""; return; }
-          el.style.translate = "0 " + ((1 - e) * 100).toFixed(2) + "%";
-          el.style.clipPath = "inset(0 -2px " + ((1 - e) * 100).toFixed(2) + "% -2px)";
-        }
+        // a = how far from resting, 0 … 1 (same curves as the letters)
+        var a = dir === "out" ? v * v : (1 - v) * (1 - v);
+        el.style.visibility = a >= 1 ? "hidden" : "";
+        if (!a) { el.style.translate = el.style.filter = el.style.opacity = el.style.clipPath = ""; return; }
+        var h = el.getBoundingClientRect().height || 100;
+        el.style.translate = "0 " + ((dir === "out" ? -1 : 1) * a * Math.min(0.3 * h, 60)).toFixed(1) + "px";
+        el.style.filter = "blur(" + (a * Math.min(0.05 * h + 2, 14)).toFixed(2) + "px)";
+        el.style.opacity = (1 - a).toFixed(3);
       }
     };
   }
