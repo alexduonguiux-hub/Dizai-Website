@@ -68,7 +68,7 @@
   var title = q(".work-title");
   var hint = q(".work-hint");
   var caption = q(".work-caption");
-  var capName = caption.querySelector(".wc-name"), capDesc = caption.querySelector(".wc-desc");
+  var capList = caption.querySelector(".wc-list");
   var navHome = q('.nav-list a[data-go="home"]');
   var navWork = q('.nav-list a[data-go="work"]');
   var cards = [].slice.call(work.querySelectorAll(".work-card"));
@@ -78,13 +78,13 @@
      Desktop: Figma Work-01 10:1481 / Work-02 23:10013 (1432 grid) — a
      column of 573 × 430 pictures 40 apart at x 736, WORK at the bottom
      left. Mobile: Work-01 22:3 / Work-02 22:66 (358 grid) — a row of
-     350 × 262 pictures 16 apart under WORK, the name at the bottom. */
+     350 × 262 pictures 8 apart under WORK, the names under them. */
   // WORK: desktop 156 at the bottom left (cap top 620) in both frames;
   // mobile 66, in the middle (402 on an 812-tall screen), then up to 140
   var DESK = { W: 1432, axis: "y", pitch: 470, len: 430, pitchV: 0.38,
                titleY: function () { return H - 109 - 4; }, titleY2: function () { return H - 109 - 4; },
                contactY: -251, hint: true };
-  var MOB = { W: 358, axis: "x", pitch: 366, len: 350, pitchV: 0.35,
+  var MOB = { W: 358, axis: "x", pitch: 358, len: 350, pitchV: 0.35,
               titleY: function () { return (H - 46) * 402 / 766; }, titleY2: function () { return 140; },
               contactY: 0, hint: true };
   var G = DESK, unit = 1, H = 733, cardTop = 271;
@@ -94,11 +94,10 @@
     unit = r.width / G.W;
     H = r.height / unit;
     if (G.axis === "x") {
-      // Figma Work-02: WORK 140–186, pictures from 271; the name starts 44
-      // under them and runs on downwards (up to ~4 lines, ~110). Short
-      // screens: lift the pictures, but keep them clear of WORK.
-      cardTop = Math.max(186 + 24, Math.min(271, H - 16 - 110 - 44 - 262));
-      work.style.setProperty("--cap-top", ((cardTop + 262 + 44) * unit).toFixed(1) + "px");
+      // Figma Work-02: WORK 140–186, pictures from 271, the names 21 under
+      // them. Short screens: lift the pictures, but keep them clear of WORK.
+      cardTop = Math.max(186 + 24, Math.min(271, H - 16 - 151 - 21 - 262));
+      work.style.setProperty("--cap-top", ((cardTop + 262 + 21) * unit).toFixed(1) + "px");
     } else work.style.removeProperty("--cap-top");
     if (typeof sizeSheets === "function") sizeSheets();
   }
@@ -198,43 +197,70 @@
     if (h <= 1) { hintOut.set(0); hintIn.set(h); } else { hintIn.set(1); hintOut.set(h - 1); }
   }
 
-  /* The current project's name and line. While the list moves they stay,
-     blurred and faint, and already show the project level with them; when
-     it stops they come into focus at once. So the name is never missing
-     and never the wrong one. */
-  var capParts = [capName, capDesc];
-  var capShown = -1, capSoft = null, capOn = false;
+  /* The project names beside the pictures (Figma 29:24523 / 29:24528).
+     Every project's name is listed, pale; the current one is in ink with
+     its line under it. Desktop: three names above it and three below,
+     going round; mobile: it comes first, the next four under it. When the
+     current project changes the names slide one step, so the new one
+     moves into its place. While the list of pictures moves, the current
+     name and line are soft and faint; once it stops they sharpen. */
+  var SLOT_H = 30;              // a name (14 cap) + the 16 gap, in px
+  var slots = [], capShown = -1, capSoft = null, capOn = false;
   // no single word alone on the last line: the last two words are tied
   // with a no-break space (text-wrap: pretty in the CSS evens the rest)
   function noWidow(t) {
     var m = /^(.*\S)\s+(\S+)\s*$/.exec(t || "");
     return m && m[1].indexOf(" ") > -1 ? m[1] + "\u00a0" + m[2] : (t || "");
   }
+  function offsets() { return G.axis === "y" ? [-3, -2, -1, 0, 1, 2, 3] : [0, 1, 2, 3, 4]; }
+  function buildSlots() {
+    capList.textContent = ""; slots = [];
+    offsets().forEach(function (o) {
+      var li = document.createElement("li"), n = document.createElement("span"), d = document.createElement("span");
+      li.className = "wc-item"; n.className = "wc-name"; d.className = "wc-desc";
+      li.appendChild(n); li.appendChild(d); capList.appendChild(li);
+      slots.push({ o: o, li: li, name: n, desc: d });
+    });
+    capShown = -1; capSoft = null;
+  }
+  function fill(k) {
+    slots.forEach(function (sl) {
+      var c = cards[((k + sl.o) % N + N) % N];
+      sl.name.textContent = noWidow(c.dataset.name);
+      sl.desc.textContent = sl.o === 0 ? noWidow(c.dataset.desc) : "";
+      sl.li.classList.toggle("is-active", sl.o === 0);
+      if (sl.o !== 0) gsap.set([sl.name, sl.desc], { clearProps: "filter,opacity,visibility" });
+    });
+  }
+  function activeParts() { var a = slots.filter(function (sl) { return sl.o === 0; })[0]; return a ? [a.name, a.desc] : []; }
   caption.style.visibility = "hidden";
   function showCaption(k, moving) {
+    if (!slots.length) buildSlots();
     if (k < 0) { // before Work-02: not there at all
       if (capOn) {
         capOn = false; capSoft = null;
-        gsap.to(capParts, { autoAlpha: 0, filter: "blur(8px)", duration: 0.25, overwrite: true,
-                            onComplete: function () { if (!capOn) caption.style.visibility = "hidden"; } });
+        gsap.to(caption, { autoAlpha: 0, duration: 0.25, overwrite: true });
       }
       return;
     }
-    if (k !== capShown) {
-      capShown = k;
-      capName.textContent = noWidow(cards[k].dataset.name);
-      capDesc.textContent = noWidow(cards[k].dataset.desc);
-      if (!moving) capSoft = null; // a new name at rest still blurs in briefly
-    }
     if (!capOn) {
       capOn = true; capSoft = null;
-      caption.style.visibility = "";
-      gsap.set(capParts, { autoAlpha: 0, filter: "blur(8px)" });
+      fill(k); capShown = k;
+      gsap.fromTo(caption, { autoAlpha: 0 }, { autoAlpha: 1, duration: reduce ? 0.01 : 0.4, overwrite: true });
+    }
+    if (k !== capShown) {
+      // the shorter way round: one step down the list or up
+      var d = ((k - capShown) % N + N) % N; if (d > N / 2) d -= N;
+      capShown = k;
+      fill(k);
+      if (!reduce) gsap.fromTo(capList, { y: d * SLOT_H }, { y: 0, duration: 0.4, ease: "power2.out", overwrite: true });
+      capSoft = null;
     }
     if (capSoft === moving) return;
     capSoft = moving;
-    if (moving) gsap.to(capParts, { autoAlpha: 0.45, filter: "blur(5px)", duration: reduce ? 0.01 : 0.18, ease: "power1.out", overwrite: true });
-    else gsap.to(capParts, { autoAlpha: 1, filter: "blur(0px)", duration: reduce ? 0.01 : 0.32, stagger: reduce ? 0 : 0.05, ease: "power2.out", overwrite: true });
+    var parts = activeParts();
+    if (moving) gsap.to(parts, { autoAlpha: 0.45, filter: "blur(5px)", duration: reduce ? 0.01 : 0.18, ease: "power1.out", overwrite: true });
+    else gsap.to(parts, { autoAlpha: 1, filter: "blur(0px)", duration: reduce ? 0.01 : 0.32, stagger: reduce ? 0 : 0.05, ease: "power2.out", overwrite: true });
   }
 
   /* ---------- the endless list ---------- */
@@ -326,18 +352,20 @@
 
   /* ---------- GSAP: the scroll timeline ---------- */
 
-  var DARK = "#215028", LIGHT = "#749674";
+  var DARK = "#215028", LIGHT = "#749674", keepV = 0;
   var mm = gsap.matchMedia();
   ScrollTrigger.config({ ignoreMobileResize: true }); // phone URL bar: no re-layout
 
   mm.add({ desk: "(min-width: 721px)", mob: "(max-width: 720px)" }, function (ctx) {
     G = ctx.conditions.desk ? DESK : MOB;
+    slots = []; // the names list is rebuilt for this layout
     V = window.innerHeight;
     on = true;
     root.classList.add("has-scrub");
     measure();
     RATE = G.pitch / G.pitchV; LOOP = N * G.pitchV; HI = LO + LOOP;
-    loops = 0; smooth.y = window.scrollY; lastCards = -1;
+    loops = 0; lastCards = -1;
+    smooth.y = window.scrollY;
 
     // the timeline's time is measured in V (viewport heights of scroll)
     var tl = gsap.timeline({
@@ -357,10 +385,24 @@
         }
       }
     });
+    /* fn(v) runs from → to over [at, at + dur] of the timeline. The value
+       is worked out from the timeline's own time (not a tween's recorded
+       start), so a resize, which re-measures the timeline, can never leave
+       Home's letters shown on top of Work. */
+    var drives = [];
     function drive(fn, from, to, at, dur) {
       var o = { v: from };
       fn(from);
-      tl.to(o, { v: to, duration: dur, onUpdate: function () { fn(o.v); } }, at);
+      drives.push({ fn: fn, from: from, to: to, at: at, dur: dur });
+      tl.fromTo(o, { v: from }, { v: to, duration: dur, immediateRender: false,
+                                  onUpdate: function () { fn(o.v); } }, at);
+    }
+    function settle() {
+      var t = tl.time();
+      drives.forEach(function (d) {
+        var q = Math.max(0, Math.min(1, (t - d.at) / d.dur));
+        d.fn(d.from + (d.to - d.from) * q);
+      });
     }
 
     // the letters only Home has roll away, one line after another
@@ -383,11 +425,28 @@
 
     var onRefresh = function () { V = window.innerHeight; measure(); lastCards = -1; };
     ScrollTrigger.addEventListener("refreshInit", onRefresh);
+    // after every re-measure (resize), put each piece back where the scroll is
+    var onRefreshed = function () {
+      // coming from the other layout: ScrollTrigger has just put back the
+      // scroll it saved while the page was short; go back to our point
+      if (keepV > 0) {
+        var y = Math.min(keepV, HI - 0.01) * V;
+        keepV = 0;
+        window.scrollTo(0, y); smooth.y = lastY = lastSeenY = y; lastCards = -1;
+        tl.scrollTrigger && tl.scrollTrigger.update();
+      }
+      requestAnimationFrame(settle);
+    };
+    ScrollTrigger.addEventListener("refresh", onRefreshed);
     gsap.ticker.add(tick);
 
     return function () { // leaving this layout: undo everything
+      // remember where we were (in V) so the next layout opens at the same
+      // point of the story instead of back at Home
+      keepV = window.scrollY / V;
       gsap.ticker.remove(tick);
       ScrollTrigger.removeEventListener("refreshInit", onRefresh);
+      ScrollTrigger.removeEventListener("refresh", onRefreshed);
       on = false;
       root.classList.remove("has-scrub");
       outs.forEach(function (r) { r.set(0); });

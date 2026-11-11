@@ -22,6 +22,7 @@
   --paper: #f0efee;
   --green-900: #215028;
   --green-500: #749674;
+  --green-200: #d3dcd3; /* the other projects' names in the Work list */
 
   --gutter: max(16px, calc(100vw * 40 / 1512));
   --text-sm: max(14px, calc(100vw * 20 / 1512));
@@ -361,8 +362,14 @@ body::after {
 .work-title { margin: 6vh 0; }
 .work-hint { display: none; color: var(--green-500); }
 .work-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--gutter); }
+/* the project names (Figma 29:24523): every project's name in pale green,
+   16 apart; the current one in ink with its line under it */
 .work-caption { display: none; text-wrap: pretty; } /* + no lone last word (work.js) */
-.work-caption .wc-name { display: block; margin-top: -0.16em; margin-bottom: -0.14em; }
+.wc-list { display: flex; flex-direction: column; gap: 16px; margin: 0; padding: 0; list-style: none; will-change: transform; }
+.wc-item { display: block; }
+.work-caption .wc-name { display: block; margin-top: -0.16em; margin-bottom: -0.14em; color: var(--green-200); transition: color 0.3s; }
+.wc-item.is-active .wc-name { color: var(--green-900); }
+.wc-item:not(.is-active) .wc-desc { display: none; }
 /* the line under the name: AnNam Serif Regular 16 (Figma 23:22526), line
    height 1.1, trimmed to cap height / baseline like the rest (half-leading
    0.05em) */
@@ -466,14 +473,14 @@ body::after {
     opacity: 0;
   }
   .has-scrub .work-card.is-on { pointer-events: auto; }
-  /* the current project's name and line, bottom-aligned with its picture */
+  /* the names, beside the pictures: three above the current one, three
+     below; the current one starts at 397 (Figma: list at 307, 30 a name) */
   .has-scrub .work-caption {
     display: block;
     position: absolute;
     left: calc(var(--u) * 368);
-    top: calc(var(--u) * 430);
+    top: calc(var(--u) * 397 - 90px);
     width: calc(var(--u) * 328);
-    transform: translateY(-100%);
   }
   /* what moves with the scroll gets its own GPU layer */
   .has-scrub .hero .contact, .has-scrub .work-title, .has-scrub .work-card { will-change: transform; }
@@ -481,8 +488,9 @@ body::after {
 /* Mobile Work (Figma Work-01 22:3, Work-02 22:66, 390 × 844; units of 358):
    no contact block; the "đs" mark (51 × 64) right under the menu. Work-01:
    WORK (66) in the middle, SCROLL DOWN at the bottom. Work-02: WORK rises
-   under the mark, the projects (350 × 262) run right to left 16 apart under
-   it, the current one's name centred 16 under the pictures */
+   under the mark, the projects (350 × 262) run right to left 8 apart under
+   it; under them the current project's name and line, then the next four
+   names (Figma 29:24528) */
 @media (max-width: 720px) {
   .work { --fs: calc(100cqi * 66 / 358); --u: calc(100cqi / 358); }
   .work-mark { height: calc(var(--u) * 64); }
@@ -495,9 +503,8 @@ body::after {
   .has-scrub .work-caption {
     left: 0;
     width: 100%;
-    /* top 44 under the pictures (Figma 23:22538, one line): a longer
-       line runs on downwards; work.js sets the spot */
-    top: var(--cap-top, calc(var(--u) * 577));
+    /* 21 under the pictures; work.js sets the spot */
+    top: var(--cap-top, calc(var(--u) * 554));
     transform: none;
     text-align: center;
   }
