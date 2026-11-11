@@ -603,24 +603,26 @@ body::after {
     font-weight: 400;
   }
 
-  /* type block centred in the screen, clear of the contact block
-     (top at gutter + 46px, 3 lines = 54px) and the social block */
+  /* type block 25px below the screen's middle (Figma 13:212: centred at
+     50% + 25), clear of the contact block (top at gutter + 30px, 3 lines =
+     54px) and the social block */
   .hero {
     position: static;
     flex: 1;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding-block: calc(var(--gutter) + 46px + 54px + 16px);
+    padding-block: calc(var(--gutter) + 30px + 54px + 16px + 50px) calc(var(--gutter) + 30px + 54px + 16px);
   }
 
-  /* Four rows at 96px on 358 (Figma 13:8): every row centred,
-     seal + EST 8px apart, 2024 on its own row. On short screens the size
-     also follows the height, so the block (≈ 3.05 × size + 110px with the
-     services) always clears the contact block and SCROLL DOWN. */
+  /* Four rows at 110px on 358 (Figma 13:8: rows 77 tall), every row
+     centred, 8 apart, seal + EST 8px apart, 2024 on its own row. On short
+     screens the size also follows the height, so the block (≈ 2.98 × size
+     + 110px with the services) always clears the contact block and SCROLL
+     DOWN. */
   .type {
-    --fs: max(48px, min(calc(100cqi * 96 / 358), calc((100svh - 390px) / 3.05)));
-    --gap: calc(var(--fs) * 8 / 96);
+    --fs: max(48px, min(calc(100cqi * 110 / 358), calc((100svh - 392px) / 2.98)));
+    --gap: calc(var(--fs) * 8 / 110);
     row-gap: var(--gap);
   }
   .line-design, .line-studio { align-self: center; }
@@ -645,7 +647,7 @@ body::after {
     right: var(--gutter);
     text-align: center;
   }
-  .contact { top: calc(var(--gutter) + 46px); }
+  .contact { top: calc(var(--gutter) + 30px); } /* 16 under the menu (Figma 13:129) */
 
   /* social: one centred row, LINKEDIN ✱ FACEBOOK, 6px either side of the star */
   .social {
