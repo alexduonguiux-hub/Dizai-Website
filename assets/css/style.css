@@ -950,12 +950,26 @@ body::after {
   width: calc(var(--u) * 696);
   margin: calc(100svh + var(--zoom-top)) auto 0; /* one screen of scroll to grow the first picture */
   /* room after the last picture so it too can reach the top place */
-  padding-bottom: max(0px, calc(100svh - 2 * var(--gutter) - var(--zoom-top) - var(--u) * 434));
+  padding-bottom: max(64px, calc(100svh - 2 * var(--gutter) - var(--zoom-top) - var(--u) * 434)); /* (and room for the hint at the end) */
   display: flex;
   flex-direction: column;
   gap: calc(var(--u) * 12);
 }
 .dt-shot { position: relative; margin: 0; transform-origin: 0 0; }
+/* {SCROLL TO GO NEXT PROJECT} at the end of the pictures: scrolled to the
+   end it sits on the foot of the screen, centred (Figma 57:22865) */
+.dt-shots { position: relative; }
+.dt-end {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: 0 0 -0.14em;
+  text-align: center;
+  white-space: nowrap;
+  color: var(--grey);
+  font-variation-settings: "slnt" -10;
+}
 .dt-img { display: block; width: 100%; height: auto; aspect-ratio: 2048 / 1277; }
 .dt-shot.has-sheet { perspective: 1100px; }
 .dt-shot.has-sheet .dt-img { visibility: hidden; }
@@ -1004,8 +1018,8 @@ body::after {
   .dt-desc { width: 100%; }
   .dt-meta { width: auto; }
   .dt-facts > .dt-ph { left: calc(50% - var(--u) * 103); }
-  .dt-shots { width: 100%; gap: 12px; padding-bottom: max(0px, calc(100svh - 2 * var(--gutter) - var(--zoom-top) - var(--u) * 223)); }
-  .dt-thumbs img { width: 32px; height: 20px; }
+  .dt-shots { width: 100%; gap: 12px; padding-bottom: max(64px, calc(100svh - 2 * var(--gutter) - var(--zoom-top) - var(--u) * 223)); }
+  .dt-thumbs { display: none; } /* not on phones (Figma 41:5267); the end hint takes the foot */
 }
 /* About: its own scroll; past its ends the page goes on (about.js), so no
    rubber band or pull-to-refresh */

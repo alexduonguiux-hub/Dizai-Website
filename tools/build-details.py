@@ -118,6 +118,7 @@ def build(stamp):
     <div class="dt-scroll">
       <div class="dt-shots">
 {shots}
+        <p class="dt-end trim" aria-hidden="true">{{Scroll to go next project}}</p>
       </div>
     </div>
 
