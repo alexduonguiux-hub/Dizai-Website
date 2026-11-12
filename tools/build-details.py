@@ -54,9 +54,11 @@ def build(stamp):
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{esc(plain)} — Đìzai Studio</title>
   <meta name="description" content="{esc(p["desc"][:150])}">
-  <link rel="icon" href="../../favicon.svg?v=1" type="image/svg+xml">
-  <link rel="icon" href="../../favicon.ico?v=1" sizes="32x32">
-  <link rel="apple-touch-icon" href="../../apple-touch-icon.png?v=1">
+  <link rel="icon" type="image/png" sizes="32x32" href="../../favicon-32x32.png?v=2">
+  <link rel="icon" type="image/png" sizes="16x16" href="../../favicon-16x16.png?v=2">
+  <link rel="icon" type="image/svg+xml" href="../../favicon.svg?v=2">
+  <link rel="shortcut icon" href="../../favicon.ico?v=2">
+  <link rel="apple-touch-icon" sizes="180x180" href="../../apple-touch-icon.png?v=2">
   <meta name="theme-color" content="#f0efee">
   <meta name="format-detection" content="telephone=no, email=no, address=no, date=no">
   <link rel="preload" href="../../assets/fonts/AnNamSerif-VF.woff2?v=0.915s" as="font" type="font/woff2" crossorigin>
