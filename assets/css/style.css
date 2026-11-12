@@ -299,6 +299,7 @@ body::after {
 .is-loading:not(.is-emerging) .site-nav,
 .is-loading:not(.is-emerging) .hero { visibility: hidden; }
 .is-emerging .loader { background: transparent; pointer-events: none; }
+.nav-wait .site-nav { visibility: hidden; } /* until the loader's text has rolled away (loader.js) */
 
 
 @media (prefers-reduced-motion: reduce) {

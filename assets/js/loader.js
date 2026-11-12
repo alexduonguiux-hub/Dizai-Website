@@ -173,7 +173,7 @@
   /* ---------------- Reveal ---------------- */
 
   function cleanup() {
-    root.classList.remove("is-loading", "is-loaded", "is-emerging");
+    root.classList.remove("is-loading", "is-loaded", "is-emerging", "nav-wait");
     loader.remove();
     try { sessionStorage.setItem("dz-seen", "1"); } catch (e) {} // once per visit
   }
@@ -227,7 +227,9 @@
     // Home laid out with every letter window blank; the coin waits until
     // the loader's seal has landed on it
     if (coin) coin.style.opacity = "0";
-    root.classList.add("is-emerging");
+    // the menu (it has no animation) waits until the loader's own text,
+    // which sits where the menu goes, has rolled away: no overlap
+    root.classList.add("is-emerging", "nav-wait");
 
     // the seal's flight: from its loader box to the coin's box (FLIP)
     var from = seal && rectOf(seal), to = coin && rectOf(coin);
@@ -237,6 +239,7 @@
     out.forEach(function (r, i) { items.push({ r: r, start: i * OUT_STAGGER, dur: OUT_MS }); });
     ins.forEach(function (r, i) { items.push({ r: r, start: IN_AT + i * IN_STAGGER, dur: IN_MS }); });
     var total = Math.max(SEAL_AT + SEAL_MS, Math.max.apply(null, items.map(function (it) { return it.start + it.dur; })));
+    var outDone = out.length ? (out.length - 1) * OUT_STAGGER + OUT_MS : 0;
 
     var t0 = performance.now();
     (function frame() {
@@ -251,6 +254,7 @@
       }
       // every letter rolls with its own small delay inside the element
       items.forEach(function (it) { it.r.set(clamp01((t - it.start) / it.dur)); });
+      if (t >= outDone) root.classList.remove("nav-wait");
 
       if (t < total) return requestAnimationFrame(frame);
       ins.forEach(function (r) { r.set(1); }); // real text back
