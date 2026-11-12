@@ -281,7 +281,7 @@
   var ENTER_AT = 0.45;          // the first picture sets off
   var CAPTION_AT = 0.85;        // the names come in
   var MOVE = gsap.parseEase("dz.move");
-  var phase = 0, listT = 0, listS = 0, lastListPx = 0, on = false;
+  var phase = 0, listT = 0, listS = 0, listV = 0, prevS = 0, following = 0, lastListPx = 0, on = false;
   var lastKey = "", active = -1, busy = null, tl = null, curSettle = null;
 
   function pitchPx() { return G.pitch * cs * unit; }
@@ -320,10 +320,19 @@
   function tick(time, deltaTime) {
     if (!on || root.classList.contains("is-loading")) return;
     var dt = Math.min(3, deltaTime / 16.67);
-    if (!dragging) {
-      listS += (listT - listS) * (reduce ? 1 : Math.min(1, 0.14 * dt));
-      if (Math.abs(listT - listS) < 0.0005) listS = listT;
+    /* The list glides on a soft spring (critically damped: it never
+       overshoots and comes back). While a trackpad pushes it, it follows
+       closely; landing on a project it drifts in very slowly, keeping the
+       speed it had, so there is no jolt back. */
+    if (dragging) { /* the finger holds it (touchmove) */ }
+    else if (reduce) { listS = listT; listV = 0; }
+    else {
+      var k = performance.now() - following < 160 ? 0.02 : 0.0016, c = 2 * Math.sqrt(k);
+      listV += (k * (listT - listS) - c * listV) * dt;
+      listS += listV * dt;
+      if (Math.abs(listT - listS) < 0.0004 && Math.abs(listV) < 0.0002) { listS = listT; listV = 0; }
     }
+    prevS = listS;
     var t = tl ? tl.time() : 0;
     var f = Math.max(0, Math.min(1, (t - ENTER_AT) / (PHASE_T - ENTER_AT)));
     var key = f.toFixed(4) + "|" + listS.toFixed(4);
@@ -389,7 +398,14 @@
   }
   function snapSoon() {
     clearTimeout(snapTimer);
-    snapTimer = setTimeout(function () { listT = Math.round(listT); }, 140);
+    snapTimer = setTimeout(function () { listT = landing(listT, lastDir); }, 140);
+  }
+  /* the project to land on when the list is let go: onwards in the way
+     it was moving once it is a fifth of the way there (never pulled back
+     past where it was heading) */
+  var lastDir = 0;
+  function landing(x, dir) {
+    return dir > 0 ? Math.ceil(x - 0.2) : dir < 0 ? Math.floor(x + 0.2) : Math.round(x);
   }
   function wheelPx(e, d) { return d * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? innerHeight : 1); }
 
@@ -411,6 +427,7 @@
         return;
       }
       listT += d / pitchPx() * 1.4; // a trackpad: the list follows the fingers
+      following = performance.now(); lastDir = d > 0 ? 1 : -1;
       snapSoon();
       return;
     }
@@ -443,7 +460,15 @@
     if (touch.inList && touch.axis === G.axis) {
       dragging = true;
       var d = G.axis === "x" ? -dx : -dy;
-      listT = listS = touch.from + d / pitchPx();
+      var x = touch.from + d / pitchPx(), now = performance.now();
+      if (touch.lx != null && now > touch.lt) {
+        // the finger's speed, in projects per frame, to carry on with
+        var v = (x - touch.lx) / ((now - touch.lt) / 16.67);
+        touch.v = touch.v == null ? v : touch.v * 0.5 + v * 0.5;
+        if (x !== touch.lx) touch.dir = x > touch.lx ? 1 : -1;
+      }
+      touch.lx = x; touch.lt = now;
+      listT = listS = prevS = x;
       touch.d = d;
       return;
     }
@@ -456,7 +481,9 @@
     if (dragging) {
       dragging = false;
       var d = touch.d || 0, ms = Math.max(1, performance.now() - touch.at);
-      var target = Math.round(listT);
+      var dir = touch.dir || (d > 0 ? 1 : d < 0 ? -1 : 0);
+      listV = Math.max(-0.08, Math.min(0.08, touch.v || 0));
+      var target = landing(listT, dir);
       // a quick flick goes on to the next one even if it moved only a little
       if (ms < 300 && Math.abs(d) > 24 && target === Math.round(touch.from)) target += d > 0 ? 1 : -1;
       listT = target;
@@ -587,7 +614,7 @@
     var saved = null, nav = performance.getEntriesByType && performance.getEntriesByType("navigation")[0];
     try { saved = JSON.parse(sessionStorage.getItem("dz-v") || "null"); } catch (e) {}
     var toWork = location.hash === "#work" || !!(nav && nav.type === "reload" && saved && saved.p === 1);
-    if (saved && typeof saved.l === "number" && (toWork || (nav && nav.type === "reload"))) listT = listS = saved.l;
+    if (saved && typeof saved.l === "number" && (toWork || (nav && nav.type === "reload"))) listT = listS = prevS = saved.l;
     if (location.hash) history.replaceState(null, "", location.pathname);
     if (toWork && tl) {
       // every piece is put at Work before anything shows, then Work's own
