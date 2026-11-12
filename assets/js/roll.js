@@ -39,6 +39,9 @@
   function text(el, dir) {
     var split = null, last = -1;
 
+    // the menu's letters only rise, without the blur
+    var noBlur = !!(el.closest && el.closest(".site-nav"));
+
     function doSplit() {
       var nodes = textNodes(el), range = document.createRange(), cells = [], n = 0;
       // 1. where every letter sits in the untouched text (kerning included)
@@ -77,12 +80,25 @@
           it.w = it.adv;
         });
       });
+      // where a line wraps (at a space): kept as a line break while the
+      // letters move, as the line can't wrap between letter boxes
+      // (.is-rolling is nowrap: a menu column once broke "WOR / K")
+      var lastTop = null, gapSpace = null;
+      plan.forEach(function (items) {
+        lastTop = null; gapSpace = null; // within one text: a <br> between texts is there already
+        items.forEach(function (it) {
+          if (it.w == null) { if (lastTop != null && !gapSpace) gapSpace = it; return; }
+          if (gapSpace && it.top - lastTop > 2) gapSpace.br = true;
+          gapSpace = null; lastTop = it.top;
+        });
+      });
       // 2. swap the text for letter windows
       nodes.forEach(function (tn, ni) {
         var fs = parseFloat(getComputedStyle(tn.parentNode).fontSize) || 16; // widths in this text's em
         var frag = document.createDocumentFragment(), buf = "";
         function flush() { if (buf) { frag.appendChild(document.createTextNode(buf)); buf = ""; } }
         plan[ni].forEach(function (it, k) {
+          if (it.br) { flush(); var br = document.createElement("br"); br.className = "rbr"; frag.appendChild(br); return; }
           if (it.w == null) { buf += it.ch; return; }
           // a space after this letter keeps its own width as text
           var nextSpace = plan[ni][k + 1] && plan[ni][k + 1].w == null;
@@ -92,7 +108,7 @@
           var wpx = nextSpace ? it.w : it.adv;
           c.style.width = (wpx / fs).toFixed(4) + "em";
           c.textContent = it.ch;
-          c.dataset.blur = (fs * BLUR + 2).toFixed(1);
+          c.dataset.blur = noBlur ? "0" : (fs * BLUR + 2).toFixed(1);
           frag.appendChild(c);
           cells.push(c);
         });
@@ -107,6 +123,9 @@
     function doRevert() {
       if (!split) return;
       // every letter span holds its own letter: put the plain text back
+      [].forEach.call(el.querySelectorAll("br.rbr"), function (b) {
+        b.parentNode.replaceChild(document.createTextNode(" "), b);
+      });
       var cells = el.querySelectorAll(".rc");
       [].forEach.call(cells, function (c) {
         c.parentNode.replaceChild(document.createTextNode(c.textContent), c);
@@ -127,7 +146,8 @@
         var a = dir === "out" ? q * q : (1 - q) * (1 - q);
         var st = cs[i].style;
         st.transform = a ? "translateY(" + ((dir === "out" ? -RISE : RISE) * a).toFixed(3) + "em)" : "";
-        st.filter = a ? "blur(" + (a * +cs[i].dataset.blur).toFixed(2) + "px)" : "";
+        var bl = +cs[i].dataset.blur;
+        st.filter = a && bl ? "blur(" + (a * bl).toFixed(2) + "px)" : "";
         st.opacity = (1 - a).toFixed(3);
       }
     }
