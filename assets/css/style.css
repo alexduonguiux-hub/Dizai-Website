@@ -897,7 +897,7 @@ body::after {
   flex-direction: column;
   align-items: center;
   justify-content: safe center;
-  gap: 20px;
+  gap: max(20px, calc(var(--u) * 20)); /* 20 at the 1512 design, growing with bigger screens */
   text-align: center;
 }
 .dt-facts > * { margin-block: 0; }
