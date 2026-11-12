@@ -956,7 +956,7 @@ body::after {
   gap: calc(var(--u) * 12);
 }
 .dt-shot { position: relative; margin: 0; transform-origin: 0 0; }
-/* {SCROLL TO GO NEXT PROJECT} at the end of the pictures: scrolled to the
+/* {SCROLL TO THE NEXT PROJECT} at the end of the pictures: scrolled to the
    end it sits on the foot of the screen, centred (Figma 57:22865) */
 .dt-shots { position: relative; }
 .dt-end {
