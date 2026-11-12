@@ -150,17 +150,21 @@
   function atTop() { return sc.scrollTop <= 1; }
   function atEnd() { return sc.clientHeight + sc.scrollTop >= sc.scrollHeight - 2; }
 
-  var lastWheel = 0, acc = 0, armed = 0; // armed: +1 at the end, −1 at the top
+  /* Past an end, the push that goes on is counted: a light one if the
+     scroll started with the page already there, a longer one if the same
+     scroll has just arrived there (so it carries on smoothly, but the tail
+     of a trackpad flick alone does not leave the page). */
+  var lastWheel = 0, acc = 0, startEdge = 0; // +1 started at the end, −1 at the top
   window.addEventListener("wheel", function (e) {
     if (gone || e.ctrlKey) return;
     var now = performance.now(), fresh = now - lastWheel > 220;
     lastWheel = now;
     var dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? innerHeight : 1);
-    // a push counts only if it started with the page already at that end
-    if (fresh) { acc = 0; armed = dy > 0 && atEnd() ? 1 : dy < 0 && atTop() ? -1 : 0; }
-    if (!armed || (armed > 0 ? dy <= 0 : dy >= 0)) return;
+    if (fresh) { acc = 0; startEdge = dy > 0 && atEnd() ? 1 : dy < 0 && atTop() ? -1 : 0; }
+    var dir = dy > 0 ? 1 : dy < 0 ? -1 : 0;
+    if (!dir || !(dir > 0 ? atEnd() : atTop())) { acc = 0; return; }
     acc += Math.abs(dy);
-    if (acc > 50) leave(armed > 0 ? WORK : HOME);
+    if (acc > (startEdge === dir ? 40 : 240)) leave(dir > 0 ? WORK : HOME);
   }, { passive: true });
 
   var touch = null;
