@@ -541,7 +541,7 @@ body::after {
    it; under them the current project's name and line, then the next four
    names (Figma 29:24528) */
 @media (max-width: 720px) {
-  .work { --fs: calc(100cqi * 99 / 358); --u: calc(100cqi / 358); }
+  .work { --fs: calc(100cqi * 70 / 358); --u: calc(100cqi / 358); } /* WORK 70 (Figma 37:31645) */
   .work-mark { height: calc(var(--u) * 64); }
   .work-list { grid-template-columns: 1fr; }
   .has-scrub .stage { display: flex; flex-direction: column; }
