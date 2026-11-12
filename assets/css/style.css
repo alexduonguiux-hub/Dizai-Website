@@ -708,3 +708,6 @@ body::after {
   .cp-email .cp-p { display: block; }
   .cp-email .cp-p + .cp-p { margin-top: 0.1em; }
 }
+/* Contact: pulling down from the top goes back to Work (contact.js), not
+   the phone's pull-to-refresh */
+html:has(body.page-contact), body.page-contact { overscroll-behavior-y: none; }
