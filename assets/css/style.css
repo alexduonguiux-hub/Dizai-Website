@@ -603,7 +603,7 @@ body::after {
    HELLO@ one letter per line */
 .cp-email .cp-l { display: block; text-align: center; }
 .cp-email .cp-p { display: inline; }
-.cp-social { display: flex; justify-content: center; gap: 8px; }
+.cp-social { display: flex; justify-content: center; gap: 8px; position: relative; z-index: 1; } /* above the big email's tall line boxes, which reach down over this row */
 .cp-social li { display: flex; align-items: center; gap: 8px; }
 .cp-social li + li::before {
   content: url("../img/star.svg?v=2");
