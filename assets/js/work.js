@@ -368,7 +368,7 @@
     if (gone) return;
     gone = true;
     var a = document.querySelector(".nav-list a:not([data-go])");
-    Roll.leave(a.href, [q(".nav-list"), contact, title, capList].concat(homeText),
+    Roll.leave(a.href, [contact, title, capList].concat(homeText), // the menu stays
                [seal].concat(marks, cards));
   }
   function down() { if (phase === 0) goTo(1); else goContact(); }
@@ -622,7 +622,7 @@
       phase = 1;
       tl.time(PHASE_T);
       if (curSettle) curSettle();
-      var inWork = [q(".nav-list"), title].concat(G.contactY ? [contact] : [])
+      var inWork = [title].concat(G.contactY ? [contact] : [])
         .map(function (el) { var r = Roll.text(el, "in"); r.set(0); return r; })
         .concat(marks.map(function (m) { var r = Roll.box(m, "in"); r.set(0); return r; }));
       gsap.fromTo(q(".work-list"), { autoAlpha: 0, y: 24 },
@@ -636,7 +636,7 @@
         });
       });
     } else {
-      var back = [q(".nav-list"), contact].concat(homeText)
+      var back = [contact].concat(homeText)
         .filter(function (el) { return el && el.getClientRects().length; })
         .map(function (el) { var r = Roll.text(el, "in"); r.set(0); return r; });
       var sealBack = seal ? Roll.box(seal, "in") : null;

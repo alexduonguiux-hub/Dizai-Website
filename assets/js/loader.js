@@ -218,7 +218,7 @@
       Roll.text(loader.querySelector(".loader-contact"), "out"),
       Roll.text(loader.querySelector(".loader-top > p:first-child"), "out")
     ].filter(Boolean);
-    var ins = [".site-nav .nav-list", ".line-design", ".line-studio",
+    var ins = [".line-design", ".line-studio",
                ".line-est", ".line-year", ".services", ".contact", ".scroll-hint", ".social"]
       .map(function (q) { return document.querySelector(q); })
       .filter(shown)

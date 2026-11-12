@@ -11,7 +11,8 @@
 
   var q = function (s) { return [].slice.call(document.querySelectorAll(s)); };
   // in the order they come in: the middle first, then the frame around it
-  var texts = [".cp-kicker", ".cp-email", ".cp-social", ".nav-list", ".cp-info", ".cp-copy"]
+  // (not the menu: it stays as it is from page to page)
+  var texts = [".cp-kicker", ".cp-email", ".cp-social", ".cp-info", ".cp-copy"]
     .reduce(function (all, s) { return all.concat(q(s)); }, [])
     .filter(function (el) { return el.getClientRects().length; });
   var boxes = [".cp-mark"].reduce(function (all, s) { return all.concat(q(s)); }, []);
