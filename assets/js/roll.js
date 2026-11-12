@@ -220,7 +220,8 @@
   }
   function flipNext() { try { sessionStorage.setItem("dz-flip", "1"); } catch (e) {} }
   function takeFlip() {
-    try { var f = sessionStorage.getItem("dz-flip") === "1"; sessionStorage.removeItem("dz-flip"); return f; }
+    // (if this page then reloads itself for a newer version, the note is put back: window.dzFlipTaken)
+    try { var f = sessionStorage.getItem("dz-flip") === "1"; sessionStorage.removeItem("dz-flip"); if (f) window.dzFlipTaken = true; return f; }
     catch (e) { return false; }
   }
   // one full turn about the upright axis, like a coin given a flick: it
@@ -239,7 +240,17 @@
                        onComplete: function () { gsap.set(els, { clearProps: "transform" }); } });
   }
 
+  // pages of the site are opened with this page's version stamp (?v=), so
+  // the browser does not show an old copy from its cache
+  function stamped(href) {
+    var u = new URL(href, location.href), css = document.querySelector('link[rel="stylesheet"][href*="?v="]');
+    var v = css && new URL(css.href).searchParams.get("v");
+    if (u.origin !== location.origin || !v || u.searchParams.has("v") || /\.[a-z0-9]+$/i.test(u.pathname)) return u.href;
+    u.searchParams.set("v", v);
+    return u.href;
+  }
   function leave(href, pieces, boxes) {
+    href = stamped(href);
     var gsap = window.gsap, reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
     // to a page with the mark in the same place: the mark stays
     if (hasMark(href)) {

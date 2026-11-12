@@ -72,7 +72,7 @@ def build(stamp):
        current one: version.json is always fetched fresh -->
   <script>(function () {{ var b = "?v={stamp}".slice(3), h0 = location.href; if (!window.fetch) return;
     fetch("../../version.json?t=" + Date.now(), {{ cache: "no-store" }}).then(function (r) {{ return r.json(); }}).then(function (j) {{
-      var u = new URL(h0); if (j && j.v && j.v !== b && u.searchParams.get("v") !== j.v) {{ u.searchParams.set("v", j.v); location.replace(u.href); }}
+      var u = new URL(h0); if (j && j.v && j.v !== b && u.searchParams.get("v") !== j.v) {{ u.searchParams.set("v", j.v); try {{ if (window.dzFlipTaken) sessionStorage.setItem("dz-flip", "1"); }} catch (e) {{}} location.replace(u.href); }}
     }}).catch(function () {{}}); }})()</script>
   <script>(function (r) {{ r.classList.add("is-entering"); try {{ history.scrollRestoration = "manual"; }} catch (e) {{}}
     setTimeout(function () {{ r.classList.remove("is-entering"); }}, 3000); }})(document.documentElement)</script>
