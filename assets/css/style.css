@@ -855,44 +855,69 @@ body::after {
    Built by tools/build-details.py, moved by assets/js/detail.js. Units of
    the 1432 content width (origin: the content's top left, gutter in):
    the title (Medium 155, line height 0.8, at most --tw wide) on top in the
-   middle; under it at 252 LAUNCH · services · CLIENT across the title's
-   width; the description (450 wide) at 346; the small picture slot on the
-   foot (613, 604, 206 × 129). Scrolling one screen grows
+   columns (942 wide, from 245); 20 under it LAUNCH · services · CLIENT
+   across those columns, 20 under that the description (450 wide); the
+   small picture slot on the foot (613, 206 × 129). Scrolling one screen grows
    the first picture into place (368, 283, 696 × 434, the column of
    pictures, 12 apart) while the facts roll away; the column then runs up
    over the title, which sinks back. Thumbnails bottom right. */
 .dt { position: relative; --u: calc(100cqi / 1432); --zoom-top: calc(var(--u) * 283); }
 .page-detail .site-nav { z-index: 3; }
 .page-detail .cp-info { top: 0; z-index: 3; }
+/* the title keeps to the same columns on every project (942 wide, from
+   245: Figma 10:1880); a longer name runs onto more lines. LAUNCH ·
+   services · CLIENT across those columns with the description 20 under
+   them sit in the middle between the title and the small picture
+   (detail.js sets --dt-title-bottom for any number of lines) */
 .dt-title {
   position: fixed;
   z-index: 0;
   top: var(--gutter);
-  left: 50%;
-  width: calc(var(--u) * var(--tw, 942));
-  transform: translateX(-50%);
+  left: calc(var(--gutter) + var(--u) * 245);
+  width: calc(var(--u) * 942);
   margin: -0.06em 0 0; /* cap top on the line (line height 0.8) */
   font-size: calc(var(--u) * 155);
   font-weight: 500;
   line-height: 0.8;
   text-align: center;
-  text-wrap: balance;
 }
-.dt-facts { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
-.dt-facts > * { position: absolute; margin-block: 0; text-align: center; white-space: nowrap; }
-/* one row under the title, as wide as it (942, from 245): LAUNCH at its
-   left, the services in the middle, CLIENT at its right (Figma 49:17840) */
-.dt-launch, .dt-client, .dt-services { top: calc(var(--gutter) + var(--u) * 252 - 0.16em); }
-.dt-launch { left: calc(var(--gutter) + var(--u) * 245); }
-.dt-client { right: calc(var(--gutter) + var(--u) * 245); }
-.dt-services { left: 50%; transform: translateX(-50%); }
-/* the small picture on the foot of the screen (613, 604, 206 × 129) */
-.dt-ph { top: calc(var(--gutter) + var(--u) * 604); left: calc(var(--gutter) + var(--u) * 613); width: calc(var(--u) * 206); height: calc(var(--u) * 129); }
+.dt-facts {
+  position: fixed;
+  z-index: 0;
+  /* the column is the screen's height: the title on top, the picture on the
+     foot, this block centred in the room between them (Figma 49:17860,
+     justify: space-between) */
+  top: var(--dt-title-bottom, 280px);
+  bottom: calc(var(--gutter) + var(--u) * 129);
+  left: calc(var(--gutter) + var(--u) * 245);
+  width: calc(var(--u) * 942);
+  pointer-events: none;
+  display: grid;
+  align-content: safe center;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-areas: "launch services client" "desc desc desc";
+  column-gap: 4px;
+  row-gap: calc(var(--u) * 20);
+  align-items: start;
+  text-align: center;
+}
+.dt-facts > * { margin-block: 0; white-space: nowrap; }
+.dt-launch { grid-area: launch; justify-self: start; margin-top: -0.16em; }
+.dt-services { grid-area: services; justify-self: center; margin-top: -0.16em; }
+.dt-client { grid-area: client; justify-self: end; margin-top: -0.16em; }
+/* the small picture on the foot of the screen (613, 644 → 773; 206 × 129) */
+.dt-facts > .dt-ph {
+  position: fixed;
+  left: calc(var(--gutter) + var(--u) * 613);
+  bottom: var(--gutter);
+  width: calc(var(--u) * 206);
+  height: calc(var(--u) * 129);
+}
 .dt-desc {
-  top: calc(var(--gutter) + var(--u) * 346 - 0.2em);
-  left: 50%;
+  grid-area: desc;
+  justify-self: center;
   width: calc(var(--u) * 450);
-  transform: translateX(-50%);
+  margin-top: -0.2em;
   white-space: normal;
   font-family: "Dinh Tuong", "AnNam Serif", Georgia, serif;
   font-variation-settings: normal;
@@ -951,36 +976,32 @@ body::after {
 .dt-thumbs img { display: block; width: calc(var(--u) * 53); height: calc(var(--u) * 33); object-fit: cover; }
 .is-entering .dt, .is-entering .page-detail .site-nav { visibility: hidden; }
 @media (max-width: 720px) {
-  /* phone (units of 358): the title 56 under the menu; LAUNCH · CLIENT in
-     a row, the services, the description, then the small picture; the
-     pictures across the width */
-  .dt { --u: calc(100cqi / 358); --zoom-top: calc(44px + var(--u) * 100); }
+  /* phone (Figma Work-Detail-00 mobile 41:5180, units of 358): the title
+     (Regular 70) 54 down; 20 under it LAUNCH · CLIENT side by side, the
+     services, the description (all 20 apart, centred); the small picture
+     (206 × 129) centred on the foot, 16 up. detail.js sets
+     --dt-title-bottom, as the title runs to as many lines as it needs */
+  .dt { --u: calc(100cqi / 358); --zoom-top: 38px; }
   .page-detail .cp-info { display: none; }
-  .dt-title { top: calc(var(--gutter) + 44px); width: calc(var(--u) * 358); font-size: calc(var(--u) * 56); }
-  /* the facts block in the middle of the screen: the same room above and
-     below as the title takes on top (never up under the title: on a short
-     screen it moves down instead) */
+  .dt-title { top: calc(var(--gutter) + 38px); left: var(--gutter); width: calc(var(--u) * 358); font-size: calc(var(--u) * 70); font-weight: 400; }
   .dt-facts {
-    --clear: calc(var(--gutter) + 44px + var(--u) * 100);
-    top: 0;
+    top: calc(var(--dt-title-bottom, 300px) + 20px);
+    bottom: auto;
+    align-content: start;
     left: var(--gutter);
+    width: auto;
     right: var(--gutter);
-    bottom: 0;
-    padding-block: var(--clear);
     display: grid;
-    align-content: safe center;
     grid-template-columns: 1fr 1fr;
-    grid-template-areas: "launch client" "services services" "desc desc" "ph ph";
+    grid-template-areas: "launch client" "services services" "desc desc";
+    column-gap: 20px;
+    row-gap: 20px;
     align-items: start;
     justify-items: center;
-    row-gap: 24px;
   }
-  .dt-facts > * { position: static; transform: none; }
-  .dt-launch { grid-area: launch; margin-top: -0.16em; }
-  .dt-client { grid-area: client; margin-top: -0.16em; }
-  .dt-ph { grid-area: ph; width: calc(var(--u) * 140); height: auto; aspect-ratio: 2048 / 1277; }
-  .dt-services { grid-area: services; margin-top: -0.16em; }
-  .dt-desc { grid-area: desc; width: calc(var(--u) * 326); margin-top: -0.2em; }
+  .dt-launch, .dt-client, .dt-services { justify-self: center; }
+  .dt-desc { width: 100%; }
+  .dt-facts > .dt-ph { left: calc(50% - var(--u) * 103); }
   .dt-shots { width: 100%; gap: 12px; padding-bottom: max(0px, calc(100svh - 2 * var(--gutter) - var(--zoom-top) - var(--u) * 223)); }
   .dt-thumbs img { width: 32px; height: 20px; }
 }

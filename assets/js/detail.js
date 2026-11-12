@@ -93,6 +93,12 @@
   var outs = facts.map(function (el) { return Roll.text(el, "out"); });
   var entered = false;
   function s0() { return sc.clientHeight; } // one screen of scroll
+  // phones: the facts start 20 under the title, however many lines it runs to
+  function titleFoot() {
+    var r = title.getBoundingClientRect();
+    root.style.setProperty("--dt-title-bottom", (r.bottom - (parseFloat(getComputedStyle(title).marginBottom) || 0)).toFixed(1) + "px");
+  }
+  titleFoot();
   function place() {
     var t = sc.scrollTop, S = s0(), p = clamp(t / S);
     // the first picture: from the small slot (fixed) to its own place,
@@ -119,7 +125,7 @@
   }
   var raf = 0;
   sc.addEventListener("scroll", function () { if (!raf) raf = requestAnimationFrame(function () { raf = 0; place(); }); }, { passive: true });
-  window.addEventListener("resize", function () { sizeSheets(); place(); });
+  window.addEventListener("resize", function () { titleFoot(); sizeSheets(); place(); });
 
   thumbs.forEach(function (b, i) {
     b.addEventListener("click", function () {
@@ -161,6 +167,7 @@
                  onUpdate: function () { r.set(o.v); }, onComplete: then });
   }
   function enter() {
+    titleFoot();
     sizeSheets();
     place();
     var ins = [title].concat(info, facts).map(function (el) { var r = Roll.text(el, "in"); r.set(0); return r; });
