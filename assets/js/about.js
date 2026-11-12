@@ -80,32 +80,36 @@
   (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(enter);
 
   /* ---------- fading out under the top ----------
-     Each piece fades right out (as a whole) once it rises to the foot of
-     the "đs" mark, before it can pass under the mark or the menu, and
-     fades back in when it comes down below that line again. */
+     Each piece fades (as a whole) with the scroll as it rises past the
+     "đs" mark: still solid with its top at the mark's foot, gone once it
+     reaches the mark's top, and back again the same way coming down. */
   var fades = q(".ab-line, .ab-photo-box, .ab-text p, .ab-contact .cp-kicker, .ab-contact .cp-l, .ab-contact .cp-social, .ab-copy")
-    .filter(shown).map(function (el) { return { el: el, out: false }; });
+    .filter(shown).map(function (el) { return { el: el, o: -1 }; });
   var flow = document.querySelector(".ab-flow");
-  function fadeLine() {
-    // the foot of the "đs" mark: a piece goes as it touches the mark
-    // (from the layout, not the box on screen: the mark may be mid-rise)
+  function fadeBand() {
+    // from the layout, not the box on screen: the mark may be mid-rise
     var m = marks[0], box = m && m.offsetParent;
-    if (m && box && m.offsetHeight) return box.getBoundingClientRect().top + m.offsetTop + m.offsetHeight;
-    return parseFloat(getComputedStyle(sc).paddingTop) + (flow ? parseFloat(getComputedStyle(flow).paddingTop) : 0) - 2;
+    if (m && box && m.offsetHeight) {
+      var top = box.getBoundingClientRect().top + m.offsetTop;
+      return { top: top, foot: top + m.offsetHeight };
+    }
+    var foot = parseFloat(getComputedStyle(sc).paddingTop) + (flow ? parseFloat(getComputedStyle(flow).paddingTop) : 0) - 2;
+    return { top: foot - 100, foot: foot };
   }
-  var line = fadeLine(), fadeRaf = 0;
+  var band = fadeBand(), fadeRaf = 0;
   function fadeCheck() {
     fadeRaf = 0;
     fades.forEach(function (f) {
-      var out = f.el.getBoundingClientRect().top < line;
-      if (out === f.out) return;
-      f.out = out;
-      gsap.to(f.el, { opacity: out ? 0 : 1, duration: reduce ? 0.01 : out ? 0.45 : 0.6,
-                      ease: out ? "power2.out" : "power2.inOut", overwrite: "auto" });
+      var t = f.el.getBoundingClientRect().top;
+      var o = Math.max(0, Math.min(1, (t - band.top) / (band.foot - band.top)));
+      o = Math.round(o * 1000) / 1000;
+      if (o === f.o) return;
+      f.o = o;
+      f.el.style.opacity = o >= 1 ? "" : String(o);
     });
   }
   sc.addEventListener("scroll", function () { if (!fadeRaf) fadeRaf = requestAnimationFrame(fadeCheck); }, { passive: true });
-  window.addEventListener("resize", function () { line = fadeLine(); fadeCheck(); });
+  window.addEventListener("resize", function () { band = fadeBand(); fadeCheck(); });
   fadeCheck();
 
   // pieces still waiting below: measured again when the width changes
