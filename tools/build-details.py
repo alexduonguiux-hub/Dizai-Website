@@ -13,7 +13,7 @@ PROJECTS = [
   dict(slug="chochoi", key="cc", n=8, title="ChoChoi Creative", width=942,
        desc="ChoChoi is a glocal-minded branding studio. We've seen brands chase every new look and fade just as fast. So we start deeper, with strategy built on the story, the culture and the details that are truly yours.",
        launch="2025", services=["UX Audit", "UX Improvement", "UI Design"], client="ChoChoi"),
-  dict(slug="viettel-post", key="vp", n=6, title="Viettel Post<br>Mobile App", width=942,
+  dict(slug="viettel-post", key="vp", n=6, title="Viettel Post", width=942,
        desc="Viettel Post is one of Vietnam’s largest logistics providers, with nearly 47,000 employees and 2,000 post offices. Its app serves two very different groups: online sellers, who create and track orders every day, and individual senders, who occasionally ship parcels to family.",
        launch="2025", services=["UX Audit", "UX Improvement", "UI Design", "Design System"], client="Viettel Post"),
   dict(slug="nuriflex", key="nr", n=8, title="Nuriflex", width=942,
