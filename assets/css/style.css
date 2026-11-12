@@ -776,7 +776,7 @@ body::after {
 }
 .ab-contact {
   --fs: calc(var(--u) * 172);
-  margin-top: calc(var(--u) * 80);
+  margin-top: calc(var(--u) * 180);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -795,8 +795,8 @@ body::after {
   .ab-em { display: block; margin: calc(var(--u) * 7) 0 0; font-variation-settings: normal; }
   .ab-photo { width: calc(var(--u) * 171); height: calc(var(--u) * 228); margin-top: calc(var(--u) * 24); }
   .ab-text { width: 100%; margin-top: calc(var(--u) * 24); }
-  .ab-contact { --fs: calc(var(--u) * 70); margin-top: calc(var(--u) * 80); gap: 12px; }
-  .ab-copy { margin-top: calc(var(--u) * 77); }
+  .ab-contact { --fs: calc(var(--u) * 70); margin-top: calc(var(--u) * 180); gap: 12px; }
+  .ab-copy { margin-top: calc(var(--u) * 277); }
 }
 /* About: its own scroll; past its ends the page goes on (about.js), so no
    rubber band or pull-to-refresh */
