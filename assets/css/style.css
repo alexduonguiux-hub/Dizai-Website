@@ -770,6 +770,7 @@ body::after {
   white-space: nowrap;
 }
 .ab-line { display: block; position: relative; top: -0.01em; }
+.ab-br-m { display: none; } /* a line break only on phones */
 /* IMPACTFULL in italic (the slant axis), two spaces after INTO */
 .ab-em { font-style: normal; font-variation-settings: "slnt" -10; margin-left: 0.25em; }
 .ab-photo-box { display: block; position: relative; margin-top: calc(var(--u) * 39); } /* the gap is outside the box: the sheet covers the box */
@@ -828,7 +829,8 @@ body::after {
   .ab-mark { top: 44px; }
   .page-about .cp-info { display: none; }
   .ab-title { font-size: calc(var(--u) * 70); gap: calc(var(--u) * 7); }
-  .ab-em { display: block; margin: calc(var(--u) * 7) 0 0; font-variation-settings: normal; }
+  .ab-em { display: block; margin: calc(var(--u) * 7) 0 0; } /* IMPACTFULL on its own line, still italic (Figma 37:31619) */
+  .ab-br-m { display: inline; } /* … top-tier / designers from Vietnam. */
   .ab-photo-box { margin-top: calc(var(--u) * 24); }
   .ab-photo { width: calc(var(--u) * 171); height: calc(var(--u) * 228); }
   .ab-text { width: calc(var(--u) * 326); margin-top: calc(var(--u) * 24); } /* 16 in on each side */
