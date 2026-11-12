@@ -67,7 +67,13 @@
   window.addEventListener("touchmove", function (e) {
     if (ty != null && e.touches[0].clientY - ty > 70) { ty = null; back(); }
   }, { passive: true });
-  window.addEventListener("touchend", function () { ty = null; }, { passive: true });
+  // again as the finger lifts: once the browser takes the swipe as a
+  // scroll it may stop reporting the moves
+  window.addEventListener("touchend", function (e) {
+    var t = e.changedTouches && e.changedTouches[0];
+    if (ty != null && t && t.clientY - ty > 60) back();
+    ty = null;
+  }, { passive: true });
   window.addEventListener("keydown", function (e) {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     if ((e.key === "ArrowUp" || e.key === "PageUp" || e.key === "Home") && atTop()) back();

@@ -8,11 +8,13 @@
      Work  WORK rolls in, the small "đs" mark slides in, the first project
            arrives (desktop: from below; mobile: from the right) with its
            name and line beside / under it
-   A light scroll (or swipe, or key) down on Home plays the move to Work;
-   up plays it back. In Work, scrolling over the projects (desktop: the
-   names and pictures column; mobile: swiping sideways over the row) runs
-   the endless list, a project at a time; scrolling anywhere else goes on
-   to Contact (down) or back to Home (up). The project pictures hang like
+   Going down the site: Home → About (its own page, scrolled through) →
+   Work → Contact. A light scroll (or swipe, or key) down on Home goes to
+   About; the menu's WORK / HOME play the move Home ⇄ Work here. In Work,
+   scrolling over the projects (desktop: the names and pictures column;
+   mobile: swiping sideways over the row) runs the endless list, a project
+   at a time; scrolling anywhere else goes on to Contact (down) or back to
+   the end of About (up). The project pictures hang like
    sheets of paper pinned at the top: they sway on their own and swing as
    the list moves. */
 (function () {
@@ -73,11 +75,11 @@
      column of 573 × 430 pictures 40 apart at x 736, WORK at the bottom
      left. Mobile: Work-01 22:3 / Work-02 22:66 (358 grid) — a row of
      350 × 262 pictures 8 apart under WORK, the names under them. */
-  // WORK: desktop 262 at the bottom left (183 tall, on the content's foot)
+  // WORK: desktop 172 at the bottom left (120 tall, on the content's foot)
   // in both frames; mobile 99 (69 tall), in the middle (402 on an
   // 812-tall screen); in Work at 140 (Figma 22:66: 156 on the screen)
   var DESK = { W: 1432, axis: "y", pitch: 470, len: 430, pitchV: 0.38,
-               titleY: function () { return H - 183; }, titleY2: function () { return H - 183; },
+               titleY: function () { return H - 120; }, titleY2: function () { return H - 120; },
                contactY: -251 };
   // how far Home's block sits below the top on a tall screen (see the CSS)
   function heroDrop() { var h = q(".hero"); return h ? parseFloat(getComputedStyle(h).marginTop) || 0 : 0; }
@@ -364,15 +366,16 @@
     busy = gsap.to(tl, { time: to, duration: 0.5 + 1.1 * dist, ease: "power1.inOut",
                          onComplete: function () { busy = null; } });
   }
-  function goContact() {
+  // another page (About, Contact): what shows rolls away first; the menu stays
+  function goPage(href) {
     if (gone) return;
     gone = true;
-    var a = document.querySelector(".nav-list a:not([data-go])");
-    Roll.leave(a.href, [contact, title, capList].concat(homeText), // the menu stays
-               [seal].concat(marks, cards));
+    Roll.leave(href, [contact, title, capList].concat(homeText), [seal].concat(marks, cards));
   }
-  function down() { if (phase === 0) goTo(1); else goContact(); }
-  function up() { if (phase === 1) goTo(0); }
+  var ABOUT = new URL("about/", location.href).href, CONTACT = new URL("contact/", location.href).href;
+  // the order going down: Home → About (scrolled through) → Work → Contact
+  function down() { if (phase === 0) goPage(ABOUT); else goPage(CONTACT); }
+  function up() { if (phase === 1) goPage(ABOUT + "#end"); }
   function step(d) { // one project on (+1) or back (−1)
     if (phase !== 1) return;
     listT = Math.round(listT) + d;
@@ -591,12 +594,12 @@
       goTo(a.dataset.go === "work" ? 1 : 0);
     });
   });
-  // going to another page (Contact): what shows rolls away first
+  // going to another page (About, Contact): what shows rolls away first
   document.querySelectorAll(".nav-list a:not([data-go])").forEach(function (a) {
     a.addEventListener("click", function (e) {
       if (e.metaKey || e.ctrlKey || e.shiftKey || e.button) return;
       e.preventDefault();
-      goContact();
+      goPage(a.href);
     });
   });
 

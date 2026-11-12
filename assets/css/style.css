@@ -212,6 +212,7 @@ body::after {
   right: 0;
   top: calc(100cqi * 231 / 1432 - 0.7em);
   color: var(--green-500);
+  font-variation-settings: "slnt" -10; /* {SCROLL DOWN}: SemiBold Italic */
 }
 
 /* ---------- Loading screen (Figma Loading 13:257, 1512 × 813) ----------
@@ -354,7 +355,7 @@ body::after {
    "đs" mark top centre, SCROLL DOWN in the middle. Work-02: the projects
    (573 × 430) run up a column 40 apart, the current one's name beside it.
    Without JS the section simply follows Home in the page. */
-.work { --fs: calc(100cqi * 262 / 1432); --u: calc(100cqi / 1432); position: relative; margin-top: 15vh; }
+.work { --fs: calc(100cqi * 172 / 1432); --u: calc(100cqi / 1432); position: relative; margin-top: 15vh; }
 .work-mark {
   display: block;
   height: calc(var(--u) * 104);
@@ -537,10 +538,10 @@ body::after {
 
 /* ---------- Contact (Figma Contact 10:1546, 1512 × 813) ----------
    Units of the 1432 content width. In the middle, 20 apart: SEND US YOUR
-   PROBLEMS, HELLO@ / DIZAI.STUDIO on two lines (Regular 262, ink, line
+   PROBLEMS, HELLO@ / DIZAI.STUDIO on two lines (Regular 172, ink, line
    height 0.8), LINKEDIN ✱ FACEBOOK; the "đs" mark top centre, the contact
    block top left, © 2024 at the bottom. */
-.cp { --u: calc(100cqi / 1432); --fs: calc(var(--u) * 262); position: relative; min-height: calc(100svh - 2 * var(--gutter)); }
+.cp { --u: calc(100cqi / 1432); --fs: calc(var(--u) * 172); position: relative; min-height: calc(100svh - 2 * var(--gutter)); }
 .cp-mark {
   position: absolute;
   left: calc(50% - var(--u) * 41.5);
@@ -606,13 +607,11 @@ body::after {
     flex-direction: column;
   }
 
-  /* Nav: one row, three equal columns (left / centre / right);
-     the current page's arrow moves in front: →HOME */
+  /* Nav: one row, HOME · ABOUT · WORK · CONTACT spread edge to edge
+     (Figma 32:24559); the current page's arrow moves in front: →HOME */
   .site-nav { left: var(--gutter); }
-  .nav-list { display: flex; }
-  .nav-list li { flex: 1 1 0; text-align: center; }
-  .nav-list li:first-child { text-align: left; }
-  .nav-list li:last-child { text-align: right; }
+  .nav-list { display: flex; justify-content: space-between; }
+  .nav-list li { flex: none; }
   .nav-list a[aria-current="page"]::after,
   .nav-list a:hover::after { content: none; }
   .nav-list a[aria-current="page"]::before,
@@ -701,9 +700,9 @@ body::after {
 
   /* Contact on a phone (Figma Contact 32:24558, 390 × 844): the mark under
      the menu, no small contact block; in the middle, 12 apart: SEND US YOUR
-     PROBLEMS, HELLO@ / DIZAI. / STUDIO on three lines (Regular 99, line
+     PROBLEMS, HELLO@ / DIZAI. / STUDIO on three lines (Regular 70, line
      height 0.8: 0.1em between), LinkedIn ✱ Facebook */
-  .cp { --fs: calc(100cqi * 99 / 358); }
+  .cp { --fs: calc(100cqi * 70 / 358); }
   .cp-mark { top: 44px; left: calc(50% - 100cqi * 25.5 / 358); height: calc(100cqi * 64 / 358); }
   .page-contact .cp-info { display: none; }
   .cp-center { gap: 12px; margin-top: 0; }
@@ -711,6 +710,100 @@ body::after {
   .cp-email .cp-p { display: block; }
   .cp-email .cp-p + .cp-p { margin-top: 0.1em; }
 }
+/* ---------- About (Figma 35:29437, 1512 × 2101; mobile 35:29599) ----------
+   A long page in units of the 1432 content width: MAKE IDEAS / INTO
+   IMPACTFULL / EXPERIENCES (Regular 172, line height 0.8: 18 between the
+   cap boxes), the arched photo of Saigon (450 × 675), two lines about the
+   studio, then SEND US YOUR PROBLEMS, HELLO@ / DIZAI.STUDIO (172) and
+   LINKEDIN ✱ FACEBOOK as on Contact, © 2024 at the foot. The contact block
+   top left, the "đs" mark top centre and the menu stay at the top. */
+.ab { --u: calc(100cqi / 1432); position: relative; }
+/* the menu, the mark and the contact block stay put at the top; the rest
+   scrolls in its own frame under them and fades out as it rises towards
+   them (transparent at the mark's foot, solid where the title starts) */
+.page-about .site-nav { z-index: 3; }
+.ab-mark { top: 0; z-index: 2; }
+.page-about .cp-info { top: 0; z-index: 2; }
+.ab-scroll {
+  --fade-from: calc(var(--gutter) + var(--u) * 104);
+  --fade-to: calc(var(--gutter) + var(--u) * 144);
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: var(--gutter);
+  -webkit-mask-image: linear-gradient(to bottom, transparent var(--fade-from), #000 var(--fade-to));
+  mask-image: linear-gradient(to bottom, transparent var(--fade-from), #000 var(--fade-to));
+}
+.ab-scroll::-webkit-scrollbar { display: none; }
+.ab-flow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding-top: calc(var(--u) * 144); /* the title's cap top 184 down the page */
+}
+.ab-title {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--u) * 18);
+  font-size: calc(var(--u) * 172);
+  font-weight: 400;
+  line-height: 0.7;          /* box = cap height, like .display */
+  white-space: nowrap;
+}
+.ab-line { display: block; position: relative; top: -0.01em; }
+/* IMPACTFULL in italic (the slant axis), two spaces after INTO */
+.ab-em { font-style: normal; font-variation-settings: "slnt" -10; margin-left: 0.25em; }
+.ab-photo {
+  display: block;
+  width: calc(var(--u) * 450);
+  height: calc(var(--u) * 675);
+  margin-top: calc(var(--u) * 39);
+  object-fit: cover;
+  border-radius: 9999px 9999px 0 0; /* an arch: a half circle on top */
+}
+.ab-text {
+  width: calc(var(--u) * 450);
+  margin-top: calc(var(--u) * 40);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.ab-contact {
+  --fs: calc(var(--u) * 172);
+  margin-top: calc(var(--u) * 80);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--u) * 20);
+}
+.ab-copy { margin-top: calc(var(--u) * 179); }
+.is-entering .ab { visibility: hidden; }
+@media (max-width: 720px) {
+  /* phone (units of 358): the title on four lines (70, 7 apart), the
+     photo 171 × 257, everything 24 apart; the email on three lines (70) */
+  .ab { --u: calc(100cqi / 358); }
+  .ab-flow { padding-top: calc(var(--u) * 138); }
+  .ab-scroll { --fade-from: calc(var(--gutter) + 44px + var(--u) * 64); --fade-to: calc(var(--gutter) + var(--u) * 138); }
+  .ab-mark { top: 44px; }
+  .page-about .cp-info { display: none; }
+  .ab-title { font-size: calc(var(--u) * 70); gap: calc(var(--u) * 7); }
+  .ab-em { display: block; margin: calc(var(--u) * 7) 0 0; font-variation-settings: normal; }
+  .ab-photo { width: calc(var(--u) * 171); height: calc(var(--u) * 257); margin-top: calc(var(--u) * 24); }
+  .ab-text { width: 100%; margin-top: calc(var(--u) * 24); }
+  .ab-contact { --fs: calc(var(--u) * 70); margin-top: calc(var(--u) * 80); gap: 12px; }
+  .ab-copy { margin-top: calc(var(--u) * 77); }
+}
+/* About: its own scroll; past its ends the page goes on (about.js), so no
+   rubber band or pull-to-refresh */
+html:has(body.page-about), body.page-about { overscroll-behavior-y: none; }
 /* Contact: pulling down from the top goes back to Work (contact.js), not
    the phone's pull-to-refresh */
 html:has(body.page-contact), body.page-contact { overscroll-behavior-y: none; }
