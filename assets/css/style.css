@@ -713,7 +713,7 @@ body::after {
 /* ---------- About (Figma 35:29437, 1512 × 2101; mobile 35:29599) ----------
    A long page in units of the 1432 content width: MAKE IDEAS / INTO
    IMPACTFULL / EXPERIENCES (Regular 172, line height 0.8: 18 between the
-   cap boxes), the arched photo of Saigon (450 × 675), two lines about the
+   cap boxes), the arched photo of Saigon (360 × 540), two lines about the
    studio, then SEND US YOUR PROBLEMS, HELLO@ / DIZAI.STUDIO (172) and
    LINKEDIN ✱ FACEBOOK as on Contact, © 2024 at the foot. The contact block
    top left, the "đs" mark top centre and the menu stay at the top. */
@@ -761,8 +761,8 @@ body::after {
 .ab-photo-box { display: block; } /* fades out as a whole (the picture inside rises in) */
 .ab-photo {
   display: block;
-  width: calc(var(--u) * 450);
-  height: calc(var(--u) * 675);
+  width: calc(var(--u) * 360);
+  height: calc(var(--u) * 540);
   margin-top: calc(var(--u) * 39);
   object-fit: cover;
   border-radius: 9999px 9999px 0 0; /* an arch: a half circle on top */
