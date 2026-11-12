@@ -25,8 +25,7 @@
   --paper: #f0efee;
   /* Figma (37:… frames): black type on the paper */
   --ink: #1c1c1c;
-  --mid: #707070;   /* EST 2024 on Home */
-  --grey: #959595;  /* {SCROLL DOWN} */
+  --grey: #929292;  /* EST 2024 and {SCROLL DOWN} on Home */
   --pale: #cdcdcd;  /* the other projects' names in the Work list */
 
   --gutter: max(16px, calc(100vw * 40 / 1512));
@@ -189,7 +188,7 @@ body::after {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  color: var(--mid); /* EST 2024 in mid grey (Figma 37:29667 / 37:31508) */
+  color: var(--grey); /* EST 2024 in grey (Figma 37:29667 / 37:31508) */
 }
 .seal {
   display: block;
