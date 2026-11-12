@@ -80,14 +80,17 @@
   (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(enter);
 
   /* ---------- fading out under the top ----------
-     Each piece fades right out (as a whole) once it rises past the line
-     where the title starts, before it can pass under the menu or the
-     mark, and fades back in when it comes down below that line again. */
+     Each piece fades right out (as a whole) once it rises to the foot of
+     the "đs" mark, before it can pass under the mark or the menu, and
+     fades back in when it comes down below that line again. */
   var fades = q(".ab-line, .ab-photo-box, .ab-text p, .ab-contact .cp-kicker, .ab-contact .cp-l, .ab-contact .cp-social, .ab-copy")
     .filter(shown).map(function (el) { return { el: el, out: false }; });
   var flow = document.querySelector(".ab-flow");
   function fadeLine() {
-    // the title's top at the start: the frame's padding + the flow's
+    // the foot of the "đs" mark: a piece goes as it touches the mark
+    // (from the layout, not the box on screen: the mark may be mid-rise)
+    var m = marks[0], box = m && m.offsetParent;
+    if (m && box && m.offsetHeight) return box.getBoundingClientRect().top + m.offsetTop + m.offsetHeight;
     return parseFloat(getComputedStyle(sc).paddingTop) + (flow ? parseFloat(getComputedStyle(flow).paddingTop) : 0) - 2;
   }
   var line = fadeLine(), fadeRaf = 0;
