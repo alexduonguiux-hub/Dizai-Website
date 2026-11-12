@@ -719,14 +719,13 @@ body::after {
    top left, the "đs" mark top centre and the menu stay at the top. */
 .ab { --u: calc(100cqi / 1432); position: relative; }
 /* the menu, the mark and the contact block stay put at the top; the rest
-   scrolls in its own frame under them and fades out as it rises towards
-   them (transparent at the mark's foot, solid where the title starts) */
+   scrolls in its own frame under them, and each piece fades right out as
+   it rises to where the title starts (about.js), so nothing passes under
+   the menu or the mark */
 .page-about .site-nav { z-index: 3; }
 .ab-mark { top: 0; z-index: 2; }
 .page-about .cp-info { top: 0; z-index: 2; }
 .ab-scroll {
-  --fade-from: calc(var(--gutter) + var(--u) * 104);
-  --fade-to: calc(var(--gutter) + var(--u) * 144);
   position: fixed;
   inset: 0;
   z-index: 1;
@@ -736,8 +735,6 @@ body::after {
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   padding: var(--gutter);
-  -webkit-mask-image: linear-gradient(to bottom, transparent var(--fade-from), #000 var(--fade-to));
-  mask-image: linear-gradient(to bottom, transparent var(--fade-from), #000 var(--fade-to));
 }
 .ab-scroll::-webkit-scrollbar { display: none; }
 .ab-flow {
@@ -761,6 +758,7 @@ body::after {
 .ab-line { display: block; position: relative; top: -0.01em; }
 /* IMPACTFULL in italic (the slant axis), two spaces after INTO */
 .ab-em { font-style: normal; font-variation-settings: "slnt" -10; margin-left: 0.25em; }
+.ab-photo-box { display: block; } /* fades out as a whole (the picture inside rises in) */
 .ab-photo {
   display: block;
   width: calc(var(--u) * 450);
@@ -791,7 +789,6 @@ body::after {
      photo 171 × 257, everything 24 apart; the email on three lines (70) */
   .ab { --u: calc(100cqi / 358); }
   .ab-flow { padding-top: calc(var(--u) * 138); }
-  .ab-scroll { --fade-from: calc(var(--gutter) + 44px + var(--u) * 64); --fade-to: calc(var(--gutter) + var(--u) * 138); }
   .ab-mark { top: 44px; }
   .page-about .cp-info { display: none; }
   .ab-title { font-size: calc(var(--u) * 70); gap: calc(var(--u) * 7); }

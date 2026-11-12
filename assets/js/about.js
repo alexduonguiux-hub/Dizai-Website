@@ -79,6 +79,32 @@
   }
   (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(enter);
 
+  /* ---------- fading out under the top ----------
+     Each piece fades right out (as a whole) once it rises past the line
+     where the title starts, before it can pass under the menu or the
+     mark, and fades back in when it comes down below that line again. */
+  var fades = q(".ab-line, .ab-photo-box, .ab-text p, .ab-contact .cp-kicker, .ab-contact .cp-l, .ab-contact .cp-social, .ab-copy")
+    .filter(shown).map(function (el) { return { el: el, out: false }; });
+  var flow = document.querySelector(".ab-flow");
+  function fadeLine() {
+    // the title's top at the start: the frame's padding + the flow's
+    return parseFloat(getComputedStyle(sc).paddingTop) + (flow ? parseFloat(getComputedStyle(flow).paddingTop) : 0) - 2;
+  }
+  var line = fadeLine(), fadeRaf = 0;
+  function fadeCheck() {
+    fadeRaf = 0;
+    fades.forEach(function (f) {
+      var out = f.el.getBoundingClientRect().top < line;
+      if (out === f.out) return;
+      f.out = out;
+      gsap.to(f.el, { opacity: out ? 0 : 1, duration: reduce ? 0.01 : out ? 0.45 : 0.6,
+                      ease: out ? "power2.out" : "power2.inOut", overwrite: "auto" });
+    });
+  }
+  sc.addEventListener("scroll", function () { if (!fadeRaf) fadeRaf = requestAnimationFrame(fadeCheck); }, { passive: true });
+  window.addEventListener("resize", function () { line = fadeLine(); fadeCheck(); });
+  fadeCheck();
+
   // pieces still waiting below: measured again when the width changes
   // (their letters keep the line breaks of the width they were split at)
   var rw = innerWidth, rT = 0;
