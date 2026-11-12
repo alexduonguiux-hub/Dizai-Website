@@ -64,8 +64,8 @@ def build(stamp):
   <!-- Project page (Figma Work-Detail-00 … 03, 10:1738 / 10:1517 / 10:1526 /
        10:1536; content and pictures from Detail-Content 42:5305), built by
        tools/build-details.py; the motion is assets/js/detail.js.
-       00: the title at the top, LAUNCH left, CLIENT right, a small picture
-       between them, the services and the description under it.
+       00: the title at the top; LAUNCH · services · CLIENT in a row under
+       it, the description under that, a small picture on the foot.
        00 → 01: scrolling, the picture grows into place (696 × 434) and the
        facts roll away; then the pictures run up as a column over the title,
        which sinks back. Thumbnails bottom right. At the top, scrolling up
