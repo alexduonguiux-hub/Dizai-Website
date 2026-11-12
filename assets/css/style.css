@@ -957,12 +957,18 @@ body::after {
   .dt { --u: calc(100cqi / 358); --zoom-top: calc(44px + var(--u) * 100); }
   .page-detail .cp-info { display: none; }
   .dt-title { top: calc(var(--gutter) + 44px); width: calc(var(--u) * 358); font-size: calc(var(--u) * 56); }
+  /* the facts block in the middle of the screen: the same room above and
+     below as the title takes on top (never up under the title: on a short
+     screen it moves down instead) */
   .dt-facts {
-    top: calc(var(--gutter) + 44px + var(--u) * 100);
+    --clear: calc(var(--gutter) + 44px + var(--u) * 100);
+    top: 0;
     left: var(--gutter);
     right: var(--gutter);
-    bottom: auto;
+    bottom: 0;
+    padding-block: var(--clear);
     display: grid;
+    align-content: safe center;
     grid-template-columns: 1fr 1fr;
     grid-template-areas: "launch client" "services services" "desc desc" "ph ph";
     align-items: start;

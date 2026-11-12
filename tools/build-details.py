@@ -68,8 +68,8 @@ def build(stamp):
        it, the description under that, a small picture on the foot.
        00 → 01: scrolling, the picture grows into place (696 × 434) and the
        facts roll away; then the pictures run up as a column over the title,
-       which sinks back. Thumbnails bottom right. At the top, scrolling up
-       goes back to Work; past the end, on to the next project. -->
+       which sinks back. Thumbnails bottom right. Past the end, scrolling goes
+       on to the next project (back to Work: the menu). -->
   <header class="site-nav">
     <nav aria-label="Main">
       <ul class="nav-list trim">

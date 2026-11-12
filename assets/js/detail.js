@@ -9,8 +9,9 @@
    - The pictures hang like sheets of paper pinned at the top, as on Work
      and About: they flutter and swing with the speed of the scroll.
    - Thumbnails bottom right: the current picture lit; a click goes there.
-   - At the top, one more scroll up goes back to Work (on this project);
-     past the end, on to the next project. Leaving, what shows rolls away. */
+   - Past the end, one more scroll goes on to the next project; at the top
+     scrolling up stays on the page (Work is the menu's WORK, and opens on
+     this project). Leaving, what shows rolls away. */
 (function () {
   "use strict";
   var root = document.documentElement;
@@ -52,7 +53,6 @@
   var facts = q(".dt-launch, .dt-client, .dt-services, .dt-desc");
   var shots = q(".dt-shot"), first = shots[0];
   var thumbs = q(".dt-thumbs button");
-  var UP = new URL(document.body.dataset.up || "../../#work", location.href).href;
   var DOWN = new URL(document.body.dataset.down || "../../#work", location.href).href;
 
   // going back to Work opens on this project
@@ -192,7 +192,8 @@
     leave(url.href);
   });
 
-  /* ---------- past the ends: Work above, the next project below ---------- */
+  /* ---------- past the end: the next project ----------
+     (scrolling up at the top stays here: back to Work is the menu's WORK) */
   function atTop() { return sc.scrollTop <= 1; }
   function atEnd() { return sc.clientHeight + sc.scrollTop >= sc.scrollHeight - 2; }
   var lastWheel = 0, acc = 0, startEdge = 0;
@@ -201,11 +202,11 @@
     var now = performance.now(), fresh = now - lastWheel > 220;
     lastWheel = now;
     var dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? innerHeight : 1);
-    if (fresh) { acc = 0; startEdge = dy > 0 && atEnd() ? 1 : dy < 0 && atTop() ? -1 : 0; }
-    var dir = dy > 0 ? 1 : dy < 0 ? -1 : 0;
-    if (!dir || !(dir > 0 ? atEnd() : atTop())) { acc = 0; return; }
-    acc += Math.abs(dy);
-    if (acc > (startEdge === dir ? 40 : 240)) leave(dir > 0 ? DOWN : UP);
+    if (fresh) { acc = 0; startEdge = dy > 0 && atEnd() ? 1 : 0; }
+    // only past the end (going back up to Work is the menu's job, not the scroll's)
+    if (dy <= 0 || !atEnd()) { acc = 0; return; }
+    acc += dy;
+    if (acc > (startEdge === 1 ? 40 : 240)) leave(DOWN);
   }, { passive: true });
   var touch = null;
   window.addEventListener("touchstart", function (e) {
@@ -216,7 +217,6 @@
     if (!touch || gone) return;
     var dy = y - touch.y;
     if (touch.end && dy < -50) { touch = null; leave(DOWN); }
-    else if (touch.top && dy > 60) { touch = null; leave(UP); }
   }
   window.addEventListener("touchmove", function (e) { swiped(e.touches[0].clientY); }, { passive: true });
   window.addEventListener("touchend", function (e) {
@@ -228,6 +228,5 @@
     if (gone || e.metaKey || e.ctrlKey || e.altKey) return;
     var k = e.key;
     if ((k === "ArrowDown" || k === "PageDown" || k === "End" || (k === " " && !e.shiftKey)) && atEnd()) { e.preventDefault(); leave(DOWN); }
-    else if ((k === "ArrowUp" || k === "PageUp" || k === "Home" || (k === " " && e.shiftKey)) && atTop()) { e.preventDefault(); leave(UP); }
   });
 })();
