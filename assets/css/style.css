@@ -25,6 +25,7 @@
   --paper: #f0efee;
   /* Figma (37:… frames): black type on the paper */
   --ink: #1c1c1c;
+  --mid: #707070;   /* EST 2024 on Home */
   --grey: #959595;  /* {SCROLL DOWN} */
   --pale: #cdcdcd;  /* the other projects' names in the Work list */
 
@@ -188,7 +189,7 @@ body::after {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  color: var(--ink); /* EST 2024: black like the rest (Figma 37:29667) */
+  color: var(--mid); /* EST 2024 in mid grey (Figma 37:29667 / 37:31508) */
 }
 .seal {
   display: block;
