@@ -1,12 +1,17 @@
 /* About (Figma 35:29437 / 35:29599): a long page with its own scroll.
    - The frame at the top (contact block, mark) rolls in when the page
-     opens; every other piece rolls in (letters rising, assets/js/roll.js)
-     as it scrolls into view, so the page shows itself as you go down.
+     opens; every other piece rises in (letters rising, assets/js/roll.js,
+     here without the blur) as it scrolls into view, so the page shows
+     itself as you go down. Nothing fades away going up.
      The menu stays as it is.
    - Scrolled to the end, one more scroll down (wheel, swipe, key) goes on
      to Work; at the top, one more scroll up goes back to Home. Only a new
      push counts: the tail of the scroll that reached the end (a trackpad's
      inertia) does not leave the page.
+   - The menu, the mark and the contact block stay at the top, always
+     shown; where the content scrolls up under them they invert, like the
+     Work mark and the cursor (a white copy in "difference" plus an ink
+     copy in "plus-lighter": over paper they read ink, over ink paper).
    - Leaving, what shows rolls away first (DzRoll.leave). */
 (function () {
   "use strict";
@@ -18,6 +23,41 @@
   var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
   var q = function (s) { return [].slice.call(document.querySelectorAll(s)); };
   var shown = function (el) { return el.getClientRects().length; };
+
+  /* ---------- the top frame inverts over the content ----------
+     Each of the menu, the contact block and the mark gets a twin: the
+     real one turns white in "difference" (paper → near black, ink →
+     light), the twin on top adds rgb(18 64 23) in "plus-lighter", so
+     over the paper the sum is the ink #215028 again and over the ink
+     text it is the paper. Browsers without plus-lighter keep them plain. */
+  var twins = [];
+  if (window.CSS && CSS.supports("mix-blend-mode", "plus-lighter")) {
+    q(".page-about .site-nav, .ab-info").forEach(function (el) {
+      var tw = el.cloneNode(true);
+      tw.setAttribute("aria-hidden", "true");
+      tw.removeAttribute("aria-label");
+      [].forEach.call(tw.querySelectorAll("a"), function (a) { a.tabIndex = -1; });
+      [].forEach.call(tw.querySelectorAll("nav"), function (n) { n.removeAttribute("aria-label"); });
+      el.classList.add("is-invert");
+      tw.classList.add("is-tint");
+      el.parentNode.insertBefore(tw, el.nextSibling);
+      twins.push([el, tw]);
+      // the twin follows the real links' hover lean
+      var real = el.querySelectorAll("a"), copy = tw.querySelectorAll("a");
+      [].forEach.call(real, function (a, i) {
+        a.addEventListener("pointerenter", function () { if (copy[i]) copy[i].classList.add("is-hover"); });
+        a.addEventListener("pointerleave", function () { if (copy[i]) copy[i].classList.remove("is-hover"); });
+      });
+    });
+    q(".ab-mark").forEach(function (m) {
+      var src = m.getAttribute("src"), tint = m.cloneNode(false);
+      tint.setAttribute("src", src.replace("dizai-mark.svg", "dizai-mark-tint.svg"));
+      m.setAttribute("src", src.replace("dizai-mark.svg", "dizai-mark-white.svg"));
+      m.classList.add("is-invert");
+      tint.classList.add("is-tint");
+      m.parentNode.insertBefore(tint, m.nextSibling);
+    });
+  }
 
   // the pieces, in page order: text rolls, pictures rise
   var frame = q(".ab-info").filter(shown);
@@ -36,8 +76,9 @@
   }
 
   /* ---------- rolling in ---------- */
-  var pieces = texts.map(function (el) { return { el: el, r: Roll.text(el, "in"), on: false }; })
-    .concat(photos.map(function (el) { return { el: el, r: Roll.box(el, "in"), on: false, box: true }; }));
+  // (rising into view without a blur)
+  var pieces = texts.map(function (el) { return { el: el, r: Roll.text(el, "in", { blur: false }), on: false }; })
+    .concat(photos.map(function (el) { return { el: el, r: Roll.box(el, "in", { blur: false }), on: false, box: true }; }));
   pieces.forEach(function (p) { p.r.set(0); });
 
   var queued = 0, queueT = 0;
@@ -81,39 +122,6 @@
     endCheck();
   }
   (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(enter);
-
-  /* ---------- fading out under the top ----------
-     Each piece fades (as a whole) with the scroll as it rises past the
-     "đs" mark: solid until its top reaches the mark's top, fading from
-     there to gone at the top of the screen, and back again the same way
-     coming down. */
-  var fades = q(".ab-line, .ab-photo-box, .ab-text p, .ab-contact .cp-kicker, .ab-contact .cp-l, .ab-contact .cp-social, .ab-copy")
-    .filter(shown).map(function (el) { return { el: el, o: -1 }; });
-  var flow = document.querySelector(".ab-flow");
-  function fadeBand() {
-    // from the layout, not the box on screen: the mark may be mid-rise
-    var m = marks[0], box = m && m.offsetParent;
-    if (m && box && m.offsetHeight) {
-      // solid until its top reaches the mark's top, gone at the top of the screen
-      return { top: 0, foot: box.getBoundingClientRect().top + m.offsetTop };
-    }
-    return { top: 0, foot: parseFloat(getComputedStyle(sc).paddingTop) };
-  }
-  var band = fadeBand(), fadeRaf = 0;
-  function fadeCheck() {
-    fadeRaf = 0;
-    fades.forEach(function (f) {
-      var t = f.el.getBoundingClientRect().top;
-      var o = Math.max(0, Math.min(1, (t - band.top) / (band.foot - band.top)));
-      o = Math.round(o * 1000) / 1000;
-      if (o === f.o) return;
-      f.o = o;
-      f.el.style.opacity = o >= 1 ? "" : String(o);
-    });
-  }
-  sc.addEventListener("scroll", function () { if (!fadeRaf) fadeRaf = requestAnimationFrame(fadeCheck); }, { passive: true });
-  window.addEventListener("resize", function () { band = fadeBand(); fadeCheck(); });
-  fadeCheck();
 
   // pieces still waiting below: measured again when the width changes
   // (their letters keep the line breaks of the width they were split at)

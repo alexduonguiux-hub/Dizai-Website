@@ -36,11 +36,12 @@
     return out;
   }
 
-  function text(el, dir) {
+  // opts.blur false: the letters only rise (and fade), no blur
+  function text(el, dir, opts) {
     var split = null, last = -1;
 
     // the menu's letters only rise, without the blur
-    var noBlur = !!(el.closest && el.closest(".site-nav"));
+    var noBlur = !!(opts && opts.blur === false) || !!(el.closest && el.closest(".site-nav"));
 
     function doSplit() {
       var nodes = textNodes(el), range = document.createRange(), cells = [], n = 0;
@@ -170,7 +171,8 @@
   }
 
   // images: slide up through a window the size of the box
-  function box(el, dir) {
+  function box(el, dir, opts) {
+    var noBlur = !!(opts && opts.blur === false);
     var last = -1;
     return {
       set: function (v) {
@@ -183,7 +185,7 @@
         if (!a) { el.style.translate = el.style.filter = el.style.opacity = el.style.clipPath = ""; return; }
         var h = el.getBoundingClientRect().height || 100;
         el.style.translate = "0 " + ((dir === "out" ? -1 : 1) * a * Math.min(0.3 * h, 60)).toFixed(1) + "px";
-        el.style.filter = "blur(" + (a * Math.min(0.05 * h + 2, 14)).toFixed(2) + "px)";
+        el.style.filter = noBlur ? "" : "blur(" + (a * Math.min(0.05 * h + 2, 14)).toFixed(2) + "px)";
         el.style.opacity = (1 - a).toFixed(3);
       }
     };

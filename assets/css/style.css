@@ -77,7 +77,7 @@ a {
   font-variation-settings: "slnt" var(--slnt);
   transition: --slnt 0.35s cubic-bezier(0.3, 0.7, 0.2, 1);
 }
-a:hover { --slnt: -10; }
+a:hover, a.is-hover { --slnt: -10; } /* is-hover: a twin following a real link (about.js) */
 a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 
 .visually-hidden {
@@ -136,7 +136,8 @@ body::after {
 .nav-list { text-align: right; }
 .nav-list a[aria-current="page"] { --slnt: -10; } /* leans over as the page changes */
 .nav-list a[aria-current="page"]::after,
-.nav-list a:hover::after {
+.nav-list a:hover::after,
+.nav-list a.is-hover::after {
   content: "←";
   /* AnNam Serif has no arrow glyph yet; use a system face for it */
   font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -613,9 +614,11 @@ body::after {
   .nav-list { display: flex; justify-content: space-between; }
   .nav-list li { flex: none; }
   .nav-list a[aria-current="page"]::after,
-  .nav-list a:hover::after { content: none; }
+  .nav-list a:hover::after,
+  .nav-list a.is-hover::after { content: none; }
   .nav-list a[aria-current="page"]::before,
-  .nav-list a:hover::before {
+  .nav-list a:hover::before,
+  .nav-list a.is-hover::before {
     content: "→";
     font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
     font-style: normal;
@@ -718,10 +721,11 @@ body::after {
    LINKEDIN ✱ FACEBOOK as on Contact, © 2024 at the foot. The contact block
    top left, the "đs" mark top centre and the menu stay at the top. */
 .ab { --u: calc(100cqi / 1432); position: relative; }
-/* the menu, the mark and the contact block stay put at the top; the rest
-   scrolls in its own frame under them, and each piece fades right out as
-   it rises to where the title starts (about.js), so nothing passes under
-   the menu or the mark */
+/* the menu, the mark and the contact block stay put at the top, always
+   shown; the rest scrolls in its own frame under them. Where it passes
+   under them they invert, like the Work mark and the cursor (about.js
+   gives each a twin): white in "difference" + ink in "plus-lighter" reads
+   ink over the paper and paper over the ink */
 .page-about .site-nav { z-index: 3; }
 .ab-mark { top: 0; z-index: 2; }
 .page-about .cp-info { top: 0; z-index: 2; }
@@ -737,6 +741,8 @@ body::after {
   padding: var(--gutter);
 }
 .ab-scroll::-webkit-scrollbar { display: none; }
+.page-about .is-invert { color: #fff; mix-blend-mode: difference; }
+.page-about .is-tint { color: rgb(18 64 23); mix-blend-mode: plus-lighter; pointer-events: none; }
 .ab-flow {
   display: flex;
   flex-direction: column;
