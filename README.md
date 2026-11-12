@@ -15,8 +15,8 @@ Website của Đìzai Studio. HTML/CSS tĩnh, không cần build: mở `index.ht
 - `assets/css/style.css`: toàn bộ style và token màu (`--paper`, `--green-900`, `--green-500`)
 - **Hạt giấy (grain):** lớp nhiễu xám trung tính phủ toàn trang ở chế độ "overlay", mỗi hạt sáng hoặc tối nhẹ quanh màu bên dưới, nên trung bình màu vẫn đúng Figma (giấy #f0efee, chữ #1c1c1c, xám #929292) thay vì cả trang tối đi một chút.
 - **Font Dinh Tuong:** dòng mô tả dự án ở Work dùng Dinh Tuong Regular (cỡ 16, giãn dòng 1.1; Figma `37:29810`), lấy từ repo `alexduonguiux-hub/DinhTuong-Typeface` v1.005 (`assets/fonts/DinhTuong-Regular.woff2`, giấy phép SIL OFL kèm `DinhTuong-OFL.txt`).
-- **Icon trình duyệt:** logo mark "đs" (`favicon.svg`, màu chữ #1c1c1c, tự đổi sang màu giấy khi trình duyệt ở chế độ tối; kèm `favicon.ico` 32 px và `apple-touch-icon.png` 180 px trên nền giấy cho iPhone/iPad, `icon-512.png`).
-- **Visit project →** ở trang chi tiết: link tới sản phẩm thật (theo nội dung Figma), mở tab mới; Nuff chưa có link nên không hiện.
+- **Icon trình duyệt:** logo mark "đs" (`favicon.svg`, màu chữ #1c1c1c, tự đổi sang màu giấy khi trình duyệt ở chế độ tối; kèm PNG 16/32 px và `favicon.ico` (16/32/48) cho Safari và trình duyệt không đọc SVG, `apple-touch-icon.png` 180 px trên nền giấy cho iPhone/iPad, `icon-512.png`).
+- **Visit project →** ở trang chi tiết: link tới sản phẩm thật (theo nội dung Figma), mở tab mới.
 - `assets/fonts/`: AnNam Serif bản variable woff2 lấy từ repo `dizai-serif` v0.915. File chính là `AnNamSerif[slnt,wght]` (trục đậm 400–700 và trục nghiêng 0 → −10), để chữ nghiêng mượt khi rê chuột vào link: trục `slnt` chạy từ 0 tới −10 trong 0,35 giây (biến CSS `--slnt` khai báo bằng `@property`), mục menu đang xem cũng nghiêng mượt khi đổi trang. File Italic giữ lại cho chữ nghiêng tĩnh nếu cần
 - `assets/img/dizai-studio-seal.svg`: logo mark (con dấu tròn) Đìzai Studio, bản mới xuất từ Figma (`17:261`, 198.9 × 231)
 - `assets/img/star.svg`: dấu ✱ ngăn cách LinkedIn và Facebook trên mobile, xuất từ Figma
