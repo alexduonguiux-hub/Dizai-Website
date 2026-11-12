@@ -14,7 +14,7 @@
    scrolling over the projects (desktop: the names and pictures column;
    mobile: swiping sideways over the row) runs the endless list, a project
    at a time; scrolling anywhere else goes on to Contact (down) or back to
-   the end of About (up). The project pictures hang like
+   About (up, opening at its top). The project pictures hang like
    sheets of paper pinned at the top: they sway on their own and swing as
    the list moves. */
 (function () {
@@ -375,7 +375,7 @@
   var ABOUT = new URL("about/", location.href).href, CONTACT = new URL("contact/", location.href).href;
   // the order going down: Home → About (scrolled through) → Work → Contact
   function down() { if (phase === 0) goPage(ABOUT); else goPage(CONTACT); }
-  function up() { if (phase === 1) goPage(ABOUT + "#end"); }
+  function up() { if (phase === 1) goPage(ABOUT); } // About opens at its top
   function step(d) { // one project on (+1) or back (−1)
     if (phase !== 1) return;
     listT = Math.round(listT) + d;
