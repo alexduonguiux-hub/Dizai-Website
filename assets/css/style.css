@@ -528,7 +528,7 @@ body::after {
     left: 0;
     width: 100%;
     /* 40 under the pictures; work.js sets the spot */
-    top: var(--cap-top, calc(var(--u) * 528));
+    top: var(--cap-top, calc(var(--u) * 551));
     transform: none;
     text-align: center;
   }

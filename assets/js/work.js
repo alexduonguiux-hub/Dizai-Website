@@ -75,7 +75,7 @@
      350 × 262 pictures 8 apart under WORK, the names under them. */
   // WORK: desktop 262 at the bottom left (183 tall, on the content's foot)
   // in both frames; mobile 99 (69 tall), in the middle (402 on an
-  // 812-tall screen), then up to 140
+  // 812-tall screen); in Work at 140 (Figma 22:66: 156 on the screen)
   var DESK = { W: 1432, axis: "y", pitch: 470, len: 430, pitchV: 0.38,
                titleY: function () { return H - 183; }, titleY2: function () { return H - 183; },
                contactY: -251 };
@@ -84,7 +84,7 @@
   var MOB = { W: 358, axis: "x", pitch: 358, len: 350, pitchV: 0.35,
               titleY: function () { return (H - 69) * 402 / 743; }, titleY2: function () { return 140; },
               contactY: 0 };
-  var G = DESK, unit = 1, H = 733, cardTop = 226, cs = 1; // cs: picture scale (mobile)
+  var G = DESK, unit = 1, H = 733, cardTop = 249, cs = 1; // cs: picture scale (mobile)
   var list = work.querySelector(".work-list");
 
   function measure() {
@@ -92,11 +92,11 @@
     unit = r.width / G.W;
     H = r.height / unit;
     if (G.axis === "x") {
-      // Figma Work-02: WORK 140–209, pictures from 226, the names (~151) 40
+      // Figma Work-02 22:66 (content units, 16 in from the screen): WORK 140–209, pictures from 249 (40 under it), the names (~151) 40
       // under them. Short screens for their width (a small tablet held
       // upright): lift the pictures, then make them smaller.
       var room = H - 16 - 151 - 40;              // where the pictures must end
-      cardTop = Math.max(209 + 12, Math.min(226, room - 262));
+      cardTop = Math.max(209 + 12, Math.min(249, room - 262));
       cs = Math.max(0.55, Math.min(1, (room - cardTop) / 262));
       list.style.setProperty("--cs", cs.toFixed(4));
       work.style.setProperty("--cap-top", ((cardTop + 262 * cs + 40) * unit).toFixed(1) + "px");
