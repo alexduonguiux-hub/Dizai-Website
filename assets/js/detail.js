@@ -52,6 +52,18 @@
   var info = q(".dt-info").filter(function (el) { return el.getClientRects().length; });
   var facts = q(".dt-services, .dt-desc, .dt-meta, .dt-visit");
   var factsBox = one(".dt-facts");
+  /* the facts sit under the pictures, so a click on Visit project lands on
+     the picture frame first; hand it on to the link when no picture is
+     there (and the link has not rolled away) */
+  sc.addEventListener("click", function (e) {
+    if ((e.target.closest && e.target.closest(".dt-shot")) || factsBox.classList.contains("is-gone")) return;
+    var v = one(".dt-visit");
+    if (!v) return;
+    var r = v.getBoundingClientRect();
+    if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top - 8 && e.clientY <= r.bottom + 8) {
+      window.open(v.href, "_blank", "noopener");
+    }
+  });
   var shots = q(".dt-shot"), first = shots[0];
   var thumbs = q(".dt-thumbs button");
   var DOWN = new URL(document.body.dataset.down || "../../#work", location.href).href;
@@ -106,13 +118,18 @@
     // which it reaches at t = S (the column's top, 283 down)
     var r0 = ph.getBoundingClientRect();
     var box = sc.getBoundingClientRect(); // the frame may start lower (phones: under the menu row)
-    var W = first.offsetWidth, natLeft = box.left + first.offsetLeft, natTop = box.top + first.offsetTop - t, endTop = box.top + first.offsetTop - S;
+    // (offsets measured from the frame: the column of pictures is itself
+    // positioned, for the line at its end)
+    var col = first.offsetParent === sc ? null : first.offsetParent;
+    var ox = first.offsetLeft + (col ? col.offsetLeft : 0), oy = first.offsetTop + (col ? col.offsetTop : 0);
+    var W = first.offsetWidth, natLeft = box.left + ox, natTop = box.top + oy - t, endTop = box.top + oy - S;
     if (p < 1 && W) {
       var e = reduce ? 1 : ease(p);
       var w = lerp(r0.width, W, e), left = lerp(r0.left, natLeft, e), top = lerp(r0.top, endTop, e);
       first.style.transform = "translate(" + (left - natLeft).toFixed(2) + "px," + (top - natTop).toFixed(2) + "px) scale(" + (w / W).toFixed(5) + ")";
     } else first.style.transform = "";
-    // the facts roll away one after another as it grows
+    // the facts roll away one after another as it grows (they sit under
+    // the pictures, so whatever is left is covered as the pictures run up)
     if (entered) outs.forEach(function (r, i) { r.set(clamp(p * 1.7 - i * 0.15)); });
     factsBox.classList.toggle("is-gone", p > 0.35); // the link takes no clicks once it has rolled away
     // the title sinks back as the pictures run up over it
