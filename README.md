@@ -13,6 +13,7 @@ Website của Đìzai Studio. HTML/CSS tĩnh, không cần build: mở `index.ht
 - `assets/js/cursor.js`: con trỏ chấm tròn màu chữ, đảo sang màu nền khi chồng lên chữ đậm (chỉ trên máy có chuột)
 - `assets/css/style.css`: toàn bộ style và token màu (`--paper`, `--green-900`, `--green-500`)
 - **Hạt giấy (grain):** lớp nhiễu xám trung tính phủ toàn trang ở chế độ "overlay", mỗi hạt sáng hoặc tối nhẹ quanh màu bên dưới, nên trung bình màu vẫn đúng Figma (giấy #f0efee, chữ #1c1c1c, xám #929292) thay vì cả trang tối đi một chút.
+- **Font Dinh Tuong:** dòng mô tả dự án ở Work dùng Dinh Tuong Regular (cỡ 16, giãn dòng 1.1; Figma `37:29810`), lấy từ repo `alexduonguiux-hub/DinhTuong-Typeface` v1.005 (`assets/fonts/DinhTuong-Regular.woff2`, giấy phép SIL OFL kèm `DinhTuong-OFL.txt`).
 - `assets/fonts/`: AnNam Serif bản variable woff2 lấy từ repo `dizai-serif` v0.914 (chữ S vẽ lại, kerning tính lại). File chính là `AnNamSerif[slnt,wght]` (trục đậm 400–700 và trục nghiêng 0 → −10), để chữ nghiêng mượt khi rê chuột vào link: trục `slnt` chạy từ 0 tới −10 trong 0,35 giây (biến CSS `--slnt` khai báo bằng `@property`), mục menu đang xem cũng nghiêng mượt khi đổi trang. File Italic giữ lại cho chữ nghiêng tĩnh nếu cần
 - `assets/img/dizai-studio-seal.svg`: logo mark (con dấu tròn) Đìzai Studio, bản mới xuất từ Figma (`17:261`, 198.9 × 231)
 - `assets/img/star.svg`: dấu ✱ ngăn cách LinkedIn và Facebook trên mobile, xuất từ Figma

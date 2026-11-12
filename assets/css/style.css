@@ -21,6 +21,16 @@
   font-display: block; /* no fallback-font flash on the loader count */
 }
 
+/* Dinh Tuong (alexduonguiux-hub/DinhTuong-Typeface v1.005, SIL OFL, see
+   DinhTuong-OFL.txt): the projects' one-line descriptions in Work */
+@font-face {
+  font-family: "Dinh Tuong";
+  src: url("../fonts/DinhTuong-Regular.woff2?v=1.005") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --paper: #f0efee;
   /* Figma (37:… frames): black type on the paper */
@@ -399,9 +409,13 @@ body::after {
    0.05em) */
 .work-caption .wc-desc {
   display: block;
-  margin-top: calc(6px - 0.21em);
-  margin-bottom: -0.19em;
+  /* trimmed to cap top / baseline for Dinh Tuong's metrics (ascender 1050,
+     descender 350, cap 700; line height 1.1): 0.2em above and below */
+  margin-top: calc(6px - 0.2em);
+  margin-bottom: -0.2em;
   color: var(--ink);
+  font-family: "Dinh Tuong", "AnNam Serif", Georgia, serif; /* Figma 37:29810: Dinh Tuong Regular 16 */
+  font-variation-settings: normal;
   font-size: calc(var(--text-sm) * 0.8);
   line-height: 1.1;
   font-style: normal;
