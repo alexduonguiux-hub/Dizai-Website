@@ -50,7 +50,7 @@
 
   var sc = one(".dt-scroll"), title = one(".dt-title"), ph = one(".dt-ph");
   var info = q(".dt-info").filter(function (el) { return el.getClientRects().length; });
-  var facts = q(".dt-launch, .dt-client, .dt-services, .dt-desc, .dt-visit");
+  var facts = q(".dt-services, .dt-desc, .dt-meta, .dt-visit");
   var factsBox = one(".dt-facts");
   var shots = q(".dt-shot"), first = shots[0];
   var thumbs = q(".dt-thumbs button");

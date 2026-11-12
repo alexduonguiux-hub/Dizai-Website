@@ -72,8 +72,9 @@ def build(stamp):
   <!-- Project page (Figma Work-Detail-00 … 03, 10:1738 / 10:1517 / 10:1526 /
        10:1536; content and pictures from Detail-Content 42:5305), built by
        tools/build-details.py; the motion is assets/js/detail.js.
-       00: the title at the top; LAUNCH · services · CLIENT in a row under
-       it, the description under that, a small picture on the foot.
+       00: the title at the top; the services, the description, "Launch ·
+       Client" and Visit project in one centred column; a small picture on
+       the foot.
        00 → 01: scrolling, the picture grows into place (696 × 434) and the
        facts roll away; then the pictures run up as a column over the title,
        which sinks back. Thumbnails bottom right. Past the end, scrolling goes
@@ -98,12 +99,11 @@ def build(stamp):
 
     <h1 class="dt-title" style="--tw: {p["width"]}">{p["title"]}</h1>
     <div class="dt-facts">
-      <p class="dt-launch trim">Launch<br>{p["launch"]}</p>
-      <div class="dt-ph" aria-hidden="true"></div>
-      <p class="dt-client trim">Client<br>{esc(p["client"])}</p>
       <p class="dt-services trim">{services}</p>
       <p class="dt-desc">{esc(p["desc"])}</p>
+      <p class="dt-meta">Launch: {p["launch"]} • Client: {esc(p["client"])}</p>
       {visit}
+      <div class="dt-ph" aria-hidden="true"></div>
     </div>
 
     <div class="dt-scroll">

@@ -886,25 +886,22 @@ body::after {
   z-index: 2; /* over the picture frame (it takes no clicks itself), so the link works */
   /* the column is the screen's height: the title on top, the picture on the
      foot, this block centred in the room between them (Figma 49:17860,
-     justify: space-between) */
+     justify: space-between). One centred column, 20 apart: the services,
+     the description, "Launch: … • Client: …", Visit project (Figma 49:17863) */
   top: var(--dt-title-bottom, 280px);
   bottom: calc(var(--gutter) + var(--u) * 129);
   left: calc(var(--gutter) + var(--u) * 245);
   width: calc(var(--u) * 942);
   pointer-events: none;
-  display: grid;
-  align-content: safe center;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  grid-template-areas: "launch services client" "desc desc desc" "visit visit visit";
-  column-gap: 4px;
-  row-gap: calc(var(--u) * 20);
-  align-items: start;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: safe center;
+  gap: 20px;
   text-align: center;
 }
-.dt-facts > * { margin-block: 0; white-space: nowrap; }
-.dt-launch { grid-area: launch; justify-self: start; margin-top: -0.16em; }
-.dt-services { grid-area: services; justify-self: center; margin-top: -0.16em; }
-.dt-client { grid-area: client; justify-self: end; margin-top: -0.16em; }
+.dt-facts > * { margin-block: 0; }
+.dt-services { margin-top: -0.16em; margin-bottom: -0.14em; white-space: nowrap; }
 /* the small picture on the foot of the screen (613, 644 → 773; 206 × 129) */
 .dt-facts > .dt-ph {
   position: fixed;
@@ -913,24 +910,24 @@ body::after {
   width: calc(var(--u) * 206);
   height: calc(var(--u) * 129);
 }
-/* VISIT PROJECT →: underlined, 20 under the description, opens the live
-   project in a new tab (Figma 51:17891 / 49:17869) */
+/* VISIT PROJECT →: underlined, opens the live project in a new tab
+   (Figma 51:17891 / 56:22863) */
 .dt-visit {
-  grid-area: visit;
-  justify-self: center;
+  margin-top: -0.16em;
+  margin-bottom: -0.14em;
   pointer-events: auto;
+  white-space: nowrap;
   text-decoration: underline;
   text-underline-offset: 0.12em;
   text-decoration-thickness: 0.06em;
 }
 .dt-arrow { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; font-style: normal; font-weight: 400; }
 .dt-facts.is-gone .dt-visit { pointer-events: none; } /* rolled away with the facts */
-.dt-desc {
-  grid-area: desc;
-  justify-self: center;
+/* the description and the Launch · Client line: Dinh Tuong 16, 450 wide */
+.dt-desc, .dt-meta {
   width: calc(var(--u) * 450);
   margin-top: -0.2em;
-  white-space: normal;
+  margin-bottom: -0.2em;
   font-family: "Dinh Tuong", "AnNam Serif", Georgia, serif;
   font-variation-settings: normal;
   font-weight: 400;
@@ -999,20 +996,13 @@ body::after {
   .dt-facts {
     top: calc(var(--dt-title-bottom, 300px) + 20px);
     bottom: auto;
-    align-content: start;
     left: var(--gutter);
     width: auto;
     right: var(--gutter);
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-areas: "launch client" "services services" "desc desc" "visit visit";
-    column-gap: 20px;
-    row-gap: 20px;
-    align-items: start;
-    justify-items: center;
+    justify-content: flex-start;
   }
-  .dt-launch, .dt-client, .dt-services { justify-self: center; }
   .dt-desc { width: 100%; }
+  .dt-meta { width: auto; }
   .dt-facts > .dt-ph { left: calc(50% - var(--u) * 103); }
   .dt-shots { width: 100%; gap: 12px; padding-bottom: max(0px, calc(100svh - 2 * var(--gutter) - var(--zoom-top) - var(--u) * 223)); }
   .dt-thumbs img { width: 32px; height: 20px; }
