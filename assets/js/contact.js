@@ -54,7 +54,7 @@
   function back() {
     if (gone) return;
     gone = true;
-    Roll.leave(new URL("../#work", location.href).href, texts, boxes);
+    Roll.leave(new URL(document.body.dataset.up || "../#work", location.href).href, texts, boxes);
   }
   window.addEventListener("wheel", function (e) {
     var now = Date.now();
