@@ -44,6 +44,9 @@ def build(stamp):
             f'      <li><button type="button" aria-label="Image {k}"><img src="../../assets/img/detail/thumb/{key}-{k:02d}.jpg?v={stamp}" width="106" height="66" alt=""></button></li>'
             for k in range(1, p["n"] + 1))
         services = "<br>".join(esc(s) for s in p["services"])
+        # links to the project pages carry the build stamp, so a page held in
+        # the browser's cache (GitHub Pages lets it keep HTML 10 minutes, and
+        # the next project is prefetched) is never shown after an update
         # "Visit project →": the live project (Figma 51:17891), when there is one
         visit = (f'<a class="dt-visit trim" href="{p["url"]}" target="_blank" rel="noopener">Visit project<span class="dt-arrow" aria-hidden="true">→</span></a>'
                  if p.get("url") else "")
@@ -63,12 +66,12 @@ def build(stamp):
   <meta name="format-detection" content="telephone=no, email=no, address=no, date=no">
   <link rel="preload" href="../../assets/fonts/AnNamSerif-VF.woff2?v=0.915s" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="../../assets/img/detail/{key}-01.jpg?v={stamp}" as="image">
-  <link rel="prefetch" href="../{nxt["slug"]}/">
+  <link rel="prefetch" href="../{nxt["slug"]}/?v={stamp}">
   <link rel="stylesheet" href="../../assets/css/style.css?v={stamp}">
   <script>(function (r) {{ r.classList.add("is-entering"); try {{ history.scrollRestoration = "manual"; }} catch (e) {{}}
     setTimeout(function () {{ r.classList.remove("is-entering"); }}, 3000); }})(document.documentElement)</script>
 </head>
-<body class="page-detail" data-up="../../#work" data-down="../{nxt["slug"]}/" data-project="{INDEX[p["slug"]]}">
+<body class="page-detail" data-up="../../#work" data-down="../{nxt["slug"]}/?v={stamp}" data-project="{INDEX[p["slug"]]}">
   <!-- Project page (Figma Work-Detail-00 … 03, 10:1738 / 10:1517 / 10:1526 /
        10:1536; content and pictures from Detail-Content 42:5305), built by
        tools/build-details.py; the motion is assets/js/detail.js.
