@@ -108,7 +108,12 @@ body::after {
   inset: -160px;
   z-index: 999;
   pointer-events: none;
-  background: url("../img/noise.png?v=4") 0 0 / 64px 64px repeat;
+  background: url("../img/noise.png?v=5") 0 0 / 64px 64px repeat;
+  /* mid-grey noise in "overlay": each grain lightens or darkens a little
+     around the colour under it, so on average every colour stays the
+     Figma one (paper #f0efee, ink #215028) instead of the whole page
+     going a shade darker */
+  mix-blend-mode: overlay;
   animation: grain 0.9s steps(1) infinite;
 }
 @keyframes grain {
@@ -803,7 +808,7 @@ body::after {
   .ab-em { display: block; margin: calc(var(--u) * 7) 0 0; font-variation-settings: normal; }
   .ab-photo { width: calc(var(--u) * 171); height: calc(var(--u) * 228); margin-top: calc(var(--u) * 24); }
   .ab-text { width: 100%; margin-top: calc(var(--u) * 24); }
-  .ab-contact { --fs: calc(var(--u) * 70); margin-top: calc(var(--u) * 180); gap: 12px; }
+  .ab-contact { --fs: calc(var(--u) * 70); margin-top: calc(var(--u) * 240); gap: 12px; }
   .ab-copy { margin-top: calc(var(--u) * 177); }
 }
 /* About: its own scroll; past its ends the page goes on (about.js), so no
