@@ -59,11 +59,71 @@
     });
   }
 
+  /* ---------- the photo: a sheet of paper ----------
+     Like the Work pictures: pinned at its top edge, it flutters on its own
+     and swings with the speed of the scroll. Desktop: the picture is drawn
+     in 18 nested bands, each hinged on the one above, so a wave runs down
+     the sheet; phones and touch screens: one flat sheet swaying on its pin
+     (deep nested 3D tears into seams there). */
+  (function paper() {
+    var box = document.querySelector(".ab-photo-box"), img = box && box.querySelector("img");
+    var scroller = document.querySelector(".ab-scroll");
+    if (!box || !img || !scroller) return;
+    var still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var FLAT = matchMedia("(max-width: 720px), (pointer: coarse)").matches;
+    var STRIPS = 18, bands = [], ph = 0.7, swing = 0, vswing = 0, wind = 0, lastY = scroller.scrollTop;
+    if (FLAT) box.classList.add("is-flat");
+    else {
+      var src = img.currentSrc || img.src, parent = document.createElement("span");
+      parent.className = "sheet"; parent.style.setProperty("--n", STRIPS); parent.setAttribute("aria-hidden", "true");
+      var sheet = parent;
+      for (var k = 0; k < STRIPS; k++) {
+        var band = document.createElement("span");
+        band.className = "sheet-band";
+        band.style.backgroundImage = "url(\"" + src + "\")";
+        band.style.backgroundPosition = "0px calc(var(--bh) * " + (-k) + ")";
+        parent.appendChild(band); bands.push(band); parent = band;
+      }
+      box.appendChild(sheet);
+      box.classList.add("has-sheet");
+      var size = function () {
+        var r = img.getBoundingClientRect();
+        sheet.style.setProperty("--bh", (r.height / STRIPS).toFixed(3) + "px");
+        sheet.style.setProperty("--bgw", r.width.toFixed(2) + "px");
+        sheet.style.setProperty("--bgh", r.height.toFixed(2) + "px");
+      };
+      size(); window.addEventListener("resize", size);
+      if (!img.complete) img.addEventListener("load", size);
+    }
+    gsap.ticker.add(function (time, deltaTime) {
+      var dt = Math.min(3, deltaTime / 16.67), sec = time;
+      var y = scroller.scrollTop, vy = y - lastY; lastY = y;
+      // gusts from scrolling, easing off; the sheet swings on its pin
+      wind += (Math.max(-90, Math.min(90, vy)) - wind) * 0.3; wind *= 0.94;
+      var gust = Math.max(-1, Math.min(1, wind / 40));
+      vswing += (gust * 10 - swing) * 0.08 * dt; vswing *= Math.pow(0.86, dt); swing += vswing * dt;
+      if (FLAT) {
+        var tilt = (still ? 0 : Math.sin(sec * 1.3 + ph) * 0.6) + swing * 0.12;
+        img.style.transform = "rotate(" + tilt.toFixed(3) + "deg)";
+        return;
+      }
+      var per = 12 / STRIPS;
+      for (var k = 0; k < STRIPS; k++) {
+        var f = k / (STRIPS - 1);
+        var wave = still ? 0 : (Math.sin(sec * 2.1 + ph - k * 0.55 * per) * (0.6 + 2.2 * f)
+                             + Math.sin(sec * 3.4 + ph * 1.7 - k * 0.9 * per) * 0.5 * f) * per;
+        var ang = (k === 0 ? swing * 0.6 : 0) + wave + swing * 0.55 * f * per;
+        var side = still ? 0 : (Math.sin(sec * 1.5 + ph - k * 0.45 * per) * 0.5 * (0.3 + f) + swing * 0.03) * per;
+        bands[k].style.transform = "rotateX(" + (-ang).toFixed(2) + "deg) rotateZ(" + side.toFixed(2) + "deg)";
+      }
+    });
+  })();
+
   // the pieces, in page order: text rolls, pictures rise
   var frame = q(".ab-info").filter(shown);
   var marks = q(".ab-mark");
   var texts = q(".ab-line, .ab-text p, .ab-contact .cp-kicker, .ab-contact .cp-email, .ab-contact .cp-social, .ab-copy").filter(shown);
-  var photos = q(".ab-photo");
+  var photos = q(".ab-photo-box");
   // the content scrolls in its own frame under the menu and mark
   var sc = document.querySelector(".ab-scroll") || document.scrollingElement;
   if (sc.focus) { sc.setAttribute("tabindex", "-1"); try { sc.focus({ preventScroll: true }); } catch (e) {} } // arrow keys scroll it

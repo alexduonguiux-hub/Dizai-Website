@@ -771,7 +771,13 @@ body::after {
 .ab-line { display: block; position: relative; top: -0.01em; }
 /* IMPACTFULL in italic (the slant axis), two spaces after INTO */
 .ab-em { font-style: normal; font-variation-settings: "slnt" -10; margin-left: 0.25em; }
-.ab-photo-box { display: block; } /* fades out as a whole (the picture inside rises in) */
+.ab-photo-box { display: block; position: relative; }
+/* the photo hangs like a sheet of paper pinned at its top edge, as the
+   Work pictures do (about.js; the arch is cut into the picture itself, so
+   it keeps its shape as the paper bends) */
+.ab-photo-box.has-sheet { perspective: 1100px; }
+.ab-photo-box.has-sheet .ab-photo { visibility: hidden; }
+.ab-photo-box.is-flat .ab-photo { transform-origin: 50% 0; will-change: transform; }
 .ab-photo {
   display: block;
   width: calc(var(--u) * 360);
