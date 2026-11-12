@@ -232,11 +232,12 @@ body::after {
 }
 .is-loading.is-loaded .loader { opacity: 0; visibility: hidden; }
 
-/* LOADING... sits on the line of the contact block's last line (Figma: y 79) */
+/* LOADING... top left, level with the contact block's first line (Figma
+   13:257: both cap tops at y 40) */
 .loader-top {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
+  align-items: flex-start;
 }
 .loader-contact { text-align: right; }
 
@@ -697,7 +698,6 @@ body::after {
   /* Loader (Figma Loading 29:24425, 390 × 844): LOADING... top left beside
      the contact block, the seal (232 × 269) in the middle of the screen,
      100% (160) at the bottom right */
-  .loader-top { align-items: flex-start; }
 
   /* Contact on a phone (Figma Contact 32:24558, 390 × 844): the mark under
      the menu, no small contact block; in the middle, 12 apart: SEND US YOUR
