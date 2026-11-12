@@ -481,7 +481,7 @@ body::after {
   .has-scrub .work-mark {
     position: absolute;
     z-index: 1;
-    left: calc(50% - var(--u) * 41.5);
+    left: calc(50% - var(--u) * 42);
     top: calc(var(--u) * -1);
     margin: 0;
     visibility: hidden;
@@ -567,7 +567,7 @@ body::after {
 .cp { --u: calc(100cqi / 1432); --fs: calc(var(--u) * 172); position: relative; min-height: calc(100svh - 2 * var(--gutter)); }
 .cp-mark {
   position: absolute;
-  left: calc(50% - var(--u) * 41.5);
+  left: calc(50% - var(--u) * 42);
   top: calc(var(--u) * -1);
   height: calc(var(--u) * 104);
   width: auto;
