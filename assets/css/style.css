@@ -883,7 +883,7 @@ body::after {
 }
 .dt-facts {
   position: fixed;
-  z-index: 2; /* over the picture frame (it takes no clicks itself), so the link works */
+  z-index: 0; /* under the pictures: they cover the facts as they run up (detail.js hands clicks on Visit project on) */
   /* the column is the screen's height: the title on top, the picture on the
      foot, this block centred in the room between them (Figma 49:17860,
      justify: space-between). One centred column, 20 apart: the services,
@@ -922,7 +922,7 @@ body::after {
   text-decoration-thickness: 0.06em;
 }
 .dt-arrow { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; font-style: normal; font-weight: 400; }
-.dt-facts.is-gone .dt-visit { pointer-events: none; } /* rolled away with the facts */
+.dt-visit:hover { --slnt: -10; }
 /* the description and the Launch · Client line: Dinh Tuong 16, 450 wide */
 .dt-desc, .dt-meta {
   width: calc(var(--u) * 450);
