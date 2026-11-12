@@ -27,8 +27,8 @@
   /* ---------- the top frame inverts over the content ----------
      Each of the menu, the contact block and the mark gets a twin: the
      real one turns white in "difference" (paper → near black, ink →
-     light), the twin on top adds rgb(18 64 23) in "plus-lighter", so
-     over the paper the sum is the ink #215028 again and over the ink
+     light), the twin on top adds rgb(13 12 11) in "plus-lighter", so
+     over the paper the sum is the ink #1c1c1c again and over the ink
      text it is the paper. Browsers without plus-lighter keep them plain. */
   var twins = [];
   if (window.CSS && CSS.supports("mix-blend-mode", "plus-lighter")) {

@@ -23,9 +23,10 @@
 
 :root {
   --paper: #f0efee;
-  --green-900: #215028;
-  --green-500: #749674;
-  --green-200: #d3dcd3; /* the other projects' names in the Work list */
+  /* Figma (37:… frames): black type on the paper */
+  --ink: #1c1c1c;
+  --grey: #959595;  /* {SCROLL DOWN} */
+  --pale: #cdcdcd;  /* the other projects' names in the Work list */
 
   --gutter: max(16px, calc(100vw * 40 / 1512));
   --text-sm: max(14px, calc(100vw * 20 / 1512));
@@ -50,7 +51,7 @@ body {
   padding: var(--gutter);
   container-type: inline-size;
   background: var(--paper);
-  color: var(--green-900);
+  color: var(--ink);
   font-family: "AnNam Serif", Georgia, serif;
   font-weight: 600;
   font-size: var(--text-sm);
@@ -111,7 +112,7 @@ body::after {
   background: url("../img/noise.png?v=5") 0 0 / 64px 64px repeat;
   /* mid-grey noise in "overlay": each grain lightens or darkens a little
      around the colour under it, so on average every colour stays the
-     Figma one (paper #f0efee, ink #215028) instead of the whole page
+     Figma one (paper #f0efee, ink #1c1c1c) instead of the whole page
      going a shade darker */
   mix-blend-mode: overlay;
   animation: grain 0.9s steps(1) infinite;
@@ -187,7 +188,7 @@ body::after {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  color: var(--green-500);
+  color: var(--ink); /* EST 2024: black like the rest (Figma 37:29667) */
 }
 .seal {
   display: block;
@@ -217,7 +218,7 @@ body::after {
   position: absolute;
   right: 0;
   top: calc(100cqi * 231 / 1432 - 0.7em);
-  color: var(--green-500);
+  color: var(--grey);
   font-variation-settings: "slnt" -10; /* {SCROLL DOWN}: SemiBold Italic */
 }
 
@@ -267,7 +268,7 @@ body::after {
 }
 /* desktop loader: the seal is drawn large, 381 px tall (Figma 17:323) */
 .loader-bottom .seal { height: calc(100cqi * 381 / 1432); }
-.loader-count { text-align: right; color: var(--green-500); }
+.loader-count { text-align: right; color: var(--ink); }
 
 /* Rolling count: each digit cell is a window; on change the old digit
    slides up and out while the new one slides up into place. The window clips
@@ -306,12 +307,12 @@ body::after {
 }
 
 /* ---------- Cursor ----------
-   A dot in the text colour that inverts where it overlaps dark ink.
-   Two stacked dots compute out = (P + G) − backdrop per channel:
-   .cursor-invert  white, difference      → 255 − backdrop
-   .cursor-tint    rgb(18 64 23), plus-lighter → + (P + G − 255)
-   so paper #f0efee → ink #215028 and ink → paper, exactly. Light green
-   (#749674) comes out a light grey-green. Only for a fine pointer. */
+   A dot in the text colour that inverts where it overlaps the ink.
+   Two stacked dots compute out = (P + I) − backdrop per channel:
+   .cursor-invert  white, difference           → 255 − backdrop
+   .cursor-tint    rgb(13 12 11), plus-lighter → + (P + I − 255)
+   so paper #f0efee → ink #1c1c1c and ink → paper, exactly; over a picture
+   its negative. Only for a fine pointer. */
 .cursor { display: none; }
 @media (hover: hover) and (pointer: fine) {
   .has-cursor,
@@ -332,7 +333,7 @@ body::after {
   .has-cursor.cursor-on-link { --cursor-size: 48px; }
   .has-cursor.cursor-away .cursor { opacity: 0; }
   .cursor-invert { background: #fff; mix-blend-mode: difference; }
-  .cursor-tint   { background: rgb(18 64 23); mix-blend-mode: plus-lighter; }
+  .cursor-tint   { background: rgb(13 12 11); mix-blend-mode: plus-lighter; }
 }
 @media (prefers-reduced-motion: reduce) {
   .has-cursor .cursor { transition: opacity 0.2s; }
@@ -369,15 +370,15 @@ body::after {
   margin: 0 auto;
 }
 .work-title { margin: 6vh 0; }
-.work-hint { display: none; color: var(--green-500); }
+.work-hint { display: none; color: var(--grey); }
 .work-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--gutter); }
 /* the project names (Figma 29:24523): every project's name in pale green,
    16 apart; the current one in ink with its line under it */
 .work-caption { display: none; text-wrap: pretty; } /* + no lone last word (work.js) */
 .wc-list { display: flex; flex-direction: column; gap: 16px; margin: 0; padding: 0; list-style: none; will-change: transform; }
 .wc-item { display: block; }
-.work-caption .wc-name { display: block; margin-top: -0.16em; margin-bottom: -0.14em; color: var(--green-200); transition: color 0.3s; }
-.wc-item.is-active .wc-name { color: var(--green-900); }
+.work-caption .wc-name { display: block; margin-top: -0.16em; margin-bottom: -0.14em; color: var(--pale); transition: color 0.3s; }
+.wc-item.is-active .wc-name { color: var(--ink); }
 /* the current project's kind (website, mobile application …), in the left
    column on the line of its name (Figma 33:27045); not on phones */
 .wc-item { position: relative; }
@@ -387,7 +388,7 @@ body::after {
   top: 0;
   width: calc(var(--u) * 328);
   margin-top: -0.16em;
-  color: var(--green-900);
+  color: var(--ink);
 }
 .wc-item:not(.is-active) .wc-cat { display: none; }
 @media (max-width: 720px) { .wc-cat { display: none; } }
@@ -399,7 +400,7 @@ body::after {
   display: block;
   margin-top: calc(6px - 0.21em);
   margin-bottom: -0.19em;
-  color: var(--green-500);
+  color: var(--ink);
   font-size: calc(var(--text-sm) * 0.8);
   line-height: 1.1;
   font-style: normal;
@@ -478,6 +479,7 @@ body::after {
   .has-scrub .work-mark--tint { mix-blend-mode: plus-lighter; }
   .work-mark--tint { display: none; }
   .has-scrub .work-mark--tint { display: block; }
+
   /* SCROLL DOWN, centred, cap top 296 units down */
   .has-scrub .work-hint {
     display: block;
@@ -589,7 +591,7 @@ body::after {
 .cp-social { display: flex; justify-content: center; gap: 8px; }
 .cp-social li { display: flex; align-items: center; gap: 8px; }
 .cp-social li + li::before {
-  content: url("../img/star.svg");
+  content: url("../img/star.svg?v=2");
   display: block;
   width: 10px;
   height: 10px;
@@ -695,7 +697,7 @@ body::after {
     text-align: center;
   }
   .social li + li::before {
-    content: url("../img/star.svg");
+    content: url("../img/star.svg?v=2");
     display: block;
     width: 10px;
     height: 10px;
@@ -729,8 +731,8 @@ body::after {
 /* the menu, the mark and the contact block stay put at the top, always
    shown; the rest scrolls in its own frame under them. Where it passes
    under them they invert, like the Work mark and the cursor (about.js
-   gives each a twin): white in "difference" + ink in "plus-lighter" reads
-   ink over the paper and paper over the ink */
+   gives each a twin): white in "difference" + rgb(13 12 11) in
+   "plus-lighter" reads ink over the paper and paper over the ink */
 .page-about .site-nav { z-index: 3; }
 .ab-mark { top: 0; z-index: 2; }
 .page-about .cp-info { top: 0; z-index: 2; }
@@ -747,7 +749,7 @@ body::after {
 }
 .ab-scroll::-webkit-scrollbar { display: none; }
 .page-about .is-invert { color: #fff; mix-blend-mode: difference; }
-.page-about .is-tint { color: rgb(18 64 23); mix-blend-mode: plus-lighter; pointer-events: none; }
+.page-about .is-tint { color: rgb(13 12 11); mix-blend-mode: plus-lighter; pointer-events: none; }
 .ab-flow {
   display: flex;
   flex-direction: column;

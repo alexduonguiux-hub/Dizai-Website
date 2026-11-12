@@ -47,9 +47,9 @@
   var mark = q(".work-mark");
   /* The mark inverts where a picture passes under it, like the cursor: a
      white copy in "difference" (paper → near black, a picture → its
-     negative) plus a copy in rgb(18 64 23) "plus-lighter", so on the paper
-     the sum is exactly the ink green #215028 again. Browsers without
-     plus-lighter keep the plain green mark. */
+     negative) plus a copy in rgb(13 12 11) "plus-lighter", so on the paper
+     the sum is exactly the ink #1c1c1c again (and over the ink, the
+     paper). Browsers without plus-lighter keep the plain mark. */
   var marks = [mark];
   if (window.CSS && CSS.supports("mix-blend-mode", "plus-lighter")) {
     var src = mark.getAttribute("src"); // keeps the ?v= cache stamp
@@ -348,7 +348,7 @@
 
   /* ---------- going between Home, Work and Contact ---------- */
 
-  var DARK = "#215028", gone = false;
+  var DARK = "#1c1c1c", gone = false;
   function markNav(atWork) {
     if (atWork !== (navWork.getAttribute("aria-current") === "page")) {
       if (atWork) { navWork.setAttribute("aria-current", "page"); navHome.removeAttribute("aria-current"); }
