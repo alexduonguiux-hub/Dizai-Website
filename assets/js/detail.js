@@ -50,7 +50,8 @@
 
   var sc = one(".dt-scroll"), title = one(".dt-title"), ph = one(".dt-ph");
   var info = q(".dt-info").filter(function (el) { return el.getClientRects().length; });
-  var facts = q(".dt-launch, .dt-client, .dt-services, .dt-desc");
+  var facts = q(".dt-launch, .dt-client, .dt-services, .dt-desc, .dt-visit");
+  var factsBox = one(".dt-facts");
   var shots = q(".dt-shot"), first = shots[0];
   var thumbs = q(".dt-thumbs button");
   var DOWN = new URL(document.body.dataset.down || "../../#work", location.href).href;
@@ -113,6 +114,7 @@
     } else first.style.transform = "";
     // the facts roll away one after another as it grows
     if (entered) outs.forEach(function (r, i) { r.set(clamp(p * 1.7 - i * 0.15)); });
+    factsBox.classList.toggle("is-gone", p > 0.35); // the link takes no clicks once it has rolled away
     // the title sinks back as the pictures run up over it
     title.style.opacity = (1 - 0.82 * clamp((t - S * 0.9) / (S * 0.6))).toFixed(3);
     // the picture nearest the top place is the current one
