@@ -19,7 +19,7 @@ PROJECTS = [
   dict(slug="nuriflex", url="https://nuriflex.com.vn/projects/", key="nr", n=8, title="Nuriflex", width=942,
        desc="One-stop Provider In Rooftop Solar Solution. Solar System, Developer and EPC Services, Operation and Maintenance (O&M), Services for Renewable Energy Systems, Centralized Operation and Monitoring Center (TOC)",
        launch="2024", services=["UX Audit", "UX Improvement", "UI Design", "Design System"], client="Nuriflex"),
-  dict(slug="nuff", key="nf", n=8, title="Nuff Juice", width=942,
+  dict(slug="nuff", url="https://nuffjuice.com", key="nf", n=8, title="Nuff Juice", width=942,
        desc="Nuff sells tropical fruit juices crafted from Vietnamese produce—pure, freshly pressed, free from reconstituted concentrates, and containing no additives. As a new brand, Nuff needed a space where first-time customers could learn who they are and what sets them apart from other juices on the shelf; their website was created to serve this very purpose.",
        launch="2024", services=["UX Audit", "UX Improvement", "UI Design"], client="ChoChoi"),
   dict(slug="viettel-tammi", url="https://apps.apple.com/vn/app/viettel-tammi/id6749427319", key="tm", n=7, title="Tammi", width=942,
