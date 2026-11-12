@@ -1,26 +1,20 @@
-/* Home → Work, driven by scroll (Figma Home → Work-01 → Work-02).
+/* Home → Work → Contact (Figma Home, Work-02 23:10013 / 22:66, Contact).
    Desktop and mobile share the story; only the layout differs (below).
 
-   The page is one pinned stage. Scrolling moves it through, in viewport
-   heights (V) of scroll:
-
-     0    – 0.55V  the letters only Home has roll away, like the loading
-                   counter's digits; the seal slides up out of its window
-     0.1  – 0.7 V  desktop: the contact block slides up to its Work place;
-                   the menu marks WORK at 0.45 V
-     0.45 – 0.9 V  WORK rolls in at the bottom, the small "đs" mark slides in
-                   (desktop: SCROLL DOWN rolls in) — Work-01
-     1.0  – 1.6 V  (mobile: WORK rises), SCROLL DOWN rolls away, the first project
-                   arrives (desktop: from below; mobile: from the right) and
-                   its name rolls in — Work-02
-     1.6 V →       the projects keep travelling as an endless list; the
-                   scroll wraps round so it never runs out, and the name
-                   beside them slide along, a step at a time, with the current project
-
-   Everything but the names is a function of the (smoothed) scroll
-   position, so scrolling back plays it in reverse. The project pictures
-   hang like sheets of paper pinned at the top: they sway on their own and
-   swing with the speed of scroll. */
+   The page is one pinned stage with no scrollbar and two states:
+     Home  the letters only Home has roll away, like the loading counter's
+           digits; the seal slides up out of its window; desktop: the
+           contact block slides up to its Work place
+     Work  WORK rolls in, the small "đs" mark slides in, the first project
+           arrives (desktop: from below; mobile: from the right) with its
+           name and line beside / under it
+   A light scroll (or swipe, or key) down on Home plays the move to Work;
+   up plays it back. In Work, scrolling over the projects (desktop: the
+   names and pictures column; mobile: swiping sideways over the row) runs
+   the endless list, a project at a time; scrolling anywhere else goes on
+   to Contact (down) or back to Home (up). The project pictures hang like
+   sheets of paper pinned at the top: they sway on their own and swing as
+   the list moves. */
 (function () {
   "use strict";
 
@@ -29,11 +23,11 @@
   var stage = document.querySelector(".stage");
   var work = document.querySelector(".work");
   if (!stage || !work) return;
-  if (!window.gsap || !window.ScrollTrigger || !window.DzRoll) return; // Work stays a plain section
+  if (!window.gsap || !window.CustomEase || !window.DzRoll) return; // Work stays a plain section
   if ("scrollRestoration" in history) history.scrollRestoration = "manual";
 
-  var gsap = window.gsap, ScrollTrigger = window.ScrollTrigger, Roll = window.DzRoll;
-  gsap.registerPlugin(ScrollTrigger, window.CustomEase, window.ScrollToPlugin);
+  var gsap = window.gsap, Roll = window.DzRoll;
+  gsap.registerPlugin(window.CustomEase);
 
   /* The motion curves. Each is an SVG path in a 0–1 box, exactly as an
      animation graph draws it: paste a curve from Figma / After Effects /
@@ -84,12 +78,12 @@
   // 812-tall screen), then up to 140
   var DESK = { W: 1432, axis: "y", pitch: 470, len: 430, pitchV: 0.38,
                titleY: function () { return H - 183; }, titleY2: function () { return H - 183; },
-               contactY: -251, hint: true };
+               contactY: -251 };
   // how far Home's block sits below the top on a tall screen (see the CSS)
   function heroDrop() { var h = q(".hero"); return h ? parseFloat(getComputedStyle(h).marginTop) || 0 : 0; }
   var MOB = { W: 358, axis: "x", pitch: 358, len: 350, pitchV: 0.35,
               titleY: function () { return (H - 69) * 402 / 743; }, titleY2: function () { return 140; },
-              contactY: 0, hint: true };
+              contactY: 0 };
   var G = DESK, unit = 1, H = 733, cardTop = 226, cs = 1; // cs: picture scale (mobile)
   var list = work.querySelector(".work-list");
 
@@ -161,10 +155,10 @@
       st.setProperty("--bgy", ((r.height - bh) / 2).toFixed(2) + "px");
     });
   }
-  var lastY = window.scrollY, wind = 0;
+  var wind = 0;
 
-  function swayStep(dt, t) {
-    var vy = window.scrollY - lastY; lastY = window.scrollY;
+  // vy: how far the list moved this frame, in px (it blows the sheets about)
+  function swayStep(dt, t, vy) {
     // gusts from scrolling, easing off
     wind += (Math.max(-90, Math.min(90, vy)) - wind) * 0.3;
     wind *= 0.94;
@@ -277,28 +271,36 @@
 
   /* ---------- the endless list ---------- */
 
-  var V = window.innerHeight;
-  var RATE = G.pitch / G.pitchV;   // list units per V of scroll
-  var ENTER_AT = 1.0, LIST_AT = 1.6; // V: the first picture sets off / is in place (Work-02)
-  var CAPTION_AT = 1.35;
-  var LO = LIST_AT + 0.8, LOOP = N * G.pitchV, HI = LO + LOOP;
-  var loops = 0, on = false;
-  var smooth = { y: 0 };
+  /* The page has two states and no scrollbar: Home (0) and Work (1, Figma
+     Work-02: the first project and its name). A light scroll / swipe / key
+     goes from one to the other, played as one move (the timeline below,
+     PHASE_T long). In Work the projects run as an endless list of their
+     own: listT is the project in place, in steps of one picture (fractions
+     on the way), listS the same smoothed. */
+  var PHASE_T = 1.1;            // timeline length: Home → Work
+  var ENTER_AT = 0.45;          // the first picture sets off
+  var CAPTION_AT = 0.85;        // the names come in
+  var MOVE = gsap.parseEase("dz.move");
+  var phase = 0, listT = 0, listS = 0, lastListPx = 0, on = false;
+  var lastKey = "", active = -1, busy = null, tl = null, curSettle = null;
 
-  function placeCards(v) {
+  function pitchPx() { return G.pitch * cs * unit; }
+
+  function placeCards(f, steps) {
     var PIT = G.pitch * cs, LEN = G.len * cs; // mobile pictures may be scaled down
-    var span = PIT * N;
-    // list offset (units): 0 at Work-02, growing as you scroll on; before
-    // that the first picture travels in from just off screen
+    var span = PIT * N, o = steps * PIT;
+    // before Work the whole list waits just off screen (below / to the
+    // right) and travels in with the first picture leading
     var start = G.axis === "y" ? H : G.W;
-    var o = v >= LIST_AT ? (v - LIST_AT) * RATE : -start * Math.min(1, (LIST_AT - v) / (LIST_AT - ENTER_AT)) - (v < ENTER_AT ? 1e5 : 0);
-    var active = -1, best = 1e9;
+    var shift = start * (1 - MOVE(f));
+    var max = G.axis === "y" ? H : G.W + 16 / unit; // past the content edge, into the gutter
+    var at = G.axis === "y" ? 324 : G.W / 2;
+    var best = 1e9, act = -1;
     cards.forEach(function (c, k) {
-      var p = k * PIT - o;
-      if (o >= 0) p = ((p + PIT) % span + span) % span - PIT;
-      // past the content edge, into the gutter (the next one peeks in)
-      var max = G.axis === "y" ? H : G.W + 16 / unit;
-      var show = p > -LEN && p < max;
+      var pw = ((k * PIT - o + PIT) % span + span) % span - PIT; // where it rests in Work
+      var p = pw + shift;
+      // while travelling in, not the picture that rests above the first
+      var show = f > 0 && p > -LEN && p < max && (f >= 1 || pw > -LEN * 0.5);
       c.style.opacity = show ? "1" : "0";
       c.classList.toggle("is-on", show);
       if (show) {
@@ -309,98 +311,188 @@
       // the one spanning the current name's line (y 324: the list's foot is
       // the first picture's, Figma 309 + half a line);
       // mobile, the one over the middle of the screen, above the name
-      var at = G.axis === "y" ? 324 : G.W / 2;
-      var gap = at < p ? p - at : at > p + LEN ? at - p - LEN : 0;
-      if (gap < best) { best = gap; active = k; }
+      var gap = at < pw ? pw - at : at > pw + LEN ? at - pw - LEN : 0;
+      if (gap < best) { best = gap; act = k; }
     });
-    return active;
+    return act;
   }
 
-  // keep the scroll inside the wrap-round zone once the list is running
-  function wrap() {
-    var y = window.scrollY, d = LOOP * V;
-    if (y > HI * V) { jump(-d); loops++; }
-    else if (y < LO * V && loops > 0) {
-      // scrolling back through the loop wraps; a leap far up (scrollbar,
-      // Home key) means "take me back": stop looping and let it go
-      if (y > (LO - 0.6) * V) { jump(d); loops--; } else loops = 0;
-    }
-  }
-  function jump(d) {
-    window.scrollTo(0, window.scrollY + d);
-    smooth.y += d; lastY += d;
-  }
-
-  var lastCards = -1, navTween = null, active = -1;
   function tick(time, deltaTime) {
     if (!on || root.classList.contains("is-loading")) return;
     var dt = Math.min(3, deltaTime / 16.67);
-    if (!navTween) wrap();
-    // same smoothing feel as the timeline's scrub
-    smooth.y += (window.scrollY - smooth.y) * (reduce || navTween ? 1 : Math.min(1, 0.12 * dt));
-    var v = smooth.y / V;
-    if (Math.abs(smooth.y - lastCards) > 0.3) { active = placeCards(v); lastCards = smooth.y; }
-    // the names follow the picture level with them, sliding a step at a time
-    showCaption(v >= CAPTION_AT ? active : -1);
-    swayStep(dt, time * 1000);
+    if (!dragging) {
+      listS += (listT - listS) * (reduce ? 1 : Math.min(1, 0.14 * dt));
+      if (Math.abs(listT - listS) < 0.0005) listS = listT;
+    }
+    var t = tl ? tl.time() : 0;
+    var f = Math.max(0, Math.min(1, (t - ENTER_AT) / (PHASE_T - ENTER_AT)));
+    var key = f.toFixed(4) + "|" + listS.toFixed(4);
+    if (key !== lastKey) { active = placeCards(f, listS); lastKey = key; }
+    // the names follow the picture level with them, a step at a time
+    showCaption(phase === 1 && t >= CAPTION_AT ? active : -1);
+    var px = listS * pitchPx();
+    swayStep(dt, time * 1000, Math.max(-90, Math.min(90, px - lastListPx)));
+    lastListPx = px;
   }
 
-  /* ---------- the menu's glide: the user can take over ----------
-     The user takes over from a menu glide by touching,
-     wheeling or pressing a key. GSAP's own autoKill is off: iOS reports the
-     scroll a little off from what was set, which it read as the user
-     scrolling, so the glide stopped halfway. */
-  function takeOver() { if (navTween) { navTween.kill(); navTween = null; } }
-  window.addEventListener("wheel", takeOver, { passive: true });
-  window.addEventListener("keydown", function (e) {
-    if (/^(Arrow|Page|Home|End| )/.test(e.key)) takeOver();
-  });
-  window.addEventListener("touchstart", function (e) {
-    // a tap on the menu starts its own glide; any other touch takes over
-    if (!(e.target.closest && e.target.closest(".nav-list a[data-go]"))) takeOver();
-  }, { passive: true });
+  /* ---------- going between Home, Work and Contact ---------- */
 
-  /* ---------- GSAP: the scroll timeline ---------- */
-
-  var DARK = "#215028", LIGHT = "#749674", keepV = 0, curTl = null, curSettle = null;
-  // the menu marks WORK from 0.45 V on
-  function markNav(t) {
-    var atWork = t >= 0.45;
+  var DARK = "#215028", gone = false;
+  function markNav(atWork) {
     if (atWork !== (navWork.getAttribute("aria-current") === "page")) {
       if (atWork) { navWork.setAttribute("aria-current", "page"); navHome.removeAttribute("aria-current"); }
       else { navHome.setAttribute("aria-current", "page"); navWork.removeAttribute("aria-current"); }
     }
   }
-  var mm = gsap.matchMedia();
-  ScrollTrigger.config({ ignoreMobileResize: true }); // phone URL bar: no re-layout
+  function goTo(p) {
+    if (!tl || gone) return;
+    phase = p;
+    markNav(p === 1);
+    var to = p ? PHASE_T : 0;
+    if (busy) busy.kill();
+    var dist = Math.abs(to - tl.time()) / PHASE_T;
+    if (reduce || dist < 0.001) { busy = null; tl.time(to); return; }
+    busy = gsap.to(tl, { time: to, duration: 0.5 + 1.1 * dist, ease: "power1.inOut",
+                         onComplete: function () { busy = null; } });
+  }
+  function goContact() {
+    if (gone) return;
+    gone = true;
+    var a = document.querySelector(".nav-list a:not([data-go])");
+    Roll.leave(a.href, [q(".nav-list"), contact, title, capList].concat(homeText),
+               [seal].concat(marks, cards));
+  }
+  function down() { if (phase === 0) goTo(1); else goContact(); }
+  function up() { if (phase === 1) goTo(0); }
+  function step(d) { // one project on (+1) or back (−1)
+    if (phase !== 1) return;
+    listT = Math.round(listT) + d;
+  }
 
+  // where a pointer / finger is over the projects: desktop, the column of
+  // names and pictures; mobile, the row of pictures and the names under it
+  function inList(x, y) {
+    var r = work.getBoundingClientRect();
+    if (G.axis === "y") return x >= r.left + (368 - 24) * unit && x <= r.left + (736 + 573 + 24) * unit;
+    var c = caption.getBoundingClientRect();
+    return y >= r.top + (cardTop - 8) * unit && y <= Math.max(c.bottom, r.top + (cardTop + 262 * cs) * unit) + 16;
+  }
+
+  /* One gesture, one move: after going somewhere, the rest of that
+     scroll (a trackpad's inertia goes on for a second or more) is let
+     through to nothing, until the wheel has been still for a moment. */
+  var locked = false, lockTimer = 0, acc = 0, lastWheel = 0, snapTimer = 0, lastStep = 0;
+  function lock() {
+    locked = true;
+    clearTimeout(lockTimer);
+    lockTimer = setTimeout(function () { locked = false; }, 260);
+  }
+  function snapSoon() {
+    clearTimeout(snapTimer);
+    snapTimer = setTimeout(function () { listT = Math.round(listT); }, 140);
+  }
+  function wheelPx(e, d) { return d * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? innerHeight : 1); }
+
+  window.addEventListener("wheel", function (e) {
+    if (!on || gone || root.classList.contains("is-loading")) return;
+    if (e.ctrlKey) return; // pinch zoom on a trackpad
+    e.preventDefault();
+    var now = performance.now(), fresh = now - lastWheel > 200;
+    lastWheel = now;
+    if (locked) { lock(); return; }
+    var dy = wheelPx(e, e.deltaY), dx = wheelPx(e, e.deltaX);
+    if (phase === 1 && !busy && inList(e.clientX, e.clientY)) {
+      // the projects: the wheel runs the list (sideways on a trackpad too)
+      var d = Math.abs(dy) >= Math.abs(dx) ? dy : dx;
+      acc = 0;
+      if (Math.abs(d) >= 50) {
+        // a mouse wheel's notch (or a hard push): one project per notch
+        if (now - lastStep > 140) { lastStep = now; step(d > 0 ? 1 : -1); }
+        return;
+      }
+      listT += d / pitchPx() * 1.4; // a trackpad: the list follows the fingers
+      snapSoon();
+      return;
+    }
+    if (busy) return;
+    if (fresh) acc = 0;
+    acc += dy;
+    if (acc > 24) { acc = 0; lock(); down(); }
+    else if (acc < -24) { acc = 0; if (phase === 1) { lock(); up(); } }
+  }, { passive: false });
+
+  /* Touch: up / down swipes go between Home, Work and Contact; in Work a
+     swipe along the list (mobile: sideways, over the pictures and names;
+     desktop layout on a touch screen: up and down over the column) drags
+     the projects, and lets go onto the nearest one (a flick: the next). */
+  var touch = null, dragging = false;
+  window.addEventListener("touchstart", function (e) {
+    if (!on || gone || e.touches.length !== 1) { touch = null; return; }
+    var t = e.touches[0];
+    touch = { x: t.clientX, y: t.clientY, axis: null, fired: false, at: performance.now(),
+              inList: phase === 1 && !busy && inList(t.clientX, t.clientY), from: listT };
+  }, { passive: true });
+  window.addEventListener("touchmove", function (e) {
+    if (!touch) return;
+    if (e.cancelable) e.preventDefault(); // no page scroll, rubber band or pull-to-refresh
+    var t = e.touches[0], dx = t.clientX - touch.x, dy = t.clientY - touch.y;
+    if (!touch.axis) {
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      touch.axis = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
+    }
+    if (touch.inList && touch.axis === G.axis) {
+      dragging = true;
+      var d = G.axis === "x" ? -dx : -dy;
+      listT = listS = touch.from + d / pitchPx();
+      touch.d = d;
+      return;
+    }
+    if (touch.axis !== "y" || touch.fired) return;
+    if (dy < -40) { touch.fired = true; down(); }
+    else if (dy > 40 && phase === 1) { touch.fired = true; up(); }
+  }, { passive: false });
+  function touchEnd() {
+    if (!touch) return;
+    if (dragging) {
+      dragging = false;
+      var d = touch.d || 0, ms = Math.max(1, performance.now() - touch.at);
+      var target = Math.round(listT);
+      // a quick flick goes on to the next one even if it moved only a little
+      if (ms < 300 && Math.abs(d) > 24 && target === Math.round(touch.from)) target += d > 0 ? 1 : -1;
+      listT = target;
+    }
+    touch = null;
+  }
+  window.addEventListener("touchend", touchEnd, { passive: true });
+  window.addEventListener("touchcancel", touchEnd, { passive: true });
+
+  window.addEventListener("keydown", function (e) {
+    if (!on || gone || e.metaKey || e.ctrlKey || e.altKey) return;
+    var k = e.key;
+    if (k === "ArrowDown" || k === "PageDown" || (k === " " && !e.shiftKey)) { e.preventDefault(); if (!busy) down(); }
+    else if (k === "ArrowUp" || k === "PageUp" || (k === " " && e.shiftKey)) { e.preventDefault(); up(); }
+    else if (k === "Home") { e.preventDefault(); goTo(0); }
+    else if (k === "ArrowRight") { e.preventDefault(); step(1); }
+    else if (k === "ArrowLeft") { e.preventDefault(); step(-1); }
+  });
+
+  /* ---------- GSAP: the Home → Work timeline ---------- */
+
+  var mm = gsap.matchMedia();
   mm.add({ desk: "(min-width: 721px)", mob: "(max-width: 720px)" }, function (ctx) {
     G = ctx.conditions.desk ? DESK : MOB;
     slots = []; // the names list is rebuilt for this layout
-    V = window.innerHeight;
     on = true;
     root.classList.add("has-scrub");
+    window.scrollTo(0, 0);
     measure();
-    RATE = G.pitch * cs / G.pitchV; LOOP = N * G.pitchV; HI = LO + LOOP;
-    loops = 0; lastCards = -1;
-    smooth.y = window.scrollY;
+    lastKey = "";
 
-    // the timeline's time is measured in V (viewport heights of scroll)
-    var tl = curTl = gsap.timeline({
-      defaults: { ease: "none" },
-      scrollTrigger: {
-        trigger: document.body,
-        start: 0,
-        end: function () { return LIST_AT * V; },
-        scrub: reduce ? true : 0.6,      // GSAP's smoothing
-        invalidateOnRefresh: true
-      },
-      onUpdate: function () { markNav(this.time()); }
-    });
+    // the timeline's time runs 0 (Home) → PHASE_T (Work); goTo() plays it
+    tl = gsap.timeline({ paused: true, defaults: { ease: "none" } });
     /* fn(v) runs from → to over [at, at + dur] of the timeline. The value
-       is worked out from the timeline's own time (not a tween's recorded
-       start), so a resize, which re-measures the timeline, can never leave
-       Home's letters shown on top of Work. */
+       is worked out from the timeline's own time, so after a resize every
+       piece can be put back exactly (settle). */
     var drives = [];
     function drive(fn, from, to, at, dur) {
       var o = { v: from };
@@ -409,69 +501,48 @@
       tl.fromTo(o, { v: from }, { v: to, duration: dur, immediateRender: false,
                                   onUpdate: function () { fn(o.v); } }, at);
     }
-    curSettle = settle;
     function settle() {
       var t = tl.time();
-      markNav(t);
-      // one value per piece: a piece driven twice (SCROLL DOWN rolls in,
-      // later rolls away) takes the last part that has begun, else the first
-      var pick = [];
+      markNav(phase === 1);
       drives.forEach(function (d) {
-        var i = -1;
-        for (var j = 0; j < pick.length; j++) if (pick[j].fn === d.fn) i = j;
-        if (i < 0) pick.push(d);
-        else if (t >= d.at) pick[i] = d;
+        var k = Math.max(0, Math.min(1, (t - d.at) / d.dur));
+        d.fn(d.from + (d.to - d.from) * k);
       });
-      pick.forEach(function (d) {
-        var q = Math.max(0, Math.min(1, (t - d.at) / d.dur));
-        d.fn(d.from + (d.to - d.from) * q);
-      });
+      lastKey = "";
     }
+    curSettle = settle;
 
     // the letters only Home has roll away, one line after another
-    outs.forEach(function (r, i) { drive(r.set, 0, 1, i < 4 ? i * 0.06 : 0.04 + (i - 4) * 0.04, i < 4 ? 0.4 : 0.3); });
-    drive(sealOut.set, 0, 1, 0.12, 0.35);
+    outs.forEach(function (r, i) { drive(r.set, 0, 1, i < 4 ? i * 0.05 : 0.04 + (i - 4) * 0.04, i < 4 ? 0.36 : 0.28); });
+    drive(sealOut.set, 0, 1, 0.1, 0.32);
     // desktop: the contact block slides up to its Work place (251 units);
     // mobile: it rolls away with the rest of Home
-    if (G.contactY) tl.fromTo(contact, { y: 0 }, { y: function () { return G.contactY * unit - heroDrop(); }, duration: 0.6, ease: "dz.move" }, 0.1);
-    else drive(contactOut.set, 0, 1, 0.08, 0.3);
-    // Work-01: WORK rolls in at the bottom, the mark slides in
-    gsap.set(title, { y: function () { return G.titleY() * unit; }, color: DARK });
-    drive(showTitle, 0, 1, 0.45, 0.45);
-    drive(showMark, 0, 1, 0.55, 0.3);
-    if (G.hint) drive(showHint, 0, 1, 0.6, 0.3); else showHint(0);
-    // Work-02: WORK stays ink (mobile: rises under the mark), SCROLL DOWN leaves
-    tl.fromTo(title, { y: function () { return G.titleY() * unit; }, color: DARK },
-                     { y: function () { return G.titleY2() * unit; }, color: DARK, duration: 0.6, ease: "dz.move" }, 1.0);
-    if (G.hint) drive(showHint, 1, 2, 1.0, 0.25);
-    tl.set({}, {}, LIST_AT); // timeline length = LIST_AT V
+    if (G.contactY) drive(function (v) { gsap.set(contact, { y: MOVE(v) * (G.contactY * unit - heroDrop()) }); }, 0, 1, 0.08, 0.55);
+    else drive(contactOut.set, 0, 1, 0.06, 0.3);
+    // Work: WORK rolls in where it stays (desktop on the foot, mobile under
+    // the mark), the mark slides in
+    drive(function (v) { gsap.set(title, { y: G.titleY2() * unit, color: DARK }); showTitle(v); }, 0, 1, 0.4, 0.45);
+    drive(showMark, 0, 1, 0.5, 0.3);
+    showHint(0);
+    tl.set({}, {}, PHASE_T);
 
-    var onRefresh = function () { V = window.innerHeight; measure(); RATE = G.pitch * cs / G.pitchV; lastCards = -1; };
-    ScrollTrigger.addEventListener("refreshInit", onRefresh);
-    // after every re-measure (resize), put each piece back where the scroll is
-    var onRefreshed = function () {
-      // coming from the other layout: ScrollTrigger has just put back the
-      // scroll it saved while the page was short; go back to our point
-      if (keepV > 0) {
-        var y = Math.min(keepV, HI - 0.01) * V;
-        keepV = 0;
-        window.scrollTo(0, y); smooth.y = lastY = y; lastCards = -1;
-        tl.scrollTrigger && tl.scrollTrigger.update();
-      }
-      settle();                         // right away: not one frame of Home
-      requestAnimationFrame(settle);    // and once more after the scrub catches up
-    };
-    ScrollTrigger.addEventListener("refresh", onRefreshed);
+    tl.time(phase ? PHASE_T : 0);
+    settle();
+
+    var rT = 0;
+    function onResize() {
+      clearTimeout(rT);
+      rT = setTimeout(function () { measure(); settle(); }, 60);
+    }
+    window.addEventListener("resize", onResize);
     gsap.ticker.add(tick);
 
-    return function () { // leaving this layout: undo everything
-      // remember where we were (in V) so the next layout opens at the same
-      // point of the story instead of back at Home
-      keepV = window.scrollY / V;
+    return function () { // leaving this layout: undo everything (phase and listT stay)
+      if (busy) { busy.kill(); busy = null; }
       gsap.ticker.remove(tick);
-      ScrollTrigger.removeEventListener("refreshInit", onRefresh);
-      ScrollTrigger.removeEventListener("refresh", onRefreshed);
+      window.removeEventListener("resize", onResize);
       on = false;
+      tl.kill(); tl = null;
       root.classList.remove("has-scrub");
       outs.forEach(function (r) { r.set(0); });
       contactOut.set(0);
@@ -484,73 +555,49 @@
     };
   });
 
-  /* ---------- menu: scroll along the dz.nav curve ---------- */
+  /* ---------- the menu ---------- */
 
   document.querySelectorAll(".nav-list a[data-go]").forEach(function (a) {
     a.addEventListener("click", function (e) {
       if (!on) return; // no GSAP: the plain #anchors do the job
       e.preventDefault();
-      loops = 0;
-      if (a.dataset.go === "home" && window.scrollY > LO * V) { // far into the loop: go straight
-        window.scrollTo(0, LO * V); smooth.y = LO * V; lastY = window.scrollY;
-      }
-      var to = a.dataset.go === "work" ? LIST_AT * V : 0;
-      var dist = Math.abs(to - window.scrollY) / V;
-      if (navTween) navTween.kill();
-      navTween = gsap.to(window, {
-        scrollTo: { y: to, autoKill: false },       // see takeOver() below
-        duration: reduce ? 0 : Math.max(1.2, Math.min(2.6, 0.9 + dist * 0.45)),
-        ease: "dz.nav",
-        onComplete: function () { navTween = null; },
-        onInterrupt: function () { navTween = null; }
-      });
+      goTo(a.dataset.go === "work" ? 1 : 0);
     });
   });
-
-  /* ---------- other pages (Contact) ---------- */
-
-  // going there: what shows rolls away first
+  // going to another page (Contact): what shows rolls away first
   document.querySelectorAll(".nav-list a:not([data-go])").forEach(function (a) {
     a.addEventListener("click", function (e) {
       if (e.metaKey || e.ctrlKey || e.shiftKey || e.button) return;
       e.preventDefault();
-      Roll.leave(a.href, [q(".nav-list"), contact, title, hint, capList].concat(homeText),
-                 [seal].concat(marks, cards));
+      goContact();
     });
   });
 
-  window.scrollTo(0, 0);
-  // remembered for a reload (see below)
+  // remembered for a reload and for coming back from Contact: Home or Work,
+  // and which project
   window.addEventListener("pagehide", function () {
-    try { sessionStorage.setItem("dz-v", (window.scrollY / V).toFixed(3)); } catch (e) {}
+    try { sessionStorage.setItem("dz-v", JSON.stringify({ p: phase, l: Math.round(listT) % N })); } catch (e) {}
   });
+  window.addEventListener("pageshow", function (e) { if (e.persisted) { gone = false; } });
 
   // coming back: no loading screen (once per visit); Home rolls in, or,
-  // for "#work", the page glides on to Work
+  // for "#work" (from Contact) or a reload in Work, Work's pieces do
   if (root.classList.contains("is-return")) {
     root.classList.add("is-back"); // the letters below start blank
-    // where to open: "#work" from another page → Work-02; a reload →
-    // wherever you were (not Home with Work's scroll under it)
-    var openV = 0, nav = performance.getEntriesByType && performance.getEntriesByType("navigation")[0];
-    if (location.hash === "#work") openV = LIST_AT;
-    else if (nav && nav.type === "reload") { try { openV = +sessionStorage.getItem("dz-v") || 0; } catch (e) {} }
-    if (openV > 0.05) {
-      // the scroll and the timeline are put there before anything shows,
-      // then Work's own pieces come in
-      if (location.hash) history.replaceState(null, "", location.pathname);
-      var y = Math.min(openV, HI - 0.01) * V;
-      window.scrollTo(0, y); smooth.y = lastY = y; lastCards = -1;
-      ScrollTrigger.update();
-      if (curTl) {
-        var st = curTl.scrollTrigger, scrub = st && st.getTween && st.getTween();
-        if (scrub) scrub.progress(1);
-        curTl.progress(Math.min(1, openV / LIST_AT));
-        if (curSettle) curSettle(); // every piece at its state for this point, now
-      }
-      markNav(Math.min(openV, LIST_AT));
-      var inWork = [q(".nav-list")].concat(openV >= 0.9 ? [title] : [], G.contactY ? [contact] : [])
+    var saved = null, nav = performance.getEntriesByType && performance.getEntriesByType("navigation")[0];
+    try { saved = JSON.parse(sessionStorage.getItem("dz-v") || "null"); } catch (e) {}
+    var toWork = location.hash === "#work" || !!(nav && nav.type === "reload" && saved && saved.p === 1);
+    if (saved && typeof saved.l === "number" && (toWork || (nav && nav.type === "reload"))) listT = listS = saved.l;
+    if (location.hash) history.replaceState(null, "", location.pathname);
+    if (toWork && tl) {
+      // every piece is put at Work before anything shows, then Work's own
+      // pieces come in
+      phase = 1;
+      tl.time(PHASE_T);
+      if (curSettle) curSettle();
+      var inWork = [q(".nav-list"), title].concat(G.contactY ? [contact] : [])
         .map(function (el) { var r = Roll.text(el, "in"); r.set(0); return r; })
-        .concat(openV >= 0.9 ? marks.map(function (m) { var r = Roll.box(m, "in"); r.set(0); return r; }) : []);
+        .concat(marks.map(function (m) { var r = Roll.box(m, "in"); r.set(0); return r; }));
       gsap.fromTo(q(".work-list"), { autoAlpha: 0, y: 24 },
                   { autoAlpha: 1, y: 0, duration: reduce ? 0.01 : 0.9, delay: reduce ? 0 : 0.15, ease: "power2.out",
                     clearProps: "transform" });
@@ -570,7 +617,7 @@
       (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(function () {
         back.forEach(function (r, i) {
           var o = { v: 0 };
-          gsap.to(o, { v: 1, duration: reduce ? 0.01 : 0.8, delay: reduce ? 0 : 0.05 + i * 0.07, ease: "none",
+          gsap.to(o, { v: 1, duration: reduce ? 0.01 : 0.8, delay: reduce ? 0 : 0.05 + i * 0.08, ease: "none",
                        onUpdate: function () { r.set(o.v); } });
         });
       });

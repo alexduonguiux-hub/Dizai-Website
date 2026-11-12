@@ -447,7 +447,10 @@ body::after {
     overflow: hidden;
     background: var(--paper); /* the Work mark's blend needs the paper under it */
   }
-  .has-scrub .scroll-space { display: block; height: 760svh; } /* room for the endless list's wrap-round */
+  /* no scrollbar: work.js turns wheel, swipes and keys into the moves
+     between Home, Work and Contact, and into running the projects */
+  html.has-scrub, .has-scrub body { overflow: hidden; overscroll-behavior: none; }
+  .has-scrub .stage { touch-action: none; }
 
   .has-scrub .work { position: absolute; inset: var(--gutter); margin: 0; pointer-events: none; }
   /* logo mark, top centre (Figma: 83 × 104 at y 39), over the pictures */
