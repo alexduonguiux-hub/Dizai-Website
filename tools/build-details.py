@@ -68,6 +68,12 @@ def build(stamp):
   <link rel="preload" href="../../assets/img/detail/{key}-01.jpg?v={stamp}" as="image">
   <link rel="prefetch" href="../{nxt["slug"]}/?v={stamp}">
   <link rel="stylesheet" href="../../assets/css/style.css?v={stamp}">
+  <!-- an old copy of this page (held in the browser's cache) loads the
+       current one: version.json is always fetched fresh -->
+  <script>(function () {{ var b = "?v={stamp}".slice(3); if (!window.fetch) return;
+    fetch("../../version.json?t=" + Date.now(), {{ cache: "no-store" }}).then(function (r) {{ return r.json(); }}).then(function (j) {{
+      var u = new URL(location.href); if (j && j.v && j.v !== b && u.searchParams.get("v") !== j.v) {{ u.searchParams.set("v", j.v); location.replace(u.href); }}
+    }}).catch(function () {{}}); }})()</script>
   <script>(function (r) {{ r.classList.add("is-entering"); try {{ history.scrollRestoration = "manual"; }} catch (e) {{}}
     setTimeout(function () {{ r.classList.remove("is-entering"); }}, 3000); }})(document.documentElement)</script>
 </head>
@@ -112,6 +118,7 @@ def build(stamp):
     <div class="dt-scroll">
       <div class="dt-shots">
 {shots}
+        <p class="dt-end trim" aria-hidden="true">{{Scroll to go next project}}</p>
       </div>
     </div>
 
@@ -136,4 +143,8 @@ def build(stamp):
 
 if __name__ == "__main__":
     m = re.search(r"\?v=(20\d{10})", open("index.html").read())
-    build(m.group(1) if m else "1")
+    stamp = m.group(1) if m else "1"
+    build(stamp)
+    # the current build, for the freshness check in every page's head
+    with open("version.json", "w") as f:
+        f.write('{"v": "%s"}\n' % stamp)
