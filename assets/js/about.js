@@ -122,12 +122,21 @@
   // the pieces, in page order: text rolls, pictures rise
   var frame = q(".ab-info").filter(shown);
   var marks = q(".ab-mark");
-  var texts = q(".ab-line, .ab-text p, .ab-contact .cp-kicker, .ab-contact .cp-email, .ab-contact .cp-social, .ab-copy").filter(shown);
-  var photos = q(".ab-photo-box");
+  var texts = q(".ab-line, .ab-text p, .ab-contact .cp-kicker, .ab-contact .cp-email, .ab-contact .cp-social, " +
+                ".dt-title, .dt-desc, .dt-meta li, .dt-next-kicker, .dt-next-title, .ab-copy").filter(shown); // About + project pages
+  var photos = q(".ab-photo-box, .dt-shot");
   // the content scrolls in its own frame under the menu and mark
   var sc = document.querySelector(".ab-scroll") || document.scrollingElement;
   if (sc.focus) { sc.setAttribute("tabindex", "-1"); try { sc.focus({ preventScroll: true }); } catch (e) {} } // arrow keys scroll it
-  var HOME = new URL("../", location.href).href, WORK = new URL("../#work", location.href).href;
+  // past the ends: About goes up to Home and down to Work; a project page
+  // (body data-up / data-down) up to Work and down to the next project
+  var HOME = new URL(document.body.dataset.up || "../", location.href).href,
+      WORK = new URL(document.body.dataset.down || "../#work", location.href).href;
+
+  // a project page: going back to Work opens on this project
+  if (document.body.dataset.project) {
+    try { sessionStorage.setItem("dz-v", JSON.stringify({ p: 1, l: +document.body.dataset.project })); } catch (e) {}
+  }
 
   // opened from Work going back up: start at the end
   if (location.hash === "#end") {

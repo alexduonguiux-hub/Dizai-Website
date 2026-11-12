@@ -212,7 +212,7 @@
   var MARK = ".ab-mark, .cp-mark, .work-mark";
   function hasMark(href) {
     var u = new URL(href, location.href);
-    return /\/(about|contact)\/?$/.test(u.pathname) || u.hash === "#work";
+    return /\/(about|contact)\/?$/.test(u.pathname) || u.hash === "#work"; // (project pages carry their title there instead)
   }
   function flipNext() { try { sessionStorage.setItem("dz-flip", "1"); } catch (e) {} }
   function takeFlip() {

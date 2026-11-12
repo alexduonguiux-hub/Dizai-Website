@@ -594,6 +594,18 @@
       goTo(a.dataset.go === "work" ? 1 : 0);
     });
   });
+  // a project's picture: its page (rolling away first, the mark stays); a
+  // project with no page of its own (Farmers Market) opens its website in a
+  // new tab as a plain link
+  cards.forEach(function (c) {
+    var a = c.querySelector("a");
+    a.addEventListener("click", function (e) {
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.button || a.target) return;
+      if (new URL(a.href, location.href).origin !== location.origin) return;
+      e.preventDefault();
+      goPage(a.href);
+    });
+  });
   // going to another page (About, Contact): what shows rolls away first
   document.querySelectorAll(".nav-list a:not([data-go])").forEach(function (a) {
     a.addEventListener("click", function (e) {

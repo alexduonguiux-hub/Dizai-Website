@@ -851,6 +851,134 @@ body::after {
   .ab-end { margin-top: calc(var(--u) * 60); }
   .ab-contact { --fs: calc(var(--u) * 70); margin-top: 0; gap: 12px; }
 }
+/* ---------- Project pages (Figma Work-Detail-00 … 03, 10:1738 …) ----------
+   Built by tools/build-details.py, moved by assets/js/detail.js. Units of
+   the 1432 content width (origin: the content's top left, gutter in):
+   the title (Medium 155, line height 0.8, at most --tw wide) on top in the
+   middle; LAUNCH (centre 349) and CLIENT (centre 1064) at 252; between
+   them the small picture slot (613, 252, 206 × 129); the services (centre)
+   at 479; the description (450 wide) at 650. Scrolling one screen grows
+   the first picture into place (368, 283, 696 × 434, the column of
+   pictures, 12 apart) while the facts roll away; the column then runs up
+   over the title, which sinks back. Thumbnails bottom right. */
+.dt { position: relative; --u: calc(100cqi / 1432); --zoom-top: calc(var(--u) * 283); }
+.page-detail .site-nav { z-index: 3; }
+.page-detail .cp-info { top: 0; z-index: 3; }
+.dt-title {
+  position: fixed;
+  z-index: 0;
+  top: var(--gutter);
+  left: 50%;
+  width: calc(var(--u) * var(--tw, 942));
+  transform: translateX(-50%);
+  margin: -0.06em 0 0; /* cap top on the line (line height 0.8) */
+  font-size: calc(var(--u) * 155);
+  font-weight: 500;
+  line-height: 0.8;
+  text-align: center;
+  text-wrap: balance;
+}
+.dt-facts { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+.dt-facts > * { position: absolute; margin-block: 0; text-align: center; white-space: nowrap; }
+.dt-launch, .dt-client { top: calc(var(--gutter) + var(--u) * 252 - 0.16em); transform: translateX(-50%); }
+.dt-launch { left: calc(var(--gutter) + var(--u) * 349); }
+.dt-client { left: calc(var(--gutter) + var(--u) * 1064); }
+.dt-ph { top: calc(var(--gutter) + var(--u) * 252); left: calc(var(--gutter) + var(--u) * 613); width: calc(var(--u) * 206); height: calc(var(--u) * 129); }
+.dt-services { top: calc(var(--gutter) + var(--u) * 479 - 0.16em); left: 50%; transform: translateX(-50%); }
+.dt-desc {
+  top: calc(var(--gutter) + var(--u) * 650 - 0.2em);
+  left: 50%;
+  width: calc(var(--u) * 450);
+  transform: translateX(-50%);
+  white-space: normal;
+  font-family: "Dinh Tuong", "AnNam Serif", Georgia, serif;
+  font-variation-settings: normal;
+  font-weight: 400;
+  font-size: calc(var(--text-sm) * 0.8);
+  line-height: 1.1;
+  text-transform: none;
+}
+.dt-scroll {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: none;
+  scrollbar-width: none;
+  padding: var(--gutter);
+}
+.dt-scroll::-webkit-scrollbar { display: none; }
+.dt-shots {
+  width: calc(var(--u) * 696);
+  margin: calc(100svh + var(--zoom-top)) auto 0; /* one screen of scroll to grow the first picture */
+  /* room after the last picture so it too can reach the top place */
+  padding-bottom: max(0px, calc(100svh - 2 * var(--gutter) - var(--zoom-top) - var(--u) * 434));
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--u) * 12);
+}
+.dt-shot { position: relative; margin: 0; transform-origin: 0 0; }
+.dt-img { display: block; width: 100%; height: auto; aspect-ratio: 2048 / 1277; }
+.dt-shot.has-sheet { perspective: 1100px; }
+.dt-shot.has-sheet .dt-img { visibility: hidden; }
+.dt-shot.is-flat .dt-img { transform-origin: 50% 0; }
+.dt-thumbs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  position: fixed;
+  z-index: 3;
+  right: var(--gutter);
+  bottom: var(--gutter);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.dt-thumbs button {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  opacity: 0.35;
+  transition: opacity 0.3s;
+}
+.dt-thumbs button.is-on, .dt-thumbs button:hover { opacity: 1; }
+.dt-thumbs img { display: block; width: calc(var(--u) * 53); height: calc(var(--u) * 33); object-fit: cover; }
+.is-entering .dt, .is-entering .page-detail .site-nav { visibility: hidden; }
+@media (max-width: 720px) {
+  /* phone (units of 358): the title 56 under the menu; LAUNCH · picture ·
+     CLIENT in a row, the services and the description under them; the
+     pictures across the width */
+  .dt { --u: calc(100cqi / 358); --zoom-top: calc(44px + var(--u) * 100); }
+  .page-detail .cp-info { display: none; }
+  .dt-title { top: calc(var(--gutter) + 44px); width: calc(var(--u) * 358); font-size: calc(var(--u) * 56); }
+  .dt-facts {
+    top: calc(var(--gutter) + 44px + var(--u) * 100);
+    left: var(--gutter);
+    right: var(--gutter);
+    bottom: auto;
+    display: grid;
+    grid-template-columns: 1fr calc(var(--u) * 140) 1fr;
+    grid-template-areas: "launch ph client" "services services services" "desc desc desc";
+    align-items: start;
+    justify-items: center;
+    row-gap: 24px;
+  }
+  .dt-facts > * { position: static; transform: none; }
+  .dt-launch { grid-area: launch; margin-top: -0.16em; }
+  .dt-client { grid-area: client; margin-top: -0.16em; }
+  .dt-ph { grid-area: ph; width: 100%; height: auto; aspect-ratio: 2048 / 1277; }
+  .dt-services { grid-area: services; margin-top: -0.16em; }
+  .dt-desc { grid-area: desc; width: calc(var(--u) * 326); margin-top: -0.2em; }
+  /* the pictures run up under the menu row, not over it: the frame starts
+     40 down (the zoom target stays gutter + 44 + 100 down the screen) */
+  .dt-scroll { top: 40px; padding-top: 0; }
+  .dt-shots { width: 100%; gap: 12px; margin-top: calc(100svh + var(--gutter) + 4px + var(--u) * 100);
+              padding-bottom: max(0px, calc(100svh - 40px - var(--gutter) - 4px - var(--u) * 323)); }
+  .dt-thumbs img { width: 32px; height: 20px; }
+}
 /* About: its own scroll; past its ends the page goes on (about.js), so no
    rubber band or pull-to-refresh */
 html:has(body.page-about), body.page-about { overscroll-behavior-y: none; }
