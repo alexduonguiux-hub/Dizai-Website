@@ -25,7 +25,7 @@ PROJECTS = [
   dict(slug="viettel-tammi", key="tm", n=7, title="Tammi", width=942,
        desc="Viettel Tammi is an all-in-one super app and a new digital ecosystem developed by Viettel Telecom.",
        launch="2026", services=["UX Audit", "UX Improvement", "UI Design", "Design System"], client="Viettel Telecom"),
-  dict(slug="zen-design-system", key="zn", n=10, title="Zen Design System", width=1267,
+  dict(slug="zen-design-system", key="zn", n=11, title="Zen Design System", width=1267,
        desc="A scalable design system for agencies, enterprise platforms, and modern product teams. Built From Real Production Experience from design to code: Zen was shaped by the realities of scaling products, managing teams, and maintaining systems over time.",
        launch="2023", services=["Design System", "Codebase", "Canvas Studio Editor"], client="Đìzai Studio"),
 ]
