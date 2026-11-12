@@ -25,6 +25,28 @@
   var lerp = function (a, b, k) { return a + (b - a) * k; };
   var ease = gsap.parseEase("power2.inOut");
 
+  /* the menu and the contact block stay on top of the pictures and invert
+     where one passes under them, like the cursor and the marks: the real
+     one white in "difference", a twin on top in rgb(13 12 11)
+     "plus-lighter" (over the paper: the ink #1c1c1c; over ink: the paper;
+     over a picture: its negative) */
+  if (window.CSS && CSS.supports("mix-blend-mode", "plus-lighter")) {
+    q(".page-detail .site-nav, .dt-info").forEach(function (el) {
+      var tw = el.cloneNode(true);
+      tw.setAttribute("aria-hidden", "true");
+      [].forEach.call(tw.querySelectorAll("a"), function (a) { a.tabIndex = -1; });
+      [].forEach.call(tw.querySelectorAll("nav"), function (n) { n.removeAttribute("aria-label"); });
+      el.classList.add("is-invert");
+      tw.classList.add("is-tint");
+      el.parentNode.insertBefore(tw, el.nextSibling);
+      var real = el.querySelectorAll("a"), copy = tw.querySelectorAll("a");
+      [].forEach.call(real, function (a, i) {
+        a.addEventListener("pointerenter", function () { if (copy[i]) copy[i].classList.add("is-hover"); });
+        a.addEventListener("pointerleave", function () { if (copy[i]) copy[i].classList.remove("is-hover"); });
+      });
+    });
+  }
+
   var sc = one(".dt-scroll"), title = one(".dt-title"), ph = one(".dt-ph");
   var info = q(".dt-info").filter(function (el) { return el.getClientRects().length; });
   var facts = q(".dt-launch, .dt-client, .dt-services, .dt-desc");

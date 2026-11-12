@@ -763,8 +763,8 @@ body::after {
   padding: var(--gutter);
 }
 .ab-scroll::-webkit-scrollbar { display: none; }
-.page-about .is-invert { color: #fff; mix-blend-mode: difference; }
-.page-about .is-tint { color: rgb(13 12 11); mix-blend-mode: plus-lighter; pointer-events: none; }
+.page-about .is-invert, .page-detail .is-invert { color: #fff; mix-blend-mode: difference; }
+.page-about .is-tint, .page-detail .is-tint { color: rgb(13 12 11); mix-blend-mode: plus-lighter; pointer-events: none; }
 .ab-flow {
   display: flex;
   flex-direction: column;
@@ -972,11 +972,7 @@ body::after {
   .dt-ph { grid-area: ph; width: 100%; height: auto; aspect-ratio: 2048 / 1277; }
   .dt-services { grid-area: services; margin-top: -0.16em; }
   .dt-desc { grid-area: desc; width: calc(var(--u) * 326); margin-top: -0.2em; }
-  /* the pictures run up under the menu row, not over it: the frame starts
-     40 down (the zoom target stays gutter + 44 + 100 down the screen) */
-  .dt-scroll { top: 40px; padding-top: 0; }
-  .dt-shots { width: 100%; gap: 12px; margin-top: calc(100svh + var(--gutter) + 4px + var(--u) * 100);
-              padding-bottom: max(0px, calc(100svh - 40px - var(--gutter) - 4px - var(--u) * 323)); }
+  .dt-shots { width: 100%; gap: 12px; padding-bottom: max(0px, calc(100svh - 2 * var(--gutter) - var(--zoom-top) - var(--u) * 223)); }
   .dt-thumbs img { width: 32px; height: 20px; }
 }
 /* About: its own scroll; past its ends the page goes on (about.js), so no
