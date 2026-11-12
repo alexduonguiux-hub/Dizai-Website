@@ -771,7 +771,7 @@ body::after {
 .ab-line { display: block; position: relative; top: -0.01em; }
 /* IMPACTFULL in italic (the slant axis), two spaces after INTO */
 .ab-em { font-style: normal; font-variation-settings: "slnt" -10; margin-left: 0.25em; }
-.ab-photo-box { display: block; position: relative; }
+.ab-photo-box { display: block; position: relative; margin-top: calc(var(--u) * 39); } /* the gap is outside the box: the sheet covers the box */
 /* the photo hangs like a sheet of paper pinned at its top edge, as the
    Work pictures do (about.js; the arch is cut into the picture itself, so
    it keeps its shape as the paper bends) */
@@ -782,7 +782,6 @@ body::after {
   display: block;
   width: calc(var(--u) * 360);
   height: calc(var(--u) * 480);
-  margin-top: calc(var(--u) * 39);
   object-fit: cover;
   border-radius: 9999px 9999px 0 0; /* an arch: a half circle on top */
 }
@@ -793,15 +792,30 @@ body::after {
   flex-direction: column;
   gap: 16px;
 }
+.ab-end {
+  /* the end of the page is one screen, laid out like Contact: scrolled to
+     the end, SEND US YOUR PROBLEMS / HELLO@ / LINKEDIN ✱ FACEBOOK sit in
+     the middle of the screen (7 below it, as on Contact) and © 2024 on the
+     foot (the frame's padding below it) */
+  position: relative;
+  width: 100%;
+  height: calc(100svh - var(--gutter));
+  margin-top: calc(var(--u) * 9);
+}
 .ab-contact {
   --fs: calc(var(--u) * 172);
-  margin-top: calc(var(--u) * 260);
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50svh; /* the section starts at the top of the screen when scrolled to the end */
+  transform: translateY(-50%);
+  margin-top: calc(var(--u) * 7);
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: calc(var(--u) * 20);
 }
-.ab-copy { margin-top: calc(var(--u) * 179); }
+.ab-copy { position: absolute; left: 0; right: 0; bottom: 0; }
 .is-entering .ab { visibility: hidden; }
 /* coming from a page with the mark in the same place: it is there at once */
 .dz-keep-mark .cp-mark, .dz-keep-mark .ab-mark { visibility: visible; }
@@ -814,10 +828,11 @@ body::after {
   .page-about .cp-info { display: none; }
   .ab-title { font-size: calc(var(--u) * 70); gap: calc(var(--u) * 7); }
   .ab-em { display: block; margin: calc(var(--u) * 7) 0 0; font-variation-settings: normal; }
-  .ab-photo { width: calc(var(--u) * 171); height: calc(var(--u) * 228); margin-top: calc(var(--u) * 24); }
-  .ab-text { width: 100%; margin-top: calc(var(--u) * 24); }
-  .ab-contact { --fs: calc(var(--u) * 70); margin-top: calc(var(--u) * 240); gap: 12px; }
-  .ab-copy { margin-top: calc(var(--u) * 177); }
+  .ab-photo-box { margin-top: calc(var(--u) * 24); }
+  .ab-photo { width: calc(var(--u) * 171); height: calc(var(--u) * 228); }
+  .ab-text { width: calc(var(--u) * 326); margin-top: calc(var(--u) * 24); } /* 16 in on each side */
+  .ab-end { margin-top: calc(var(--u) * 60); }
+  .ab-contact { --fs: calc(var(--u) * 70); margin-top: 0; gap: 12px; }
 }
 /* About: its own scroll; past its ends the page goes on (about.js), so no
    rubber band or pull-to-refresh */
