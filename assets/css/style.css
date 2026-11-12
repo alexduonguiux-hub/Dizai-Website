@@ -3,25 +3,40 @@
    Desktop is a proportional scale of the Figma frame: every size is expressed as a
    fraction of the 1432 px content width (100cqi = body content box). */
 
+/* the upright file carries both axes, weight and slant (slnt 0 → −10 is
+   the italic), so links can lean over smoothly instead of jumping to the
+   italic font (dizai-serif v0.915, AnNamSerif[slnt,wght]) */
 @font-face {
   font-family: "AnNam Serif";
-  src: url("../fonts/AnNamSerif-VF.woff2?v=0.913") format("woff2");
+  src: url("../fonts/AnNamSerif-VF.woff2?v=0.915s") format("woff2");
   font-weight: 400 700;
   font-style: normal;
   font-display: block; /* no fallback-font flash on the loader count */
 }
 @font-face {
   font-family: "AnNam Serif";
-  src: url("../fonts/AnNamSerif-Italic-VF.woff2?v=0.913") format("woff2");
+  src: url("../fonts/AnNamSerif-Italic-VF.woff2?v=0.915") format("woff2");
   font-weight: 400 700;
   font-style: italic;
   font-display: block; /* no fallback-font flash on the loader count */
 }
 
+/* Dinh Tuong (alexduonguiux-hub/DinhTuong-Typeface v1.005, SIL OFL, see
+   DinhTuong-OFL.txt): the projects' one-line descriptions in Work */
+@font-face {
+  font-family: "Dinh Tuong";
+  src: url("../fonts/DinhTuong-Regular.woff2?v=1.005") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --paper: #f0efee;
-  --green-900: #215028;
-  --green-500: #749674;
+  /* Figma (37:… frames): black type on the paper */
+  --ink: #1c1c1c;
+  --grey: #929292;  /* EST 2024 and {SCROLL DOWN} on Home */
+  --pale: #cdcdcd;  /* the other projects' names in the Work list */
 
   --gutter: max(16px, calc(100vw * 40 / 1512));
   --text-sm: max(14px, calc(100vw * 20 / 1512));
@@ -46,7 +61,7 @@ body {
   padding: var(--gutter);
   container-type: inline-size;
   background: var(--paper);
-  color: var(--green-900);
+  color: var(--ink);
   font-family: "AnNam Serif", Georgia, serif;
   font-weight: 600;
   font-size: var(--text-sm);
@@ -61,7 +76,19 @@ ul { list-style: none; }
 address { font-style: normal; }
 
 a { color: inherit; text-decoration: none; }
-a:hover { font-style: italic; }
+/* links iOS adds by itself (data detectors) look like the text around them */
+a[x-apple-data-detectors] {
+  color: inherit !important;
+  text-decoration: none !important;
+  font: inherit !important;
+}
+/* hover: the letters lean over along the font's slant axis */
+@property --slnt { syntax: "<number>"; inherits: true; initial-value: 0; }
+a {
+  font-variation-settings: "slnt" var(--slnt);
+  transition: --slnt 0.35s cubic-bezier(0.3, 0.7, 0.2, 1);
+}
+a:hover, a.is-hover { --slnt: -10; } /* is-hover: a twin following a real link (about.js) */
 a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 
 .visually-hidden {
@@ -81,6 +108,40 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
   margin-bottom: -0.14em;
 }
 
+/* ---------- Grain ----------
+   A faint, single-tone film / paper grain over every page: a noise tile
+   (assets/img/noise.png, 192 px drawn at 64, so one grain is about one
+   screen pixel on a phone) that jumps to a new spot about ten times a
+   second. Under the cursor, above everything else; never takes a click. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: -160px;
+  z-index: 999;
+  pointer-events: none;
+  background: url("../img/noise.png?v=5") 0 0 / 64px 64px repeat;
+  /* mid-grey noise in "overlay": each grain lightens or darkens a little
+     around the colour under it, so on average every colour stays the
+     Figma one (paper #f0efee, ink #1c1c1c) instead of the whole page
+     going a shade darker */
+  mix-blend-mode: overlay;
+  animation: grain 0.9s steps(1) infinite;
+}
+@keyframes grain {
+  0%   { transform: translate(0, 0); }
+  11%  { transform: translate(-37px, 52px); }
+  22%  { transform: translate(61px, -18px); }
+  33%  { transform: translate(-84px, -71px); }
+  44%  { transform: translate(23px, 96px); }
+  55%  { transform: translate(-112px, 9px); }
+  66%  { transform: translate(78px, 64px); }
+  77%  { transform: translate(-15px, -103px); }
+  88%  { transform: translate(104px, 31px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  body::after { animation: none; }
+}
+
 /* ---------- Navigation ---------- */
 .site-nav {
   position: absolute;
@@ -89,9 +150,10 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
   z-index: 1;
 }
 .nav-list { text-align: right; }
-.nav-list a[aria-current="page"] { font-style: italic; }
+.nav-list a[aria-current="page"] { --slnt: -10; } /* leans over as the page changes */
 .nav-list a[aria-current="page"]::after,
-.nav-list a:hover::after {
+.nav-list a:hover::after,
+.nav-list a.is-hover::after {
   content: "←";
   /* AnNam Serif has no arrow glyph yet; use a system face for it */
   font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -136,7 +198,7 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  color: var(--green-500);
+  color: var(--grey); /* EST 2024 in grey (Figma 37:29667 / 37:31508) */
 }
 .seal {
   display: block;
@@ -166,7 +228,8 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
   position: absolute;
   right: 0;
   top: calc(100cqi * 231 / 1432 - 0.7em);
-  color: var(--green-500);
+  color: var(--grey);
+  font-variation-settings: "slnt" -10; /* {SCROLL DOWN}: SemiBold Italic */
 }
 
 /* ---------- Loading screen (Figma Loading 13:257, 1512 × 813) ----------
@@ -187,6 +250,8 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 }
 .is-loading.is-loaded .loader { opacity: 0; visibility: hidden; }
 
+/* LOADING... top left, level with the contact block's first line (Figma
+   13:257: both cap tops at y 40) */
 .loader-top {
   display: flex;
   justify-content: space-between;
@@ -213,7 +278,7 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 }
 /* desktop loader: the seal is drawn large, 381 px tall (Figma 17:323) */
 .loader-bottom .seal { height: calc(100cqi * 381 / 1432); }
-.loader-count { text-align: right; color: var(--green-500); }
+.loader-count { text-align: right; color: var(--ink); }
 
 /* Rolling count: each digit cell is a window; on change the old digit
    slides up and out while the new one slides up into place. The window clips
@@ -244,6 +309,7 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 .is-loading:not(.is-emerging) .site-nav,
 .is-loading:not(.is-emerging) .hero { visibility: hidden; }
 .is-emerging .loader { background: transparent; pointer-events: none; }
+.nav-wait .site-nav { visibility: hidden; } /* until the loader's text has rolled away (loader.js) */
 
 
 @media (prefers-reduced-motion: reduce) {
@@ -252,12 +318,12 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 }
 
 /* ---------- Cursor ----------
-   A dot in the text colour that inverts where it overlaps dark ink.
-   Two stacked dots compute out = (P + G) − backdrop per channel:
-   .cursor-invert  white, difference      → 255 − backdrop
-   .cursor-tint    rgb(18 64 23), plus-lighter → + (P + G − 255)
-   so paper #f0efee → ink #215028 and ink → paper, exactly. Light green
-   (#749674) comes out a light grey-green. Only for a fine pointer. */
+   A dot in the text colour that inverts where it overlaps the ink.
+   Two stacked dots compute out = (P + I) − backdrop per channel:
+   .cursor-invert  white, difference           → 255 − backdrop
+   .cursor-tint    rgb(13 12 11), plus-lighter → + (P + I − 255)
+   so paper #f0efee → ink #1c1c1c and ink → paper, exactly; over a picture
+   its negative. Only for a fine pointer. */
 .cursor { display: none; }
 @media (hover: hover) and (pointer: fine) {
   .has-cursor,
@@ -278,42 +344,36 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
   .has-cursor.cursor-on-link { --cursor-size: 48px; }
   .has-cursor.cursor-away .cursor { opacity: 0; }
   .cursor-invert { background: #fff; mix-blend-mode: difference; }
-  .cursor-tint   { background: rgb(18 64 23); mix-blend-mode: plus-lighter; }
+  .cursor-tint   { background: rgb(13 12 11); mix-blend-mode: plus-lighter; }
 }
 @media (prefers-reduced-motion: reduce) {
   .has-cursor .cursor { transition: opacity 0.2s; }
 }
 
-/* ---------- Rolling letters (assets/js/roll.js) ----------
-   Each letter is a window one line tall; the column of letters inside rolls
-   up through it (--r 0 → 1 = three rows up). */
+/* ---------- Letters rising (assets/js/roll.js) ----------
+   While text comes or goes, each letter is its own box (keeping its exact
+   advance, so the kerning holds) that roll.js moves up and blurs. */
 .rc {
   display: inline-block;
-  position: relative;
   text-align: center;
   white-space: nowrap;
-  clip-path: inset(-0.04em -0.06em); /* the window: the letter's own box */
 }
-.rc-w {
-  display: block;
-  transform: translateY(calc(var(--r, 0) * -3em));
-}
+/* letters in their own boxes may not wrap apart (the phone menu's narrow
+   columns broke "WORK" into "WOR / K"); the real line breaks are <br>s */
+.is-rolling { white-space: nowrap; }
+/* the big lines clip what overshoots their cap box; not while letters rise */
+.display.is-rolling { overflow: visible; }
 /* decorations that are not letters (the ✱ between LinkedIn and Facebook)
    fade while their text rolls */
 .is-rolling li + li::before { opacity: 0; transition: opacity 0.25s; }
-.rc-r {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  white-space: nowrap;
-}
-
+/* no underline drawn across the letter windows while they roll */
+.is-rolling, .is-rolling * { text-decoration: none !important; }
 /* ---------- Work (Figma Work-01 10:1481, Work-02 23:10013) ----------
    Units of the 1432 content width. Work-01: WORK at the bottom left, the
    "đs" mark top centre, SCROLL DOWN in the middle. Work-02: the projects
    (573 × 430) run up a column 40 apart, the current one's name beside it.
    Without JS the section simply follows Home in the page. */
-.work { --fs: calc(100cqi * 330 / 1432); --u: calc(100cqi / 1432); position: relative; margin-top: 15vh; }
+.work { --fs: calc(100cqi * 172 / 1432); --u: calc(100cqi / 1432); position: relative; margin-top: 15vh; }
 .work-mark {
   display: block;
   height: calc(var(--u) * 104);
@@ -321,17 +381,44 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
   margin: 0 auto;
 }
 .work-title { margin: 6vh 0; }
-.work-hint { display: none; color: var(--green-500); }
+.work-hint { display: none; color: var(--grey); }
 .work-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--gutter); }
-.work-caption { display: none; }
-.work-caption .wc-name { display: block; margin-top: -0.16em; margin-bottom: -0.14em; }
+/* the project names (Figma 29:24523): every project's name in pale green,
+   16 apart; the current one in ink with its line under it */
+.work-caption { display: none; text-wrap: pretty; } /* + no lone last word (work.js) */
+.wc-list { display: flex; flex-direction: column; gap: 16px; margin: 0; padding: 0; list-style: none; will-change: transform; }
+.wc-item { display: block; }
+.work-caption .wc-name { display: block; margin-top: -0.16em; margin-bottom: -0.14em; color: var(--pale); transition: color 0.3s; }
+.wc-item.is-active .wc-name { color: var(--ink); }
+/* the current project's kind (website, mobile application …), in the left
+   column on the line of its name (Figma 33:27045); not on phones */
+.wc-item { position: relative; }
+.wc-cat {
+  position: absolute;
+  left: calc(var(--u) * -368);
+  top: 0;
+  width: calc(var(--u) * 328);
+  margin-top: -0.16em;
+  color: var(--ink);
+}
+.wc-item:not(.is-active) .wc-cat { display: none; }
+@media (max-width: 720px) { .wc-cat { display: none; } }
+.wc-item:not(.is-active) .wc-desc { display: none; }
+/* the line under the name: AnNam Serif Regular 16 (Figma 23:22526), line
+   height 1.1, trimmed to cap height / baseline like the rest (half-leading
+   0.05em) */
 .work-caption .wc-desc {
   display: block;
-  margin-top: calc(6px - 0.16em);
-  margin-bottom: -0.14em;
-  color: var(--green-500);
-  font-size: calc(var(--text-sm) * 1.2);
-  font-style: italic;
+  /* trimmed to cap top / baseline for Dinh Tuong's metrics (ascender 1050,
+     descender 350, cap 700; line height 1.1): 0.2em above and below */
+  margin-top: calc(6px - 0.2em);
+  margin-bottom: -0.2em;
+  color: var(--ink);
+  font-family: "Dinh Tuong", "AnNam Serif", Georgia, serif; /* Figma 37:29810: Dinh Tuong Regular 16 */
+  font-variation-settings: normal;
+  font-size: calc(var(--text-sm) * 0.8);
+  line-height: 1.1;
+  font-style: normal;
   font-weight: 400;
   text-transform: none;
 }
@@ -382,8 +469,12 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
     padding: var(--gutter);
     container-type: inline-size;
     overflow: hidden;
+    background: var(--paper); /* the Work mark's blend needs the paper under it */
   }
-  .has-scrub .scroll-space { display: block; height: 760svh; } /* room for the endless list's wrap-round */
+  /* no scrollbar: work.js turns wheel, swipes and keys into the moves
+     between Home, Work and Contact, and into running the projects */
+  html.has-scrub, .has-scrub body { overflow: hidden; overscroll-behavior: none; }
+  .has-scrub .stage { touch-action: none; }
 
   .has-scrub .work { position: absolute; inset: var(--gutter); margin: 0; pointer-events: none; }
   /* logo mark, top centre (Figma: 83 × 104 at y 39), over the pictures */
@@ -398,6 +489,12 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
   /* WORK at the bottom left (work.js sets its height on the page) */
   .has-scrub .work-title { position: absolute; left: 0; top: 0; margin: 0; visibility: hidden; }
   .has-scrub .work-title.is-on, .has-scrub .work-mark.is-on { visibility: visible; }
+  /* the mark inverts over the pictures (work.js adds the two copies) */
+  .has-scrub .work-mark--invert { mix-blend-mode: difference; }
+  .has-scrub .work-mark--tint { mix-blend-mode: plus-lighter; }
+  .work-mark--tint { display: none; }
+  .has-scrub .work-mark--tint { display: block; }
+
   /* SCROLL DOWN, centred, cap top 296 units down */
   .has-scrub .work-hint {
     display: block;
@@ -418,7 +515,8 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
     opacity: 0;
   }
   .has-scrub .work-card.is-on { pointer-events: auto; }
-  /* the current project's name and line, bottom-aligned with its picture */
+  /* the names, beside the pictures: three above the current one, three
+     below, the list's foot level with the first picture's (Figma 219–430) */
   .has-scrub .work-caption {
     display: block;
     position: absolute;
@@ -430,27 +528,97 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
   /* what moves with the scroll gets its own GPU layer */
   .has-scrub .hero .contact, .has-scrub .work-title, .has-scrub .work-card { will-change: transform; }
 }
+/* Desktop layout on a tall screen (an iPad held upright): Home's type block
+   is sized by the width, so it sits in the middle of the height instead of
+   leaving the bottom half empty (on a 1512 × 813 screen this is 0) */
+@media (min-width: 721px) {
+  .has-scrub .hero { margin-top: max(0px, calc((100svh - 2 * var(--gutter) - 100cqi * 733 / 1432) / 2)); }
+}
 /* Mobile Work (Figma Work-01 22:3, Work-02 22:66, 390 × 844; units of 358):
-   WORK (96) stays at the bottom, the "đs" mark (51 × 64) under the contact
-   block; the projects (350 × 262) run right to left 16 apart, the current
-   one's name centred under them */
+   no contact block; the "đs" mark (51 × 64) right under the menu. Work-01:
+   WORK (66) in the middle, SCROLL DOWN at the bottom. Work-02: WORK rises
+   under the mark, the projects (350 × 262) run right to left 8 apart under
+   it; under them the current project's name and line, then the next four
+   names (Figma 29:24528) */
 @media (max-width: 720px) {
-  .work { --fs: calc(100cqi * 96 / 358); --u: calc(100cqi / 358); }
+  .work { --fs: calc(100cqi * 70 / 358); --u: calc(100cqi / 358); } /* WORK 70 (Figma 37:31645) */
   .work-mark { height: calc(var(--u) * 64); }
   .work-list { grid-template-columns: 1fr; }
   .has-scrub .stage { display: flex; flex-direction: column; }
-  .has-scrub .work-mark { top: 124px; left: calc(50% - var(--u) * 25.5); } /* under the contact block (px text) */
+  .has-scrub .work-mark { top: 44px; left: calc(50% - var(--u) * 25.5); } /* 30px under the menu (px text) */
   .has-scrub .work-title { right: 0; text-align: center; }
-  .has-scrub .work-hint { display: none; }
-  .has-scrub .work-card { left: 0; width: calc(var(--u) * 350); }
+  .has-scrub .work-hint { top: auto; bottom: 27px; } /* Figma 23:23274: cap bottom 43px from the screen's */
+  .has-scrub .work-card { left: 0; width: calc(var(--u) * 350 * var(--cs, 1)); } /* --cs: smaller on short screens (work.js) */
   .has-scrub .work-caption {
     left: 0;
     width: 100%;
-    top: var(--cap-top, calc(var(--u) * 534));
+    /* 40 under the pictures; work.js sets the spot */
+    top: var(--cap-top, calc(var(--u) * 551));
     transform: none;
     text-align: center;
   }
 }
+
+/* ---------- Contact (Figma Contact 10:1546, 1512 × 813) ----------
+   Units of the 1432 content width. In the middle, 20 apart: SEND US YOUR
+   PROBLEMS, HELLO@ / DIZAI.STUDIO on two lines (Regular 172, ink, line
+   height 0.8), LINKEDIN ✱ FACEBOOK; the "đs" mark top centre, the contact
+   block top left, © 2024 at the bottom. */
+.cp { --u: calc(100cqi / 1432); --fs: calc(var(--u) * 172); position: relative; min-height: calc(100svh - 2 * var(--gutter)); }
+.cp-mark {
+  position: absolute;
+  left: calc(50% - var(--u) * 41.5);
+  top: calc(var(--u) * -1);
+  height: calc(var(--u) * 104);
+  width: auto;
+}
+.page-contact .cp-info { top: 0; }
+.cp-center {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-top: calc(var(--u) * 7); /* Figma: the group sits 7 below the middle */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--u) * 20);
+  text-align: center;
+}
+.cp-big {
+  font-size: var(--fs);
+  font-weight: 400;
+  line-height: 0.7;       /* box = cap height, like .display */
+  white-space: nowrap;
+  position: relative;
+  top: -0.01em;
+}
+/* (no clipping here, unlike .display: the @ hangs well below the baseline) */
+/* the email on two lines, HELLO@ / DIZAI.STUDIO (line height 0.8: 0.1em
+   between the cap boxes); a phone breaks DIZAI. / STUDIO too */
+.cp-email a { display: flex; flex-direction: column; align-items: center; gap: 0.1em; }
+/* lines are plain blocks: their letters (split into boxes while they move)
+   must stay inline, never flex items — on a phone a column flex stacked
+   HELLO@ one letter per line */
+.cp-email .cp-l { display: block; text-align: center; }
+.cp-email .cp-p { display: inline; }
+.cp-social { display: flex; justify-content: center; gap: 8px; }
+.cp-social li { display: flex; align-items: center; gap: 8px; }
+.cp-social li + li::before {
+  content: url("../img/star.svg?v=2");
+  display: block;
+  width: 10px;
+  height: 10px;
+  line-height: 0;
+}
+.cp-copy { position: absolute; left: 0; right: 0; bottom: 0; text-align: center; }
+/* contact.js rolls everything in; until then nothing shows (a timer in
+   the page's head lifts this if the script never runs) */
+.is-entering .site-nav, .is-entering .cp { visibility: hidden; }
+/* back on Home from another page: hidden until work.js has its letters
+   ready to roll in (a timer in the head lifts it if the script never runs) */
+.is-return:not(.is-back) .site-nav, .is-return:not(.is-back) .hero { visibility: hidden; }
 
 /* ---------- Mobile (Figma Home 13:8, 390 × 844) ---------- */
 @media (max-width: 720px) {
@@ -462,41 +630,43 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
     flex-direction: column;
   }
 
-  /* Nav: one row, three equal columns (left / centre / right);
-     the current page's arrow moves in front: →HOME */
+  /* Nav: one row, HOME · ABOUT · WORK · CONTACT spread edge to edge
+     (Figma 32:24559); the current page's arrow moves in front: →HOME */
   .site-nav { left: var(--gutter); }
-  .nav-list { display: flex; }
-  .nav-list li { flex: 1 1 0; text-align: center; }
-  .nav-list li:first-child { text-align: left; }
-  .nav-list li:last-child { text-align: right; }
+  .nav-list { display: flex; justify-content: space-between; }
+  .nav-list li { flex: none; }
   .nav-list a[aria-current="page"]::after,
-  .nav-list a:hover::after { content: none; }
+  .nav-list a:hover::after,
+  .nav-list a.is-hover::after { content: none; }
   .nav-list a[aria-current="page"]::before,
-  .nav-list a:hover::before {
+  .nav-list a:hover::before,
+  .nav-list a.is-hover::before {
     content: "→";
     font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
     font-style: normal;
     font-weight: 400;
   }
 
-  /* type block centred in the screen, clear of the contact block
-     (top at gutter + 46px, 3 lines = 54px) and the social block */
+  /* type block 25px below the screen's middle (Figma 13:212: centred at
+     50% + 25), clear of the contact block (top at gutter + 30px, 3 lines =
+     54px) and the social block */
   .hero {
     position: static;
     flex: 1;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding-block: calc(var(--gutter) + 46px + 54px + 16px);
+    padding-block: calc(var(--gutter) + 30px + 54px + 16px + 50px) calc(var(--gutter) + 30px + 54px + 16px);
   }
 
-  /* Four rows at 96px on 358 (Figma 13:8): every row centred,
-     seal + EST 8px apart, 2024 on its own row. On short screens the size
-     also follows the height, so the block (≈ 3.05 × size + 110px with the
-     services) always clears the contact block and SCROLL DOWN. */
+  /* Four rows at 110px on 358 (Figma 13:8: rows 77 tall), every row
+     centred, 8 apart, seal + EST 8px apart, 2024 on its own row. On short
+     screens the size also follows the height, so the block (≈ 2.98 × size
+     + 110px with the services) always clears the contact block and SCROLL
+     DOWN. */
   .type {
-    --fs: max(48px, min(calc(100cqi * 96 / 358), calc((100svh - 390px) / 3.05)));
-    --gap: calc(var(--fs) * 8 / 96);
+    --fs: max(48px, min(calc(100cqi * 110 / 358), calc((100svh - 392px) / 2.98)));
+    --gap: calc(var(--fs) * 8 / 110);
     row-gap: var(--gap);
   }
   .line-design, .line-studio { align-self: center; }
@@ -521,7 +691,7 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
     right: var(--gutter);
     text-align: center;
   }
-  .contact { top: calc(var(--gutter) + 46px); }
+  .contact { top: calc(var(--gutter) + 30px); } /* 16 under the menu (Figma 13:129) */
 
   /* social: one centred row, LINKEDIN ✱ FACEBOOK, 6px either side of the star */
   .social {
@@ -542,14 +712,302 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
     text-align: center;
   }
   .social li + li::before {
-    content: url("../img/star.svg");
+    content: url("../img/star.svg?v=2");
     display: block;
     width: 10px;
     height: 10px;
     line-height: 0;
   }
 
-  /* Loader: no mobile frame in Figma; the count uses the mobile display size */
-  .loader-bottom { --fs: calc(100cqi * 96 / 358); }
-  .loader-bottom .seal { height: calc(var(--fs) * 0.7); } /* no mobile frame: keep it row height */
+  /* Loader (Figma Loading 29:24425, 390 × 844): LOADING... top left beside
+     the contact block, the seal (232 × 269) in the middle of the screen,
+     100% (160) at the bottom right */
+
+  /* Contact on a phone (Figma Contact 32:24558, 390 × 844): the mark under
+     the menu, no small contact block; in the middle, 12 apart: SEND US YOUR
+     PROBLEMS, HELLO@ / DIZAI. / STUDIO on three lines (Regular 70, line
+     height 0.8: 0.1em between), LinkedIn ✱ Facebook */
+  .cp { --fs: calc(100cqi * 70 / 358); }
+  .cp-mark { top: 44px; left: calc(50% - 100cqi * 25.5 / 358); height: calc(100cqi * 64 / 358); }
+  .page-contact .cp-info { display: none; }
+  .cp-center { gap: 12px; margin-top: 0; }
+  .cp-email a { gap: 0.1em; }
+  .cp-email .cp-p { display: block; }
+  .cp-email .cp-p + .cp-p { margin-top: 0.1em; }
 }
+/* ---------- About (Figma 35:29437, 1512 × 2101; mobile 35:29599) ----------
+   A long page in units of the 1432 content width: MAKE IDEAS / INTO
+   IMPACTFULL / EXPERIENCES (Regular 172, line height 0.8: 18 between the
+   cap boxes), the arched photo of Saigon (360 × 480), two lines about the
+   studio, then SEND US YOUR PROBLEMS, HELLO@ / DIZAI.STUDIO (172) and
+   LINKEDIN ✱ FACEBOOK as on Contact, © 2024 at the foot. The contact block
+   top left, the "đs" mark top centre and the menu stay at the top. */
+.ab { --u: calc(100cqi / 1432); position: relative; }
+/* the menu, the mark and the contact block stay put at the top, always
+   shown; the rest scrolls in its own frame under them. Where it passes
+   under them they invert, like the Work mark and the cursor (about.js
+   gives each a twin): white in "difference" + rgb(13 12 11) in
+   "plus-lighter" reads ink over the paper and paper over the ink */
+.page-about .site-nav { z-index: 3; }
+.ab-mark { top: 0; z-index: 2; }
+.page-about .cp-info { top: 0; z-index: 2; }
+.ab-scroll {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: var(--gutter);
+}
+.ab-scroll::-webkit-scrollbar { display: none; }
+.page-about .is-invert, .page-detail .is-invert { color: #fff; mix-blend-mode: difference; }
+.page-about .is-tint, .page-detail .is-tint { color: rgb(13 12 11); mix-blend-mode: plus-lighter; pointer-events: none; }
+.ab-flow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding-top: calc(var(--u) * 144); /* the title's cap top 184 down the page */
+}
+.ab-title {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--u) * 18);
+  font-size: calc(var(--u) * 172);
+  font-weight: 400;
+  line-height: 0.7;          /* box = cap height, like .display */
+  white-space: nowrap;
+}
+.ab-line { display: block; position: relative; top: -0.01em; }
+.ab-br-m { display: none; } /* a line break only on phones */
+/* IMPACTFULL in italic (the slant axis), two spaces after INTO */
+.ab-em { font-style: normal; font-variation-settings: "slnt" -10; margin-left: 0.25em; }
+.ab-photo-box { display: block; position: relative; margin-top: calc(var(--u) * 39); } /* the gap is outside the box: the sheet covers the box */
+/* the photo hangs like a sheet of paper pinned at its top edge, as the
+   Work pictures do (about.js; the arch is cut into the picture itself, so
+   it keeps its shape as the paper bends) */
+.ab-photo-box.has-sheet { perspective: 1100px; }
+.ab-photo-box.has-sheet .ab-photo { visibility: hidden; }
+.ab-photo-box.is-flat .ab-photo { transform-origin: 50% 0; will-change: transform; }
+.ab-photo {
+  display: block;
+  width: calc(var(--u) * 360);
+  height: calc(var(--u) * 480);
+  object-fit: cover;
+  border-radius: 9999px 9999px 0 0; /* an arch: a half circle on top */
+}
+.ab-text {
+  width: calc(var(--u) * 450);
+  margin-top: calc(var(--u) * 40);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.ab-end {
+  /* the end of the page is one screen, laid out like Contact: scrolled to
+     the end, SEND US YOUR PROBLEMS / HELLO@ / LINKEDIN ✱ FACEBOOK sit in
+     the middle of the screen (7 below it, as on Contact) and © 2024 on the
+     foot (the frame's padding below it) */
+  position: relative;
+  width: 100%;
+  height: calc(100svh - var(--gutter));
+  margin-top: calc(var(--u) * 9);
+}
+.ab-contact {
+  --fs: calc(var(--u) * 172);
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50svh; /* the section starts at the top of the screen when scrolled to the end */
+  transform: translateY(-50%);
+  margin-top: calc(var(--u) * 7);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--u) * 20);
+}
+.ab-copy { position: absolute; left: 0; right: 0; bottom: 0; }
+.is-entering .ab { visibility: hidden; }
+/* coming from a page with the mark in the same place: it is there at once */
+.dz-keep-mark .cp-mark, .dz-keep-mark .ab-mark { visibility: visible; }
+@media (max-width: 720px) {
+  /* phone (units of 358): the title on four lines (70, 7 apart), the
+     photo 171 × 228, everything 24 apart; the email on three lines (70) */
+  .ab { --u: calc(100cqi / 358); }
+  .ab-flow { padding-top: calc(var(--u) * 138); }
+  .ab-mark { top: 44px; }
+  .page-about .cp-info { display: none; }
+  .ab-title { font-size: calc(var(--u) * 70); gap: calc(var(--u) * 7); }
+  .ab-em { display: block; margin: calc(var(--u) * 7) 0 0; } /* IMPACTFULL on its own line, still italic (Figma 37:31619) */
+  .ab-br-m { display: inline; } /* … top-tier / designers from Vietnam. */
+  .ab-photo-box { margin-top: calc(var(--u) * 24); }
+  .ab-photo { width: calc(var(--u) * 171); height: calc(var(--u) * 228); }
+  .ab-text { width: calc(var(--u) * 326); margin-top: calc(var(--u) * 24); } /* 16 in on each side */
+  .ab-end { margin-top: calc(var(--u) * 60); }
+  .ab-contact { --fs: calc(var(--u) * 70); margin-top: 0; gap: 12px; }
+}
+/* ---------- Project pages (Figma Work-Detail-00 … 03, 10:1738 …) ----------
+   Built by tools/build-details.py, moved by assets/js/detail.js. Units of
+   the 1432 content width (origin: the content's top left, gutter in):
+   the title (Medium 155, line height 0.8, at most --tw wide) on top in the
+   columns (942 wide, from 245); 20 under it LAUNCH · services · CLIENT
+   across those columns, 20 under that the description (450 wide); the
+   small picture slot on the foot (613, 206 × 129). Scrolling one screen grows
+   the first picture into place (368, 283, 696 × 434, the column of
+   pictures, 12 apart) while the facts roll away; the column then runs up
+   over the title, which sinks back. Thumbnails bottom right. */
+.dt { position: relative; --u: calc(100cqi / 1432); --zoom-top: calc(var(--u) * 283); }
+.page-detail .site-nav { z-index: 3; }
+.page-detail .cp-info { top: 0; z-index: 3; }
+/* the title keeps to the same columns on every project (942 wide, from
+   245: Figma 10:1880); a longer name runs onto more lines. LAUNCH ·
+   services · CLIENT across those columns with the description 20 under
+   them sit in the middle between the title and the small picture
+   (detail.js sets --dt-title-bottom for any number of lines) */
+.dt-title {
+  position: fixed;
+  z-index: 0;
+  top: var(--gutter);
+  left: calc(var(--gutter) + var(--u) * 245);
+  width: calc(var(--u) * 942);
+  margin: -0.06em 0 0; /* cap top on the line (line height 0.8) */
+  font-size: calc(var(--u) * 155);
+  font-weight: 500;
+  line-height: 0.8;
+  text-align: center;
+}
+.dt-facts {
+  position: fixed;
+  z-index: 0;
+  /* the column is the screen's height: the title on top, the picture on the
+     foot, this block centred in the room between them (Figma 49:17860,
+     justify: space-between) */
+  top: var(--dt-title-bottom, 280px);
+  bottom: calc(var(--gutter) + var(--u) * 129);
+  left: calc(var(--gutter) + var(--u) * 245);
+  width: calc(var(--u) * 942);
+  pointer-events: none;
+  display: grid;
+  align-content: safe center;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-areas: "launch services client" "desc desc desc";
+  column-gap: 4px;
+  row-gap: calc(var(--u) * 20);
+  align-items: start;
+  text-align: center;
+}
+.dt-facts > * { margin-block: 0; white-space: nowrap; }
+.dt-launch { grid-area: launch; justify-self: start; margin-top: -0.16em; }
+.dt-services { grid-area: services; justify-self: center; margin-top: -0.16em; }
+.dt-client { grid-area: client; justify-self: end; margin-top: -0.16em; }
+/* the small picture on the foot of the screen (613, 644 → 773; 206 × 129) */
+.dt-facts > .dt-ph {
+  position: fixed;
+  left: calc(var(--gutter) + var(--u) * 613);
+  bottom: var(--gutter);
+  width: calc(var(--u) * 206);
+  height: calc(var(--u) * 129);
+}
+.dt-desc {
+  grid-area: desc;
+  justify-self: center;
+  width: calc(var(--u) * 450);
+  margin-top: -0.2em;
+  white-space: normal;
+  font-family: "Dinh Tuong", "AnNam Serif", Georgia, serif;
+  font-variation-settings: normal;
+  font-weight: 400;
+  font-size: calc(var(--text-sm) * 0.8);
+  line-height: 1.1;
+  text-transform: none;
+}
+.dt-scroll {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: none;
+  scrollbar-width: none;
+  padding: var(--gutter);
+}
+.dt-scroll::-webkit-scrollbar { display: none; }
+.dt-shots {
+  width: calc(var(--u) * 696);
+  margin: calc(100svh + var(--zoom-top)) auto 0; /* one screen of scroll to grow the first picture */
+  /* room after the last picture so it too can reach the top place */
+  padding-bottom: max(0px, calc(100svh - 2 * var(--gutter) - var(--zoom-top) - var(--u) * 434));
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--u) * 12);
+}
+.dt-shot { position: relative; margin: 0; transform-origin: 0 0; }
+.dt-img { display: block; width: 100%; height: auto; aspect-ratio: 2048 / 1277; }
+.dt-shot.has-sheet { perspective: 1100px; }
+.dt-shot.has-sheet .dt-img { visibility: hidden; }
+.dt-shot.is-flat .dt-img { transform-origin: 50% 0; }
+.dt-thumbs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  position: fixed;
+  z-index: 3;
+  right: var(--gutter);
+  bottom: var(--gutter);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.dt-thumbs button {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  opacity: 0.35;
+  transition: opacity 0.3s;
+}
+.dt-thumbs button.is-on, .dt-thumbs button:hover { opacity: 1; }
+.dt-thumbs img { display: block; width: calc(var(--u) * 53); height: calc(var(--u) * 33); object-fit: cover; }
+.is-entering .dt, .is-entering .page-detail .site-nav { visibility: hidden; }
+@media (max-width: 720px) {
+  /* phone (Figma Work-Detail-00 mobile 41:5180, units of 358): the title
+     (Regular 70) 54 down; 20 under it LAUNCH · CLIENT side by side, the
+     services, the description (all 20 apart, centred); the small picture
+     (206 × 129) centred on the foot, 16 up. detail.js sets
+     --dt-title-bottom, as the title runs to as many lines as it needs */
+  .dt { --u: calc(100cqi / 358); --zoom-top: 38px; }
+  .page-detail .cp-info { display: none; }
+  .dt-title { top: calc(var(--gutter) + 38px); left: var(--gutter); width: calc(var(--u) * 358); font-size: calc(var(--u) * 70); font-weight: 400; }
+  .dt-facts {
+    top: calc(var(--dt-title-bottom, 300px) + 20px);
+    bottom: auto;
+    align-content: start;
+    left: var(--gutter);
+    width: auto;
+    right: var(--gutter);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas: "launch client" "services services" "desc desc";
+    column-gap: 20px;
+    row-gap: 20px;
+    align-items: start;
+    justify-items: center;
+  }
+  .dt-launch, .dt-client, .dt-services { justify-self: center; }
+  .dt-desc { width: 100%; }
+  .dt-facts > .dt-ph { left: calc(50% - var(--u) * 103); }
+  .dt-shots { width: 100%; gap: 12px; padding-bottom: max(0px, calc(100svh - 2 * var(--gutter) - var(--zoom-top) - var(--u) * 223)); }
+  .dt-thumbs img { width: 32px; height: 20px; }
+}
+/* About: its own scroll; past its ends the page goes on (about.js), so no
+   rubber band or pull-to-refresh */
+html:has(body.page-about), body.page-about { overscroll-behavior-y: none; }
+/* Contact: pulling down from the top goes back to Work (contact.js), not
+   the phone's pull-to-refresh */
+html:has(body.page-contact), body.page-contact { overscroll-behavior-y: none; }
