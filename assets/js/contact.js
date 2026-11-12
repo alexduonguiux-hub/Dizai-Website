@@ -18,10 +18,13 @@
   var boxes = [".cp-mark"].reduce(function (all, s) { return all.concat(q(s)); }, []);
   var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+  // from Work / About the mark was already here: it stays and turns over
+  var keepMark = Roll.takeFlip && Roll.takeFlip();
   function enter() {
     var rs = texts.map(function (el) { var r = Roll.text(el, "in"); r.set(0); return r; })
-      .concat(boxes.map(function (el) { var r = Roll.box(el, "in"); r.set(0); return r; }));
+      .concat(keepMark ? [] : boxes.map(function (el) { var r = Roll.box(el, "in"); r.set(0); return r; }));
     done();
+    if (keepMark) Roll.flip(boxes);
     if (reduce) { rs.forEach(function (r) { r.set(1); }); return; }
     rs.forEach(function (r, i) {
       var o = { v: 0 };

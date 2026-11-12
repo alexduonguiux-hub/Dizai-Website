@@ -203,8 +203,46 @@
     return cs.visibility !== "hidden" && +cs.opacity > 0.05 &&
            r.bottom > 0 && r.top < innerHeight && r.right > 0 && r.left < innerWidth;
   }
+  /* The small "đs" mark sits in the same place on About, Work and
+     Contact. Going from one of them to another it stays where it is (it
+     does not roll away and back): the next page turns it over once
+     (flip()). A note in sessionStorage carries that across the page load. */
+  var MARK = ".ab-mark, .cp-mark, .work-mark";
+  function hasMark(href) {
+    var u = new URL(href, location.href);
+    return /\/(about|contact)\/?$/.test(u.pathname) || u.hash === "#work";
+  }
+  function flipNext() { try { sessionStorage.setItem("dz-flip", "1"); } catch (e) {} }
+  function takeFlip() {
+    try { var f = sessionStorage.getItem("dz-flip") === "1"; sessionStorage.removeItem("dz-flip"); return f; }
+    catch (e) { return false; }
+  }
+  // one full turn about the upright axis, like a coin given a flick: it
+  // picks up speed, spins, slows down against friction and settles with
+  // a last small rock
+  function flip(els) {
+    var gsap = window.gsap;
+    els = (els || []).filter(Boolean);
+    if (!gsap || !els.length || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (window.CustomEase && !gsap.parseEase("dz.flip")) {
+      window.CustomEase.create("dz.flip", "M0,0 C0.3,0 0.38,0.62 0.56,0.92 0.66,1.06 0.8,1.012 0.88,0.997 0.94,0.99 0.97,1 1,1");
+    }
+    var ease = gsap.parseEase("dz.flip") || "power3.inOut";
+    gsap.fromTo(els, { rotationY: 0, transformPerspective: 700 },
+                     { rotationY: 360, duration: 1.5, ease: ease, overwrite: "auto",
+                       onComplete: function () { gsap.set(els, { clearProps: "transform" }); } });
+  }
+
   function leave(href, pieces, boxes) {
     var gsap = window.gsap, reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    // to a page with the mark in the same place: the mark stays
+    if (hasMark(href)) {
+      var kept = (boxes || []).filter(function (el) { return el && el.matches && el.matches(MARK) && shown(el); });
+      if (kept.length) {
+        flipNext();
+        boxes = boxes.filter(function (el) { return kept.indexOf(el) < 0; });
+      }
+    }
     if (!gsap || reduce) { location.href = href; return; }
     var rs = pieces.filter(function (el) { return shown(el) && !el.classList.contains("is-rolling"); })
                    .map(function (el) { return text(el, "out"); })
@@ -216,5 +254,5 @@
     setTimeout(go, 1200); // never get stuck here
   }
 
-  window.DzRoll = { text: text, box: box, leave: leave };
+  window.DzRoll = { text: text, box: box, leave: leave, flip: flip, takeFlip: takeFlip };
 })();

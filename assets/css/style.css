@@ -784,6 +784,8 @@ body::after {
 }
 .ab-copy { margin-top: calc(var(--u) * 179); }
 .is-entering .ab { visibility: hidden; }
+/* coming from a page with the mark in the same place: it is there at once */
+.dz-keep-mark .cp-mark, .dz-keep-mark .ab-mark { visibility: visible; }
 @media (max-width: 720px) {
   /* phone (units of 358): the title on four lines (70, 7 apart), the
      photo 171 × 228, everything 24 apart; the email on three lines (70) */

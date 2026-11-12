@@ -619,6 +619,8 @@
     var toWork = location.hash === "#work" || !!(nav && nav.type === "reload" && saved && saved.p === 1);
     if (saved && typeof saved.l === "number" && (toWork || (nav && nav.type === "reload"))) listT = listS = prevS = saved.l;
     if (location.hash) history.replaceState(null, "", location.pathname);
+    // from About / Contact the mark was already there: it stays and turns over
+    var keepMark = Roll.takeFlip && Roll.takeFlip();
     if (toWork && tl) {
       // every piece is put at Work before anything shows, then Work's own
       // pieces come in
@@ -627,7 +629,8 @@
       if (curSettle) curSettle();
       var inWork = [title].concat(G.contactY ? [contact] : [])
         .map(function (el) { var r = Roll.text(el, "in"); r.set(0); return r; })
-        .concat(marks.map(function (m) { var r = Roll.box(m, "in"); r.set(0); return r; }));
+        .concat(keepMark ? [] : marks.map(function (m) { var r = Roll.box(m, "in"); r.set(0); return r; }));
+      if (keepMark) Roll.flip(marks);
       gsap.fromTo(q(".work-list"), { autoAlpha: 0, y: 24 },
                   { autoAlpha: 1, y: 0, duration: reduce ? 0.01 : 0.9, delay: reduce ? 0 : 0.15, ease: "power2.out",
                     clearProps: "transform" });

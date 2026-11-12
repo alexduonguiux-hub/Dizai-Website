@@ -56,10 +56,13 @@
     play(p.r, 0.08 * queued++);
   }
 
+  // from Work / Contact the mark was already here: it stays and turns over
+  var keepMark = Roll.takeFlip && Roll.takeFlip();
   function enter() {
     var top = frame.map(function (el) { var r = Roll.text(el, "in"); r.set(0); return r; })
-      .concat(marks.map(function (el) { var r = Roll.box(el, "in"); r.set(0); return r; }));
+      .concat(keepMark ? [] : marks.map(function (el) { var r = Roll.box(el, "in"); r.set(0); return r; }));
     done();
+    if (keepMark) Roll.flip(marks);
     top.forEach(function (r, i) { play(r, 0.1 + i * 0.07); });
     if ("IntersectionObserver" in window) {
       var io = new IntersectionObserver(function (entries) {
@@ -81,8 +84,9 @@
 
   /* ---------- fading out under the top ----------
      Each piece fades (as a whole) with the scroll as it rises past the
-     "đs" mark: still solid with its top at the mark's foot, gone once it
-     reaches the mark's top, and back again the same way coming down. */
+     "đs" mark: solid until its top reaches the mark's top, fading from
+     there to gone at the top of the screen, and back again the same way
+     coming down. */
   var fades = q(".ab-line, .ab-photo-box, .ab-text p, .ab-contact .cp-kicker, .ab-contact .cp-l, .ab-contact .cp-social, .ab-copy")
     .filter(shown).map(function (el) { return { el: el, o: -1 }; });
   var flow = document.querySelector(".ab-flow");
@@ -90,11 +94,10 @@
     // from the layout, not the box on screen: the mark may be mid-rise
     var m = marks[0], box = m && m.offsetParent;
     if (m && box && m.offsetHeight) {
-      var top = box.getBoundingClientRect().top + m.offsetTop;
-      return { top: top, foot: top + m.offsetHeight };
+      // solid until its top reaches the mark's top, gone at the top of the screen
+      return { top: 0, foot: box.getBoundingClientRect().top + m.offsetTop };
     }
-    var foot = parseFloat(getComputedStyle(sc).paddingTop) + (flow ? parseFloat(getComputedStyle(flow).paddingTop) : 0) - 2;
-    return { top: foot - 100, foot: foot };
+    return { top: 0, foot: parseFloat(getComputedStyle(sc).paddingTop) };
   }
   var band = fadeBand(), fadeRaf = 0;
   function fadeCheck() {
