@@ -387,18 +387,25 @@
      them with no pause, are dropped; once the wheel has been still for a
      moment (or the first one comes late) scrolling works as usual. */
   (function () {
-    var t0 = performance.now(), last = 0, armed = true;
-    window.addEventListener("wheel", function (e) {
-      if (!armed) return;
+    // (passive: the browser never waits on it, so scrolling stays smooth;
+    // it only keeps the page's own handlers from taking the tail as a new
+    // push, and it is removed once that tail is over)
+    var t0 = performance.now(), last = 0, opts = { capture: true, passive: true };
+    function done() { window.removeEventListener("wheel", hold, opts); }
+    function hold(e) {
       var now = performance.now();
-      if (now - t0 < 700 || now - last < 260) {
+      if (now - t0 < 700 || now - last < 400) {
         last = now;
-        e.preventDefault();
         e.stopImmediatePropagation();
         return;
       }
-      armed = false;
-    }, { capture: true, passive: false });
+      done();
+    }
+    window.addEventListener("wheel", hold, opts);
+    // nothing coming in after the first moments: gone without a wheel event
+    (function check() {
+      setTimeout(function () { if (performance.now() - last >= 400) done(); else check(); }, 800);
+    })();
   })();
 
   /* Back / Forward: the browser may show the page again just as it was
