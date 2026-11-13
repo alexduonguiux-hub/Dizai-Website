@@ -182,7 +182,7 @@
   /* ---------- coming in ---------- */
   function play(r, delay, then) {
     var o = { v: 0 };
-    gsap.to(o, { v: 1, duration: reduce ? 0.01 : 0.85, delay: reduce ? 0 : delay, ease: "none",
+    gsap.to(o, { v: 1, duration: reduce ? 0.01 : 0.85, delay: reduce ? 0 : delay + (window.DzRoll && DzRoll.wait ? DzRoll.wait() : 0), ease: "none",
                  onUpdate: function () { r.set(o.v); }, onComplete: then });
   }
   function enter() {

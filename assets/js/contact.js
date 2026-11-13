@@ -28,7 +28,7 @@
     if (reduce) { rs.forEach(function (r) { r.set(1); }); return; }
     rs.forEach(function (r, i) {
       var o = { v: 0 };
-      gsap.to(o, { v: 1, duration: 0.8, delay: 0.1 + i * 0.07, ease: "none",
+      gsap.to(o, { v: 1, duration: 0.8, delay: 0.1 + i * 0.07 + (window.DzRoll && DzRoll.wait ? DzRoll.wait() : 0), ease: "none",
                    onUpdate: function () { r.set(o.v); } });
     });
   }

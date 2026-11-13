@@ -267,9 +267,9 @@
     var home = !/\/(about|contact|work\/[^/]+)\/?$/.test(u.pathname);
     return home || !matchMedia("(max-width: 720px)").matches;
   }
-  var arrival;
-  function isArrival(el) {
-    if (!el.matches || !el.matches(CONTACT)) return false;
+  var arrival, leadUntil = 0;
+  var GLIDE = 0.75; // s: the block's move; the new page's own pieces come in after it
+  function loadArrival() {
     if (arrival === undefined) {
       arrival = null;
       try {
@@ -278,7 +278,23 @@
         if (a && Date.now() - a.t < 8000) arrival = a;
       } catch (e) {}
     }
-    return !!arrival;
+    return arrival;
+  }
+  function isArrival(el) {
+    return !!(el.matches && el.matches(CONTACT) && loadArrival());
+  }
+  // seconds still to wait before a page's own pieces come in: while the
+  // contact block glides over from the last page, nothing else moves
+  function wait() {
+    var a = loadArrival();
+    if (!a || matchMedia("(prefers-reduced-motion: reduce)").matches) return 0;
+    if (!leadUntil) {
+      var el = [].slice.call(document.querySelectorAll(CONTACT)).filter(function (e) { return e.getClientRects().length; })[0];
+      var r = el && el.getBoundingClientRect();
+      if (!r || (Math.abs(a.x - r.left) < 1 && Math.abs(a.y - r.top) < 1)) { leadUntil = -1; return 0; }
+      leadUntil = performance.now() + (GLIDE - 0.1) * 1000;
+    }
+    return leadUntil < 0 ? 0 : Math.max(0, (leadUntil - performance.now()) / 1000);
   }
   var glided = false; // one glide for the block and its twins
   function glideIn() {
@@ -291,11 +307,12 @@
       var r = els[0].getBoundingClientRect();
       var dx = arrival.x - r.left, dy = arrival.y - r.top;
       if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
+      wait(); // starts the clock the rest of the page waits on
       var gsap = window.gsap, o = { k: 1 };
       function put() { els.forEach(function (e) { e.style.translate = o.k ? (dx * o.k).toFixed(1) + "px " + (dy * o.k).toFixed(1) + "px" : ""; }); }
       put();
       if (!gsap || matchMedia("(prefers-reduced-motion: reduce)").matches) { o.k = 0; put(); return; }
-      gsap.to(o, { k: 0, duration: 0.9, delay: 0.05, ease: "power3.inOut", onUpdate: put });
+      gsap.to(o, { k: 0, duration: GLIDE, ease: "power3.inOut", onUpdate: put });
     }
     return { set: start, revert: function () {}, resplit: function () {} };
   }
@@ -331,5 +348,5 @@
     setTimeout(go, 1200); // never get stuck here
   }
 
-  window.DzRoll = { text: text, box: box, leave: leave, flip: flip, takeFlip: takeFlip };
+  window.DzRoll = { text: text, box: box, leave: leave, flip: flip, takeFlip: takeFlip, wait: wait };
 })();

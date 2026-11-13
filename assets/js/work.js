@@ -644,12 +644,12 @@
         .concat(keepMark ? [] : marks.map(function (m) { var r = Roll.box(m, "in"); r.set(0); return r; }));
       if (keepMark) Roll.flip(marks);
       gsap.fromTo(q(".work-list"), { autoAlpha: 0, y: 24 },
-                  { autoAlpha: 1, y: 0, duration: reduce ? 0.01 : 0.9, delay: reduce ? 0 : 0.15, ease: "power2.out",
+                  { autoAlpha: 1, y: 0, duration: reduce ? 0.01 : 0.9, delay: reduce ? 0 : 0.15 + (window.DzRoll && DzRoll.wait ? DzRoll.wait() : 0), ease: "power2.out",
                     clearProps: "transform" });
       (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(function () {
         inWork.forEach(function (r, i) {
           var o = { v: 0 };
-          gsap.to(o, { v: 1, duration: reduce ? 0.01 : 0.8, delay: reduce ? 0 : 0.05 + i * 0.08, ease: "none",
+          gsap.to(o, { v: 1, duration: reduce ? 0.01 : 0.8, delay: reduce ? 0 : 0.05 + i * 0.08 + (window.DzRoll && DzRoll.wait ? DzRoll.wait() : 0), ease: "none",
                        onUpdate: function () { r.set(o.v); } });
         });
       });
@@ -662,7 +662,7 @@
       (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(function () {
         back.forEach(function (r, i) {
           var o = { v: 0 };
-          gsap.to(o, { v: 1, duration: reduce ? 0.01 : 0.8, delay: reduce ? 0 : 0.05 + i * 0.08, ease: "none",
+          gsap.to(o, { v: 1, duration: reduce ? 0.01 : 0.8, delay: reduce ? 0 : 0.05 + i * 0.08 + (window.DzRoll && DzRoll.wait ? DzRoll.wait() : 0), ease: "none",
                        onUpdate: function () { r.set(o.v); } });
         });
       });
