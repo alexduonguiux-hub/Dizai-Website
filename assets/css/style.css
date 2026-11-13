@@ -803,7 +803,7 @@ body::after {
 }
 /* ---------- About (Figma 35:29437, 1512 × 2101; mobile 35:29599) ----------
    A long page in units of the 1432 content width: MAKE IDEAS / INTO
-   IMPACTFULL / EXPERIENCES (Regular 172, line height 0.8: 18 between the
+   IMPACTFUL / EXPERIENCES (Regular 172, line height 0.8: 18 between the
    cap boxes), the arched photo of Saigon (360 × 480), two lines about the
    studio, then SEND US YOUR PROBLEMS, HELLO@ / DIZAI.STUDIO (172) and
    LINKEDIN ✱ FACEBOOK as on Contact, © 2024 at the foot. The contact block
@@ -851,8 +851,8 @@ body::after {
 }
 .ab-line { display: block; position: relative; top: -0.01em; }
 .ab-br-m { display: none; } /* a line break only on phones */
-/* IMPACTFULL in italic (the slant axis), two spaces after INTO */
-.ab-em { font-style: normal; font-variation-settings: "slnt" -10; margin-left: 0.25em; }
+/* IMPACTFUL in grey, upright (Figma 76:29099: Regular, #929292, one space after INTO) */
+.ab-em { font-style: normal; color: var(--grey); }
 .ab-photo-box { display: block; position: relative; margin-top: calc(var(--u) * 39); } /* the gap is outside the box: the sheet covers the box */
 /* the photo hangs like a sheet of paper pinned at its top edge, as the
    Work pictures do (about.js; the arch is cut into the picture itself, so
@@ -936,7 +936,7 @@ body::after {
   .ab-mark { top: 44px; }
   .page-about .cp-info { display: none; }
   .ab-title { font-size: calc(var(--u) * 70); gap: calc(var(--u) * 7); }
-  .ab-em { display: block; margin: calc(var(--u) * 7) 0 0; } /* IMPACTFULL on its own line, still italic (Figma 37:31619) */
+  .ab-em { display: block; margin: calc(var(--u) * 7) 0 0; } /* IMPACTFUL on its own line (Figma 37:31619), grey like the desktop */
   .ab-br-m { display: inline; } /* … top-tier / designers from Vietnam. */
   .ab-photo-box { margin-top: calc(var(--u) * 24); }
   .ab-photo { width: calc(var(--u) * 171); height: calc(var(--u) * 228); }
