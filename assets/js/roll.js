@@ -445,14 +445,14 @@
      1. Only from a page already resting at that end: it got there and
         stood still for a moment (REST), and the push is a new gesture
         (not the tail of the scroll that brought it there).
-     2. Only a deliberate push past it: about three or four mouse-wheel
-        notches in a row, a full trackpad swipe, over a quarter of the
-        screen with a finger (let go to go on).
+     2. Only a deliberate push past it: two mouse-wheel notches in a row
+        (one is not enough), a short trackpad swipe, a sixth of the screen
+        with a finger (let go to go on).
      3. The push shows (see show()): the next page's name comes in from
         the edge and grows to the middle, the content making way; html
         gets --pull 0 … 1. Let go short of it: all back as it was.
      Keys: Page Down / Space / ↓ at the end (resting), Page Up / ↑ at the top. */
-  var REST = 450, QUIET = 250, PULL_WHEEL = 320, PULL_TOUCH = 0.28;
+  var REST = 450, QUIET = 250, PULL_WHEEL = 200, PULL_TOUCH = 0.18;
   function gate(o) {
     var sc = o.scroller || null, t0 = performance.now();
     var lastMove = -1e9, lastWheel = -1e9, g = null, pull = 0, endT = 0, done = false;
@@ -531,13 +531,20 @@
       cue.style.fontSize = (small + (bigSize() - small) * e).toFixed(2) + "px";
       cue.style.fontWeight = Math.round(600 - 200 * e);
       var h = cue.offsetHeight, H = innerHeight;
-      // from just inside its edge to the middle
-      var from = dir > 0 ? H - h - H * 0.04 : H * 0.04, to = (H - h) / 2;
+      // from just inside its edge to the middle (at the head: below the menu
+      // and the mark, never over them)
+      var head = H * 0.04;
+      [].forEach.call(document.querySelectorAll(".site-nav, .cp-mark, .ab-mark, .work-mark, .dt-title"), function (el) {
+        var r = el.getBoundingClientRect();
+        if (r.height && r.bottom < H / 2) head = Math.max(head, r.bottom + 16);
+      });
+      var from = dir > 0 ? H - h - H * 0.04 : head, to = Math.max(head, (H - h) / 2);
       cue.style.transform = "translateY(" + (from + (to - from) * e).toFixed(1) + "px)";
       // coming in like every text does: out of a blur into focus
       var fs = parseFloat(cue.style.fontSize) || small, a = 1 - e;
       cue.style.filter = a > 0.01 ? "blur(" + (a * (fs * BLUR + 2)).toFixed(2) + "px)" : "";
-      cue.style.opacity = Math.min(1, p * 2.5).toFixed(3);
+      // (not there at all for a slight push: no faint smudge)
+      cue.style.opacity = Math.max(0, Math.min(1, (p - 0.08) * 3)).toFixed(3);
     }
     /* What is shown follows the push at a set pace, however hard the
        scroll: the name takes at least UP_S to come all the way in (and
