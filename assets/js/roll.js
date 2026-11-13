@@ -188,8 +188,12 @@
      carries .is-fading (at rest: untouched). */
   function whole(el, dir, opts) {
     var noBlur = !!(opts && opts.blur === false) || !!(el.closest && el.closest(".site-nav"));
-    var last = -1, fs = 0;
-    function clear() { el.style.translate = el.style.filter = el.style.willChange = ""; el.classList.remove("is-fading"); }
+    var last = -1, fs = 0, kept = null;
+    function clear() {
+      if (!kept) return; // never moved: leave it as the page has it
+      el.style.translate = kept.translate; el.style.filter = kept.filter; el.style.willChange = kept.willChange; kept = null;
+      el.classList.remove("is-fading");
+    }
     var api = {
       set: function (v) {
         v = clamp01(v);
@@ -198,6 +202,7 @@
         var a = dir === "out" ? v * v : (1 - v) * (1 - v);
         if (!a) { clear(); return; }
         if (!el.classList.contains("is-fading")) {
+          kept = { translate: el.style.translate, filter: el.style.filter, willChange: el.style.willChange };
           fs = parseFloat(getComputedStyle(el).fontSize) || 16;
           el.classList.add("is-fading");
           el.style.willChange = "translate, filter";
@@ -215,7 +220,12 @@
   // images: slide up through a window the size of the box
   function box(el, dir, opts) {
     var noBlur = !!(opts && opts.blur === false);
-    var last = -1;
+    var last = -1, kept = null;
+    // what the element had of its own (a page may set its opacity, like
+    // Work's pictures): put back at rest, not wiped
+    function keep() {
+      if (!kept) kept = { visibility: el.style.visibility, translate: el.style.translate, filter: el.style.filter, opacity: el.style.opacity, clipPath: el.style.clipPath };
+    }
     return {
       set: function (v) {
         v = clamp01(v);
@@ -223,8 +233,13 @@
         last = v;
         // a = how far from resting, 0 … 1 (same curves as the letters)
         var a = dir === "out" ? v * v : (1 - v) * (1 - v);
-        el.style.visibility = a >= 1 ? "hidden" : "";
-        if (!a) { el.style.translate = el.style.filter = el.style.opacity = el.style.clipPath = ""; return; }
+        if (!a) {
+          // (never moved: nothing to put back, leave it as the page has it)
+          if (kept) { for (var k in kept) el.style[k] = kept[k]; kept = null; }
+          return;
+        }
+        keep();
+        el.style.visibility = a >= 1 ? "hidden" : kept.visibility;
         var h = el.getBoundingClientRect().height || 100;
         el.style.translate = "0 " + ((dir === "out" ? -1 : 1) * a * Math.min(0.3 * h, 60)).toFixed(1) + "px";
         el.style.filter = noBlur ? "" : "blur(" + (a * Math.min(0.05 * h + 2, 14)).toFixed(2) + "px)";
