@@ -262,6 +262,7 @@ body::after {
    pushed out of its way; the page's own scroll hint gives way to it. */
 .is-pulling-next .scroll-hint,
 .is-pulling-next .dt-end,
+.is-pulling-next .dt-hint,
 .is-pulling-next .work-hint { opacity: calc(1 - var(--pull, 0) * 3); }
 .pull-cue {
   position: fixed;
@@ -986,7 +987,7 @@ body::after {
      justify: space-between). One centred column, 20 apart: the services,
      the description, "Launch: … • Client: …", Visit project (Figma 49:17863) */
   top: var(--dt-title-bottom, 280px);
-  bottom: calc(var(--gutter) + var(--u) * 129);
+  bottom: calc(var(--gutter) + var(--u) * 137 + 1.7em); /* over the picture and its {SCROLL DOWN} */
   left: calc(var(--gutter) + var(--u) * 245);
   width: calc(var(--u) * 942);
   pointer-events: none;
@@ -1006,6 +1007,18 @@ body::after {
   bottom: var(--gutter);
   width: calc(var(--u) * 206);
   height: calc(var(--u) * 129);
+}
+/* {SCROLL TO VIEW} 8 over the small picture, centred on it (Figma 80:29105:
+   SemiBold Italic 20, grey); it rolls away with the facts as the page scrolls */
+.dt-facts > .dt-hint {
+  position: fixed;
+  left: calc(var(--gutter) + var(--u) * 613);
+  width: calc(var(--u) * 206);
+  bottom: calc(var(--gutter) + var(--u) * 137 + 0.01em);
+  text-align: center;
+  white-space: nowrap;
+  color: var(--grey);
+  font-variation-settings: "slnt" -10;
 }
 /* VISIT PROJECT →: underlined, opens the live project in a new tab
    (Figma 51:17891 / 56:22863) */
@@ -1120,6 +1133,7 @@ body::after {
   .dt-desc { width: 100%; }
   .dt-meta { width: auto; }
   .dt-facts > .dt-ph { left: calc(50% - var(--u) * 103); }
+  .dt-facts > .dt-hint { left: calc(50% - var(--u) * 103); }
   .dt-shots { width: 100%; gap: 12px; padding-bottom: 56px; }
   .dt-thumbs { display: none; } /* not on phones (Figma 41:5267); the end hint takes the foot */
 }

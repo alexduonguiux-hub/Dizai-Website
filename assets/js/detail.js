@@ -50,7 +50,8 @@
 
   var sc = one(".dt-scroll"), title = one(".dt-title"), ph = one(".dt-ph");
   var info = q(".dt-info").filter(function (el) { return el.getClientRects().length; });
-  var facts = q(".dt-services, .dt-desc, .dt-meta, .dt-visit");
+  // ({SCROLL DOWN} first: it is the first to go once the page scrolls)
+  var facts = q(".dt-hint, .dt-services, .dt-desc, .dt-meta, .dt-visit");
   var factsBox = one(".dt-facts");
   /* the facts sit under the pictures, so a click on Visit project lands on
      the picture frame first; hand it on to the link when no picture is
