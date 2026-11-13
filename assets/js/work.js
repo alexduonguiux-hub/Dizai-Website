@@ -506,6 +506,7 @@
     // (only what makes way: the mark and the contact block stay where
     // they are, as they do on the next page)
     push: function () { return phase === 1 ? [list, caption] : [q(".type")]; },
+    settle: function () { lastKey = ""; capKey = ""; }, // pictures and names placed again next frame
     pieces: function () {
       return phase === 1 ? { texts: [title, capList], boxes: cards }
                          : { texts: homeText, boxes: seal ? [seal] : [] };

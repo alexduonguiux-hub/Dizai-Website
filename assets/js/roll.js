@@ -505,7 +505,9 @@
           var off = n > 1 ? lag * i / (n - 1) : 0;
           r.set(Math.min(1, Math.max(0, (p - off) / (1 - lag))));
         });
-        if (!(p > 0)) rolls = null;
+        // all back: the page lays its pieces out afresh (what changed
+        // meanwhile — Work's list moving on — is not undone by the put-back)
+        if (!(p > 0)) { rolls = null; if (o.settle) o.settle(); }
       }
       pushed = p > 0 ? els || [] : [];
       if (!l) { if (cue) cue.classList.remove("is-on"); return; }
