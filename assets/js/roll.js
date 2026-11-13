@@ -1,6 +1,7 @@
 /* Letters rising — the site's one transition: going, every letter slides
    up and blurs away; coming, every letter rises from below out of a blur
-   into focus. The letters go one after another along the line.
+   into focus. The whole text moves as one (RUN = true: the letters go
+   one after another along the line instead).
 
    DzRoll.text(el, "out" | "in")  → { set(v), revert() }
      v 0 → 1. "out": the text rolls away (v 0 = as it is, 1 = gone).
@@ -15,8 +16,11 @@
 (function () {
   "use strict";
 
-  var RISE = 0.45;  // em: how far a letter travels
+  var RISE = 0.45;  // em: how far a letter travels…
+  var RISE_MAX = 18; // …but never more than this many px: big type only
+                     // shifts a little while it blurs into focus
   var BLUR = 0.07;  // em of blur when furthest out (+ 2 px so small type blurs too)
+  var RUN = false;  // true: letter after letter along the line; false: all together, surfacing from below
   var live = [];
 
   function clamp01(x) { return x < 0 ? 0 : x > 1 ? 1 : x; }
@@ -38,6 +42,7 @@
 
   // opts.blur false: the letters only rise (and fade), no blur
   function text(el, dir, opts) {
+    if (dir === "in" && isArrival(el)) return glideIn();
     var split = null, last = -1;
 
     // the menu's letters only rise, without the blur
@@ -119,7 +124,8 @@
         flush();
         tn.parentNode.replaceChild(frag, tn);
       });
-      split = { cells: cells };
+      var efs = parseFloat(getComputedStyle(el).fontSize) || 16;
+      split = { cells: cells, rise: Math.min(RISE, RISE_MAX / efs) };
       el.classList.add("is-rolling");
       if (live.indexOf(api) < 0) live.push(api);
     }
@@ -142,7 +148,7 @@
     }
 
     function apply(v) {
-      var cs = split.cells, n = cs.length, spread = n > 1 ? Math.min(0.6, 0.04 * n) : 0;
+      var cs = split.cells, n = cs.length, spread = RUN && n > 1 ? Math.min(0.6, 0.04 * n) : 0;
       for (var i = 0; i < n; i++) {
         var start = n > 1 ? spread * i / (n - 1) : 0;
         var q = clamp01((v - start) / (1 - spread));
@@ -150,7 +156,7 @@
         // the blur (soft landing). a = how far from resting, 0 … 1
         var a = dir === "out" ? q * q : (1 - q) * (1 - q);
         var st = cs[i].style;
-        st.transform = a ? "translateY(" + ((dir === "out" ? -RISE : RISE) * a).toFixed(3) + "em)" : "";
+        st.transform = a ? "translateY(" + ((dir === "out" ? -split.rise : split.rise) * a).toFixed(3) + "em)" : "";
         var bl = +cs[i].dataset.blur;
         st.filter = a && bl ? "blur(" + (a * bl).toFixed(2) + "px)" : "";
         st.opacity = (1 - a).toFixed(3);
@@ -249,8 +255,62 @@
     u.searchParams.set("v", v);
     return u.href;
   }
+  /* The small contact block (email, phone, city) is the same on every
+     page. Going to another page of the site it does not roll away and
+     back: its place is noted, and on the next page it glides from there
+     to its own place (on the same spot it just stays). A phone shows it
+     only on Home / Work. */
+  var CONTACT = "address.contact";
+  function keepsContact(href) {
+    var u = new URL(href, location.href);
+    if (u.origin !== location.origin) return false;
+    var home = !/\/(about|contact|work\/[^/]+)\/?$/.test(u.pathname);
+    return home || !matchMedia("(max-width: 720px)").matches;
+  }
+  var arrival;
+  function isArrival(el) {
+    if (!el.matches || !el.matches(CONTACT)) return false;
+    if (arrival === undefined) {
+      arrival = null;
+      try {
+        var a = JSON.parse(sessionStorage.getItem("dz-contact") || "null");
+        sessionStorage.removeItem("dz-contact");
+        if (a && Date.now() - a.t < 8000) arrival = a;
+      } catch (e) {}
+    }
+    return !!arrival;
+  }
+  var glided = false; // one glide for the block and its twins
+  function glideIn() {
+    function start() {
+      if (glided) return;
+      glided = true;
+      // every copy of the block (the inverting twins too) moves together
+      var els = [].slice.call(document.querySelectorAll(CONTACT)).filter(function (e) { return e.getClientRects().length; });
+      if (!els.length) return;
+      var r = els[0].getBoundingClientRect();
+      var dx = arrival.x - r.left, dy = arrival.y - r.top;
+      if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
+      var gsap = window.gsap, o = { k: 1 };
+      function put() { els.forEach(function (e) { e.style.translate = o.k ? (dx * o.k).toFixed(1) + "px " + (dy * o.k).toFixed(1) + "px" : ""; }); }
+      put();
+      if (!gsap || matchMedia("(prefers-reduced-motion: reduce)").matches) { o.k = 0; put(); return; }
+      gsap.to(o, { k: 0, duration: 0.9, delay: 0.05, ease: "power3.inOut", onUpdate: put });
+    }
+    return { set: start, revert: function () {}, resplit: function () {} };
+  }
+
   function leave(href, pieces, boxes) {
     href = stamped(href);
+    // the contact block goes along to the next page: it stays put here
+    if (keepsContact(href)) {
+      var info = (pieces || []).filter(function (el) { return el && el.matches && el.matches(CONTACT) && shown(el); });
+      if (info.length) {
+        var ir = info[0].getBoundingClientRect();
+        try { sessionStorage.setItem("dz-contact", JSON.stringify({ x: ir.left, y: ir.top, t: Date.now() })); } catch (e) {}
+        pieces = pieces.filter(function (el) { return !(el && el.matches && el.matches(CONTACT)); });
+      }
+    }
     var gsap = window.gsap, reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
     // to a page with the mark in the same place: the mark stays
     if (hasMark(href)) {
