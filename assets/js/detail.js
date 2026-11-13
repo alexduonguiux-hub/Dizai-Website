@@ -122,6 +122,7 @@
      the first picture is kept where the eased value puts it. */
   var sm = sc.scrollTop;
   function place() {
+    if (!easing) sm = sc.scrollTop; // a finger: no lag at all
     var t = sc.scrollTop, S = s0(), p = clamp(sm / S);
     // the first picture: from the small slot (fixed) to its own place,
     // which it reaches at t = S (the column's top, 283 down)
@@ -156,11 +157,22 @@
   }
   var raf = 0;
   sc.addEventListener("scroll", function () { if (!raf) raf = requestAnimationFrame(function () { raf = 0; place(); }); }, { passive: true });
+  // only a wheel (a mouse's notches, a trackpad) is eased: a finger on a
+  // touch screen already scrolls smoothly, and any lag behind it would
+  // fight the browser's own momentum (it jerks)
+  var easing = false;
+  sc.addEventListener("wheel", function () { easing = true; }, { passive: true });
+  ["touchstart", "pointerdown"].forEach(function (t) {
+    window.addEventListener(t, function (e) {
+      if (t === "pointerdown" && e.pointerType === "mouse") return;
+      easing = false;
+    }, { passive: true });
+  });
   gsap.ticker.add(function (time, deltaTime) {
     var t = sc.scrollTop;
     if (sm === t) return;
-    // far off (a jump, a thumbnail far away): straight there
-    if (reduce || Math.abs(t - sm) > 2 * s0()) sm = t;
+    // not eased, or far off (a jump, a thumbnail far away): straight there
+    if (!easing || reduce || Math.abs(t - sm) > 2 * s0()) sm = t;
     else {
       sm += (t - sm) * (1 - Math.pow(1 - 0.16, Math.min(3, deltaTime / 16.67)));
       if (Math.abs(t - sm) < 0.5) sm = t;
