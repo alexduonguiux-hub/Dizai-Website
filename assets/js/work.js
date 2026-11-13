@@ -202,8 +202,25 @@
   var hintIn = hint ? Roll.text(hint, "in") : null, hintOut = hint ? Roll.text(hint, "out") : null;
 
   function showTitle(v) { title.classList.toggle("is-on", v > 0); titleIn.set(v); }
+  /* The mark comes in turning over, like a coin given a flick (the same
+     turn as when it is carried over to another page, DzRoll.flip): from
+     edge-on it spins a turn and a quarter and settles, picking up speed and
+     slowing down; driven by the timeline, so going back to Home it turns
+     back the other way. */
+  if (window.CustomEase && !gsap.parseEase("dz.flip")) {
+    window.CustomEase.create("dz.flip", "M0,0 C0.3,0 0.38,0.62 0.56,0.92 0.66,1.06 0.8,1.012 0.88,0.997 0.94,0.99 0.97,1 1,1");
+  }
+  var FLIP_EASE = gsap.parseEase("dz.flip") || gsap.parseEase("power3.inOut");
+  var markTurned = false; // (only undone here when it was turned here: a carried-over flip runs on its own)
   function showMark(v) {
-    marks.forEach(function (m, i) { m.classList.toggle("is-on", v > 0); markIns[i].set(v); });
+    var on = v > 0, turning = on && v < 1 && !reduce;
+    marks.forEach(function (m) {
+      m.classList.toggle("is-on", on);
+      m.style.visibility = on ? "" : "hidden";
+      if (turning) gsap.set(m, { rotationY: 450 * (1 - FLIP_EASE(v)), transformPerspective: 700 });
+      else if (markTurned) gsap.set(m, { clearProps: "transform" });
+    });
+    markTurned = turning;
   }
   // SCROLL DOWN rolls in (h 0 → 1), then away (1 → 2)
   function showHint(h) {
@@ -212,44 +229,101 @@
     if (h <= 1) { hintOut.set(0); hintIn.set(h); } else { hintIn.set(1); hintOut.set(h - 1); }
   }
 
-  /* The project names beside the pictures (Figma 29:24523 / 29:24528).
-     Every project's name is listed, pale; the current one is in ink with
-     its line under it. Desktop: three names above it and three below,
-     going round; mobile: it comes first, the next four under it. When the
-     current project changes the names slide one step, so the new one
-     moves into its place. */
-  var SLOT_H = 30;              // a name (14 cap) + the 16 gap, in px
-  var slots = [], capShown = -1, capOn = false;
+  /* The project names beside the pictures (Figma 37:29790 / 29:24528).
+     Every project's name is listed, pale (AnNam Serif SemiBold 20, 16
+     apart); the current one is in ink with its line under it. Desktop:
+     three names above it and three below, going round, the second ones
+     out blurred 1 px, the third 2 px; mobile: it comes first, the next
+     four under it.
+     The names run with the list as it scrolls (no step at a time): each
+     row's place, colour, blur and line follow how far it is from the
+     current spot (u, in rows), so the move is as smooth as the pictures'. */
+  var GAP = 16;                  // px between the names
+  var INK = [28, 28, 28], PALE = [205, 205, 205];
+  var slots = [], capShown = -1, capOn = false, slotsFor = null, capKey = "", capOff = null;
   // no single word alone on the last line: the last two words are tied
   // with a no-break space (text-wrap: pretty in the CSS evens the rest)
   function noWidow(t) {
     var m = /^(.*\S)\s+(\S+)\s*$/.exec(t || "");
-    return m && m[1].indexOf(" ") > -1 ? m[1] + "\u00a0" + m[2] : (t || "");
+    return m && m[1].indexOf(" ") > -1 ? m[1] + " " + m[2] : (t || "");
   }
-  function offsets() { return G.axis === "y" ? [-3, -2, -1, 0, 1, 2, 3] : [0, 1, 2, 3, 4]; }
+  // rows kept: one more each way than shown, coming in / going out faded
+  function offsets() { return G.axis === "y" ? [-4, -3, -2, -1, 0, 1, 2, 3, 4] : [-1, 0, 1, 2, 3, 4, 5]; }
   function buildSlots() {
-    capList.textContent = ""; slots = [];
+    capList.textContent = ""; slots = []; slotsFor = G;
+    capList.classList.add("is-free");
     offsets().forEach(function (o) {
       var li = document.createElement("li"), n = document.createElement("span"), d = document.createElement("span"),
           c = document.createElement("span");
       li.className = "wc-item"; n.className = "wc-name"; d.className = "wc-desc"; c.className = "wc-cat";
       li.appendChild(n); li.appendChild(d); li.appendChild(c); capList.appendChild(li);
-      slots.push({ o: o, li: li, name: n, desc: d, cat: c });
+      slots.push({ o: o, li: li, name: n, desc: d, cat: c, hn: 0, e: 0 });
     });
-    capShown = -1;
+    capShown = -1; capKey = "";
+  }
+  function px(v) { return parseFloat(v) || 0; }
+  // each row's height: the name (with its trims) and the line under it
+  function measureRows() {
+    slots.forEach(function (sl) {
+      var cs = getComputedStyle(sl.name);
+      sl.hn = sl.name.offsetHeight + px(cs.marginTop) + px(cs.marginBottom);
+      sl.e = Math.max(0, sl.li.offsetHeight - sl.hn);
+      sl.db = sl.desc.offsetTop + sl.desc.offsetHeight; // the line's foot, in the row
+    });
+    // the list keeps the height it has at rest with one line under the
+    // current name (desktop: its foot is level with the first picture's)
+    var hn = slots[0].hn || 14, e = Math.min.apply(null, slots.map(function (s) { return s.e || 1e9; }));
+    if (e > 1e8) e = 0;
+    var above = G.axis === "y" ? 3 : 0, below = G.axis === "y" ? 3 : 4;
+    capList.style.height = ((above + below) * (hn + GAP) + e + hn).toFixed(1) + "px";
+    capList.dataset.focus = (above * (hn + GAP)).toFixed(1);
   }
   function fill(k) {
     slots.forEach(function (sl) {
       var c = cards[((k + sl.o) % N + N) % N];
       sl.name.textContent = noWidow(c.dataset.name);
-      sl.desc.textContent = sl.o === 0 ? noWidow(c.dataset.desc) : "";
-      sl.cat.textContent = sl.o === 0 ? (c.dataset.cat || "") : "";
-      sl.li.classList.toggle("is-active", sl.o === 0);
+      sl.desc.textContent = noWidow(c.dataset.desc);
+      sl.cat.textContent = c.dataset.cat || "";
+    });
+    measureRows();
+  }
+  function smooth(x) { x = x < 0 ? 0 : x > 1 ? 1 : x; return x * x * (3 - 2 * x); }
+  // x: how far the list is past the current project (−0.5 … 0.5 rows)
+  function placeRows(x) {
+    var key = x.toFixed(4); if (key === capKey) return; capKey = key;
+    var F = +capList.dataset.focus || 0, desk = G.axis === "y";
+    // the space under row i: its name, the gap, and its line as far as it is open
+    // (the line opens slowly over the whole step from the last project to
+    // this one, while the last one's folds away: both move together, no
+    // snapping shut and open again at the hand-over)
+    function open(u) { return 1 - smooth(Math.min(1, Math.abs(u))); }
+    function gapUnder(i) { var sl = slots[i]; return sl.hn + GAP + sl.e * open(sl.o - x); }
+    var i0 = offsets().indexOf(0), ys = [];
+    ys[i0] = x >= 0 ? F - x * gapUnder(i0) : F - x * gapUnder(i0 - 1);
+    for (var i = i0 + 1; i < slots.length; i++) ys[i] = ys[i - 1] + gapUnder(i - 1);
+    for (i = i0 - 1; i >= 0; i--) ys[i] = ys[i + 1] - gapUnder(i);
+    slots.forEach(function (sl, i) {
+      var u = sl.o - x, a = Math.abs(u), t = Math.min(1, a);
+      var edge = desk ? 4 - a : u < 0 ? 1 + 2 * u : 5 - u;                 // the rows past the ends fade
+      var blur = desk ? Math.max(0, a - 1) : 0;                             // Figma: 1 px two out, 2 px three out
+      sl.li.style.transform = "translateY(" + ys[i].toFixed(2) + "px)";
+      sl.li.style.opacity = Math.max(0, Math.min(1, edge)).toFixed(3);
+      sl.li.style.filter = blur > 0.02 ? "blur(" + blur.toFixed(2) + "px)" : "";
+      sl.name.style.color = "rgb(" + [0, 1, 2].map(function (j) { return Math.round(INK[j] + (PALE[j] - INK[j]) * t); }).join(",") + ")";
+      // the line and the kind: only the current one; the line unfolds
+      // with its space (clipped to it, never over the next name)
+      var g = open(u);
+      sl.desc.style.opacity = (g * g).toFixed(3); // clear only once it has its room
+      var room = i + 1 < slots.length ? ys[i + 1] - ys[i] - 6 : 1e9;      // down to just above the next name
+      var cut = Math.max(0, sl.db - room);
+      sl.desc.style.clipPath = cut > 0.05 ? "inset(0 0 " + cut.toFixed(1) + "px 0)" : "";
+      sl.cat.style.opacity = Math.max(0, 1 - 2 * a).toFixed(3);
+      sl.li.classList.toggle("is-active", a < 0.5);
     });
   }
   caption.style.visibility = "hidden";
-  function showCaption(k) {
-    if (!slots.length) buildSlots();
+  function showCaption(k, s) {
+    if (!slots.length || slotsFor !== G) buildSlots();
     if (k < 0) { // before Work-02: not there at all
       if (capOn) {
         capOn = false;
@@ -257,18 +331,18 @@
       }
       return;
     }
+    // the project the list is nearest to, and how far past it
+    // (which project sits at a whole step is learnt from the pictures once, at rest)
+    var r = Math.round(s);
+    if (capOff == null || Math.abs(s - r) < 0.02) capOff = ((k - r) % N + N) % N;
+    var kk = ((r + capOff) % N + N) % N;
     if (!capOn) {
       capOn = true;
-      fill(k); capShown = k;
+      fill(kk); capShown = kk;
       gsap.fromTo(caption, { autoAlpha: 0 }, { autoAlpha: 1, duration: reduce ? 0.01 : 0.4, overwrite: true });
     }
-    if (k !== capShown) {
-      // the shorter way round: one step down the list or up
-      var d = ((k - capShown) % N + N) % N; if (d > N / 2) d -= N;
-      capShown = k;
-      fill(k);
-      if (!reduce) gsap.fromTo(capList, { y: d * SLOT_H }, { y: 0, duration: 0.4, ease: "power2.out", overwrite: true });
-    }
+    if (kk !== capShown) { capShown = kk; fill(kk); capKey = ""; }
+    placeRows(reduce ? 0 : s - r);
   }
 
   /* ---------- the endless list ---------- */
@@ -340,7 +414,7 @@
     var key = f.toFixed(4) + "|" + listS.toFixed(4);
     if (key !== lastKey) { active = placeCards(f, listS); lastKey = key; }
     // the names follow the picture level with them, a step at a time
-    showCaption(phase === 1 && t >= CAPTION_AT ? active : -1);
+    showCaption(phase === 1 && t >= CAPTION_AT ? active : -1, listS);
     var px = listS * pitchPx();
     swayStep(dt, time * 1000, Math.max(-90, Math.min(90, px - lastListPx)));
     lastListPx = px;
@@ -349,16 +423,29 @@
   /* ---------- going between Home, Work and Contact ---------- */
 
   var DARK = "#1c1c1c", gone = false;
-  function markNav(atWork) {
+  // Back / Forward between Home and Work (one page, two places): play the move
+  window.addEventListener("popstate", function () {
+    if (!on || gone || !tl) return;
+    var want = location.hash === "#work" ? 1 : 0;
+    if (want !== phase) goTo(want, true);
+  });
+  function markNav(atWork, keepUrl) {
+    // the address follows: dizai.studio/#work in Work, dizai.studio/ at Home
+    // (a reload or a shared link opens the same place)
+    if (!keepUrl) try {
+      var want = location.pathname + location.search + (atWork ? "#work" : "");
+      // a step of its own in the history: Back from Home returns to Work
+      if (location.pathname + location.search + location.hash !== want) history.pushState(history.state, "", want);
+    } catch (e) {}
     if (atWork !== (navWork.getAttribute("aria-current") === "page")) {
       if (atWork) { navWork.setAttribute("aria-current", "page"); navHome.removeAttribute("aria-current"); }
       else { navHome.setAttribute("aria-current", "page"); navWork.removeAttribute("aria-current"); }
     }
   }
-  function goTo(p) {
+  function goTo(p, fromHistory) {
     if (!tl || gone) return;
     phase = p;
-    markNav(p === 1);
+    markNav(p === 1, fromHistory);
     var to = p ? PHASE_T : 0;
     if (busy) busy.kill();
     var dist = Math.abs(to - tl.time()) / PHASE_T;
@@ -533,7 +620,7 @@
     }
     function settle() {
       var t = tl.time();
-      markNav(phase === 1);
+      markNav(phase === 1, true); // (the address is read below: #work opens Work)
       drives.forEach(function (d) {
         var k = Math.max(0, Math.min(1, (t - d.at) / d.dur));
         d.fn(d.from + (d.to - d.from) * k);
@@ -552,7 +639,7 @@
     // Work: WORK rolls in where it stays (desktop on the foot, mobile under
     // the mark), the mark slides in
     drive(function (v) { gsap.set(title, { y: G.titleY2() * unit, color: DARK }); showTitle(v); }, 0, 1, 0.4, 0.45);
-    drive(showMark, 0, 1, 0.5, 0.3);
+    drive(showMark, 0, 1, 0.4, 0.7); // (to the end: the turn takes its time)
     showHint(0);
     tl.set({}, {}, PHASE_T);
 
@@ -576,7 +663,7 @@
       root.classList.remove("has-scrub");
       outs.forEach(function (r) { r.set(0); });
       contactOut.set(0);
-      sealOut.set(0); titleIn.revert(); markIns.forEach(function (r) { r.set(1); }); showHint(0);
+      sealOut.set(0); titleIn.revert(); marks.forEach(function (m) { m.style.visibility = ""; gsap.set(m, { clearProps: "transform" }); }); showHint(0);
       [contact, title, mark].concat(cards).forEach(function (el) {
         el.style.transform = el.style.opacity = el.style.color = "";
       });
@@ -628,9 +715,13 @@
     root.classList.add("is-back"); // the letters below start blank
     var saved = null, nav = performance.getEntriesByType && performance.getEntriesByType("navigation")[0];
     try { saved = JSON.parse(sessionStorage.getItem("dz-v") || "null"); } catch (e) {}
-    var toWork = location.hash === "#work" || !!(nav && nav.type === "reload" && saved && saved.p === 1);
-    if (saved && typeof saved.l === "number" && (toWork || (nav && nav.type === "reload"))) listT = listS = prevS = saved.l;
-    if (location.hash) history.replaceState(null, "", location.pathname);
+    // (a reload, or Back / Forward to this page: as it was left, Home or Work)
+    var again = !!(nav && (nav.type === "reload" || nav.type === "back_forward"));
+    var toWork = location.hash === "#work" || !!(again && saved && saved.p === 1);
+    if (saved && typeof saved.l === "number" && (toWork || again)) listT = listS = prevS = saved.l;
+    if (location.hash && location.hash !== "#work") history.replaceState(null, "", location.pathname);
+    markNav(toWork, true); // the menu (the address is already right)
+    if (toWork && location.hash !== "#work") history.replaceState(history.state, "", location.pathname + location.search + "#work");
     // from About / Contact the mark was already there: it stays and turns over
     var keepMark = Roll.takeFlip && Roll.takeFlip();
     if (toWork && tl) {

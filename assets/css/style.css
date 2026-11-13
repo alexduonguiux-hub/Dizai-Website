@@ -5,17 +5,17 @@
 
 /* the upright file carries both axes, weight and slant (slnt 0 → −10 is
    the italic), so links can lean over smoothly instead of jumping to the
-   italic font (dizai-serif v0.915, AnNamSerif[slnt,wght]) */
+   italic font (dizai-serif v0.916, AnNamSerif[slnt,wght]) */
 @font-face {
   font-family: "AnNam Serif";
-  src: url("../fonts/AnNamSerif-VF.woff2?v=0.915s") format("woff2");
+  src: url("../fonts/AnNamSerif-VF.woff2?v=0.916") format("woff2");
   font-weight: 400 700;
   font-style: normal;
   font-display: block; /* no fallback-font flash on the loader count */
 }
 @font-face {
   font-family: "AnNam Serif";
-  src: url("../fonts/AnNamSerif-Italic-VF.woff2?v=0.915") format("woff2");
+  src: url("../fonts/AnNamSerif-Italic-VF.woff2?v=0.916") format("woff2");
   font-weight: 400 700;
   font-style: italic;
   font-display: block; /* no fallback-font flash on the loader count */
@@ -126,6 +126,15 @@ body::after {
      going a shade darker */
   mix-blend-mode: overlay;
   animation: grain 0.9s steps(1) infinite;
+}
+/* WebKit (Safari, and every browser on an iPhone / iPad) at times draws
+   the grain without its blend (a page load with much moving at once), as
+   a flat grey sheet over everything: there, a grain that needs no blend
+   (white / black specks with their own transparency, tuned to look the
+   same on the paper) */
+.is-webkit body::after {
+  background-image: url("../img/noise-webkit.png?v=1");
+  mix-blend-mode: normal;
 }
 @keyframes grain {
   0%   { transform: translate(0, 0); }
@@ -404,6 +413,14 @@ body::after {
 .wc-item:not(.is-active) .wc-cat { display: none; }
 @media (max-width: 720px) { .wc-cat { display: none; } }
 .wc-item:not(.is-active) .wc-desc { display: none; }
+/* work.js places every row itself as the list runs (each row on its own
+   spot; the line and the kind fade in and out instead of popping) */
+.wc-list.is-free { display: block; position: relative; }
+.wc-list.is-free .wc-item { position: absolute; top: 0; left: 0; right: 0; will-change: transform, opacity; }
+.wc-list.is-free .wc-item .wc-desc { display: block; }
+.wc-list.is-free .wc-item .wc-cat { display: block; }
+.wc-list.is-free .wc-name { transition: none; }
+@media (max-width: 720px) { .wc-list.is-free .wc-item .wc-cat { display: none; } }
 /* the line under the name: AnNam Serif Regular 16 (Figma 23:22526), line
    height 1.1, trimmed to cap height / baseline like the rest (half-leading
    0.05em) */
@@ -482,7 +499,7 @@ body::after {
     position: absolute;
     z-index: 1;
     left: calc(50% - var(--u) * 42);
-    top: calc(var(--u) * -1);
+    top: 0; /* Figma 53:18085: the mark at y 40, on the margin (as on About) */
     margin: 0;
     visibility: hidden;
   }
@@ -568,7 +585,7 @@ body::after {
 .cp-mark {
   position: absolute;
   left: calc(50% - var(--u) * 42);
-  top: calc(var(--u) * -1);
+  top: 0; /* the mark at y 40, on the margin (as on About and Work) */
   height: calc(var(--u) * 104);
   width: auto;
 }
