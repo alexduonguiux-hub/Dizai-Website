@@ -127,6 +127,15 @@ body::after {
   mix-blend-mode: overlay;
   animation: grain 0.9s steps(1) infinite;
 }
+/* WebKit (Safari, and every browser on an iPhone / iPad) at times draws
+   the grain without its blend (a page load with much moving at once), as
+   a flat grey sheet over everything: there, a grain that needs no blend
+   (white / black specks with their own transparency, tuned to look the
+   same on the paper) */
+.is-webkit body::after {
+  background-image: url("../img/noise-webkit.png?v=1");
+  mix-blend-mode: normal;
+}
 @keyframes grain {
   0%   { transform: translate(0, 0); }
   11%  { transform: translate(-37px, 52px); }

@@ -67,6 +67,7 @@ def build(stamp):
   <link rel="preload" href="../../assets/fonts/AnNamSerif-VF.woff2?v=0.916" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="../../assets/img/detail/{key}-01.jpg?v={stamp}" as="image">
   <link rel="prefetch" href="../{nxt["slug"]}/?v={stamp}">
+  <script>/* WebKit: Safari, any iPhone / iPad browser (the grain, style.css) */ if (/AppleWebKit/.test(navigator.userAgent) && !/Chrome|Chromium|Edg|Android/.test(navigator.userAgent)) document.documentElement.classList.add("is-webkit");</script>
   <link rel="stylesheet" href="../../assets/css/style.css?v={stamp}">
   <!-- an old copy of this page (held in the browser's cache) loads the
        current one: version.json is always fetched fresh -->
