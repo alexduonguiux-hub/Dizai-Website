@@ -455,7 +455,7 @@
   var REST = 450, QUIET = 250, PULL_WHEEL = 320, PULL_TOUCH = 0.28;
   function gate(o) {
     var sc = o.scroller || null, t0 = performance.now();
-    var lastMove = -1e9, lastWheel = -1e9, g = null, pull = 0, endT = 0, done = false, tween = null;
+    var lastMove = -1e9, lastWheel = -1e9, g = null, pull = 0, endT = 0, done = false;
     var root = document.documentElement;
     function atStart() { return !sc || sc.scrollTop <= 1; }
     function atEnd() { return !sc || sc.scrollTop + sc.clientHeight >= sc.scrollHeight - 2; }
@@ -536,19 +536,39 @@
       cue.style.transform = "translateY(" + (from + (to - from) * e).toFixed(1) + "px)";
       cue.style.opacity = Math.min(1, p * 4).toFixed(3);
     }
+    /* What is shown follows the push at a set pace, however hard the
+       scroll: the name takes at least UP_S to come all the way in (and
+       DOWN_S to go back out), and the page changes only once it is there
+       (going: the push is locked at full, nothing can call it back). */
+    var target = 0, tdir = 1, going = false, raf = 0, lastT = 0;
+    var UP_S = 0.75, DOWN_S = 0.4;
+    function loop(now) {
+      raf = 0;
+      var dt = lastT ? Math.min(0.05, (now - lastT) / 1000) : 1 / 60;
+      lastT = now;
+      var d = target - pull, max = (d > 0 ? dt / UP_S : dt / DOWN_S);
+      // eased: quick to follow small changes, never faster than the pace
+      var step = Math.max(-max, Math.min(max, d * 0.35 + (d > 0 ? 0.002 : -0.002)));
+      var next = Math.abs(d) <= Math.abs(step) ? target : pull + step;
+      if (next !== pull || (next === 0 && pull === 0)) show(Math.max(0, Math.min(1, next)), tdir);
+      if (going && pull >= 0.999) { lastT = 0; (tdir > 0 ? o.next : o.prev)(); return; }
+      if (pull !== target || going) raf = requestAnimationFrame(loop); else lastT = 0;
+    }
+    function aim(t, dir) {
+      if (done && !going) return;
+      target = Math.max(0, Math.min(1, t));
+      if (dir) tdir = dir;
+      if (!raf) raf = requestAnimationFrame(loop);
+    }
     function release() {
       g = null;
-      if (done || !pull) return;
-      var from = { p: pull }, dir = root.classList.contains("is-pulling-prev") ? -1 : 1;
-      if (tween) tween.kill();
-      if (window.gsap) tween = window.gsap.to(from, { p: 0, duration: 0.35, ease: "power2.out", onUpdate: function () { show(from.p, dir); } });
-      else show(0, dir);
+      if (going) return;
+      aim(0);
     }
     function fire(dir) {
       if (done) return;
-      done = true;
-      show(1, dir);
-      (dir > 0 ? o.next : o.prev)();
+      done = true; going = true;
+      aim(1, dir);
     }
     window.addEventListener("wheel", function (e) {
       if (done || e.ctrlKey) return;
@@ -560,17 +580,16 @@
       if (!dir) return;
       if (fresh) g = can(dir) && resting(now) ? { dir: dir, acc: 0 } : null;
       if (!g || dir !== g.dir) { release(); return; }
-      if (tween) { tween.kill(); tween = null; }
       g.acc += Math.abs(dy);
-      show(Math.min(1, g.acc / PULL_WHEEL), dir);
-      if (g.acc >= PULL_WHEEL) fire(dir);
+      if (g.acc >= PULL_WHEEL) { fire(dir); return; }
+      aim(g.acc / PULL_WHEEL, dir);
       clearTimeout(endT); endT = setTimeout(release, QUIET);
     }, { passive: true });
     var t = null;
     window.addEventListener("touchstart", function (e) {
       if (done || e.touches.length !== 1) { t = null; return; }
       var now = performance.now();
-      t = { x: e.touches[0].clientX, y: e.touches[0].clientY, next: can(1) && resting(now), prev: can(-1) && resting(now), dir: 0, off: o.ignore && o.ignore(e) };
+      t = { x: e.touches[0].clientX, y: e.touches[0].clientY, next: can(1) && resting(now), prev: can(-1) && resting(now), dir: 0, off: o.ignore && o.ignore(e), p: 0 };
     }, { passive: true });
     window.addEventListener("touchmove", function (e) {
       if (!t || t.off || done) return;
@@ -579,14 +598,14 @@
         if (Math.abs(dy) < 10 || Math.abs(dx) > Math.abs(dy)) return;  // sideways: not ours
         t.dir = dy > 0 ? 1 : -1;
       }
-      if (!(t.dir > 0 ? t.next : t.prev) || dy * t.dir <= 0) { show(0, t.dir); return; }
-      if (tween) { tween.kill(); tween = null; }
-      show(Math.min(1, dy * t.dir / (innerHeight * PULL_TOUCH)), t.dir);
+      if (!(t.dir > 0 ? t.next : t.prev) || dy * t.dir <= 0) { t.p = 0; aim(0, t.dir); return; }
+      t.p = Math.min(1, dy * t.dir / (innerHeight * PULL_TOUCH));
+      aim(t.p, t.dir);
     }, { passive: true });
     function lift() {
       if (!t) return;
-      var dir = t.dir; t = null;
-      if (pull >= 1 && dir) fire(dir); else release();
+      var dir = t.dir, p = t.p; t = null;
+      if (p >= 1 && dir) fire(dir); else release();
     }
     window.addEventListener("touchend", lift, { passive: true });
     window.addEventListener("touchcancel", lift, { passive: true });
