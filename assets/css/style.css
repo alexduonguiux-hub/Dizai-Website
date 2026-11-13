@@ -163,11 +163,25 @@ body::after {
 .nav-list a[aria-current="page"]::after,
 .nav-list a:hover::after,
 .nav-list a.is-hover::after {
-  content: "←";
-  /* AnNam Serif has no arrow glyph yet; use a system face for it */
-  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-  font-style: normal;
-  font-weight: 400;
+  /* the arrow (Figma 37:29794): AnNam Serif has no arrow glyph yet, so it
+     is drawn, to the Figma one's measure: 0.68em long, a 0.28em head, a
+     0.07em line, 0.2em after the word (and the glyph's 0.16em side
+     bearing after it), centred on the capitals; in the text's own colour
+     (the inverting twins too) */
+  content: "";
+  display: inline-block;
+  width: 0.68em;
+  height: 0.3em;
+  margin-left: 0.2em;
+  margin-right: 0.16em;
+  vertical-align: 0.21em;
+  background: currentColor;
+  -webkit-mask: var(--arrow-left) center / 100% 100% no-repeat;
+  mask: var(--arrow-left) center / 100% 100% no-repeat;
+}
+:root {
+  --arrow-left: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 72 30'%3E%3Cpath d='M4 15H72M16.5 2.5L4 15l12.5 12.5' fill='none' stroke='%23000' stroke-width='7.2'/%3E%3C/svg%3E");
+  --arrow-right: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 72 30'%3E%3Cpath d='M68 15H0M55.5 2.5L68 15 55.5 27.5' fill='none' stroke='%23000' stroke-width='7.2'/%3E%3C/svg%3E");
 }
 
 /* ---------- Hero ----------
@@ -240,6 +254,34 @@ body::after {
   color: var(--grey);
   font-variation-settings: "slnt" -10; /* {SCROLL DOWN}: SemiBold Italic */
 }
+
+/* ---------- Scrolling on to the next page (DzRoll.gate) ----------
+   A deliberate push past the end shows as it builds (--pull 0 … 1): the
+   next page's name comes in from the edge and grows to the middle in the
+   big titles' size (roll.js sets its size, weight and place), the content
+   pushed out of its way; the page's own scroll hint gives way to it. */
+.is-pulling-next .scroll-hint,
+.is-pulling-next .dt-end,
+.is-pulling-next .work-hint { opacity: calc(1 - var(--pull, 0) * 3); }
+.pull-cue {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 5;
+  margin: 0;
+  padding: 0 var(--gutter);
+  text-align: center;
+  white-space: nowrap;
+  line-height: 0.8;
+  text-transform: uppercase;
+  font-variation-settings: "slnt" -10;
+  color: color-mix(in srgb, var(--ink) calc(var(--pull, 0) * 100%), var(--grey));
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform;
+}
+.pull-cue:not(.is-on) { visibility: hidden; }
 
 /* ---------- Loading screen (Figma Loading 13:257, 1512 × 813) ----------
    LOADING... top left, contact top right, seal bottom left, count bottom right. */
@@ -658,10 +700,17 @@ body::after {
   .nav-list a[aria-current="page"]::before,
   .nav-list a:hover::before,
   .nav-list a.is-hover::before {
-    content: "→";
-    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-    font-style: normal;
-    font-weight: 400;
+    /* the same drawn arrow, pointing at the word */
+    content: "";
+    display: inline-block;
+    width: 0.68em;
+    height: 0.3em;
+    margin-left: 0.16em;
+    margin-right: 0.2em;
+    vertical-align: 0.21em;
+    background: currentColor;
+    -webkit-mask: var(--arrow-right) center / 100% 100% no-repeat;
+    mask: var(--arrow-right) center / 100% 100% no-repeat;
   }
 
   /* type block 25px below the screen's middle (Figma 13:212: centred at
@@ -754,7 +803,7 @@ body::after {
 }
 /* ---------- About (Figma 35:29437, 1512 × 2101; mobile 35:29599) ----------
    A long page in units of the 1432 content width: MAKE IDEAS / INTO
-   IMPACTFULL / EXPERIENCES (Regular 172, line height 0.8: 18 between the
+   IMPACTFUL / EXPERIENCES (Regular 172, line height 0.8: 18 between the
    cap boxes), the arched photo of Saigon (360 × 480), two lines about the
    studio, then SEND US YOUR PROBLEMS, HELLO@ / DIZAI.STUDIO (172) and
    LINKEDIN ✱ FACEBOOK as on Contact, © 2024 at the foot. The contact block
@@ -802,8 +851,8 @@ body::after {
 }
 .ab-line { display: block; position: relative; top: -0.01em; }
 .ab-br-m { display: none; } /* a line break only on phones */
-/* IMPACTFULL in italic (the slant axis), two spaces after INTO */
-.ab-em { font-style: normal; font-variation-settings: "slnt" -10; margin-left: 0.25em; }
+/* IMPACTFUL in grey, upright (Figma 76:29099: Regular, #929292, one space after INTO) */
+.ab-em { font-style: normal; color: var(--grey); }
 .ab-photo-box { display: block; position: relative; margin-top: calc(var(--u) * 39); } /* the gap is outside the box: the sheet covers the box */
 /* the photo hangs like a sheet of paper pinned at its top edge, as the
    Work pictures do (about.js; the arch is cut into the picture itself, so
@@ -826,27 +875,54 @@ body::after {
   gap: 16px;
 }
 .ab-end {
-  /* the end of the page is one screen, laid out like Contact: scrolled to
-     the end, SEND US YOUR PROBLEMS / HELLO@ / LINKEDIN ✱ FACEBOOK sit in
-     the middle of the screen (7 below it, as on Contact) and © 2024 on the
-     foot (the frame's padding below it) */
+  /* the end of the page is one screen: scrolled to the end, SEND US YOUR
+     PROBLEMS / CONTACT US → over © 2024 on the foot (the frame's padding
+     below it) */
   position: relative;
   width: 100%;
   height: calc(100svh - var(--gutter));
   margin-top: calc(var(--u) * 9);
 }
 .ab-contact {
-  --fs: calc(var(--u) * 172);
+  /* Figma 71:24104: SEND US / YOUR / PROBLEMS, CONTACT US → 20 under it,
+     the whole 78 above © 2024 (so at 1512 × 813 it starts 1524 down) */
   position: absolute;
   left: 0;
   right: 0;
-  top: 50svh; /* the section starts at the top of the screen when scrolled to the end */
-  transform: translateY(-50%);
-  margin-top: calc(var(--u) * 7);
+  bottom: calc(var(--u) * 92); /* 78 + © 2024's own 14 */
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: calc(var(--u) * 20);
+}
+.ab-ask {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--u) * 18);
+  font-size: calc(var(--u) * 172);
+  font-weight: 400;
+  line-height: 0.7;          /* box = cap height, like the title */
+  white-space: nowrap;
+}
+.ab-cta {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: from-font;
+  text-underline-position: from-font;
+}
+.ab-cta:hover, .ab-cta:focus-visible { --slnt: -10; }
+/* → drawn like the menu's arrow (AnNam Serif has no arrow glyph yet) */
+.ab-arrow {
+  display: inline-block;
+  width: 0.68em;
+  height: 0.3em;
+  margin-left: 0.2em;
+  vertical-align: 0.21em;
+  background: currentColor;
+  -webkit-mask: var(--arrow-right) center / 100% 100% no-repeat;
+  mask: var(--arrow-right) center / 100% 100% no-repeat;
 }
 .ab-copy { position: absolute; left: 0; right: 0; bottom: 0; }
 .is-entering .ab { visibility: hidden; }
@@ -860,13 +936,16 @@ body::after {
   .ab-mark { top: 44px; }
   .page-about .cp-info { display: none; }
   .ab-title { font-size: calc(var(--u) * 70); gap: calc(var(--u) * 7); }
-  .ab-em { display: block; margin: calc(var(--u) * 7) 0 0; } /* IMPACTFULL on its own line, still italic (Figma 37:31619) */
+  .ab-em { display: block; margin: calc(var(--u) * 7) 0 0; } /* IMPACTFUL on its own line (Figma 37:31619), grey like the desktop */
   .ab-br-m { display: inline; } /* … top-tier / designers from Vietnam. */
   .ab-photo-box { margin-top: calc(var(--u) * 24); }
   .ab-photo { width: calc(var(--u) * 171); height: calc(var(--u) * 228); }
   .ab-text { width: calc(var(--u) * 326); margin-top: calc(var(--u) * 24); } /* 16 in on each side */
   .ab-end { margin-top: calc(var(--u) * 60); }
-  .ab-contact { --fs: calc(var(--u) * 70); margin-top: 0; gap: 12px; }
+  /* phone: the same, in the title's size (70, 7 apart), in the middle of
+     the last screen */
+  .ab-contact { bottom: auto; top: 50svh; transform: translateY(-50%); gap: 12px; }
+  .ab-ask { font-size: calc(var(--u) * 70); gap: calc(var(--u) * 7); }
 }
 /* ---------- Project pages (Figma Work-Detail-00 … 03, 10:1738 …) ----------
    Built by tools/build-details.py, moved by assets/js/detail.js. Units of
@@ -966,15 +1045,18 @@ body::after {
 .dt-shots {
   width: calc(var(--u) * 696);
   margin: calc(100svh + var(--zoom-top)) auto 0; /* one screen of scroll to grow the first picture */
-  /* room after the last picture so it too can reach the top place */
-  padding-bottom: max(64px, calc(100svh - 2 * var(--gutter) - var(--zoom-top) - var(--u) * 434)); /* (and room for the hint at the end) */
+  /* after the last picture only the room for the hint at the end: the
+     column stops with its last picture near the foot of the screen (no
+     empty half screen under it) */
+  padding-bottom: max(64px, calc(var(--u) * 80));
   display: flex;
   flex-direction: column;
   gap: calc(var(--u) * 12);
 }
 .dt-shot { position: relative; margin: 0; transform-origin: 0 0; }
-/* {SCROLL TO THE NEXT PROJECT} at the end of the pictures: scrolled to the
-   end it sits on the foot of the screen, centred (Figma 57:22865) */
+/* {NEXT PROJECT} at the end of the pictures (a link: pages change from
+   links only, not by scrolling on): scrolled to the end it sits on the foot
+   of the screen, centred (Figma 57:22865) */
 .dt-shots { position: relative; }
 .dt-end {
   position: absolute;
@@ -987,6 +1069,8 @@ body::after {
   color: var(--grey);
   font-variation-settings: "slnt" -10;
 }
+.dt-end a { color: inherit; text-decoration: none; transition: color 0.2s; }
+.dt-end a:hover, .dt-end a:focus-visible { color: var(--ink); }
 .dt-img { display: block; width: 100%; height: auto; aspect-ratio: 2048 / 1277; }
 .dt-shot.has-sheet { perspective: 1100px; }
 .dt-shot.has-sheet .dt-img { visibility: hidden; }
@@ -1035,7 +1119,7 @@ body::after {
   .dt-desc { width: 100%; }
   .dt-meta { width: auto; }
   .dt-facts > .dt-ph { left: calc(50% - var(--u) * 103); }
-  .dt-shots { width: 100%; gap: 12px; padding-bottom: max(64px, calc(100svh - 2 * var(--gutter) - var(--zoom-top) - var(--u) * 223)); }
+  .dt-shots { width: 100%; gap: 12px; padding-bottom: 56px; }
   .dt-thumbs { display: none; } /* not on phones (Figma 41:5267); the end hint takes the foot */
 }
 /* About: its own scroll; past its ends the page goes on (about.js), so no

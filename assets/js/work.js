@@ -44,6 +44,14 @@
                   ".services", ".scroll-hint", ".social"].map(q).filter(Boolean);
   var seal = q(".type-row .seal");
   var contact = q(".hero .contact");
+  /* The stage is pinned and never scrolls: but going to the #work address,
+     the browser scrolls it to the element of that name (on a short window,
+     by the top margin), and everything on it sits that much higher. Kept
+     at 0. */
+  function unscroll() { if (stage.scrollTop || stage.scrollLeft) { stage.scrollTop = 0; stage.scrollLeft = 0; } }
+  stage.addEventListener("scroll", unscroll, { passive: true });
+  window.addEventListener("hashchange", unscroll);
+  unscroll();
   var mark = q(".work-mark");
   /* The mark inverts where a picture passes under it, like the cursor: a
      white copy in "difference" (paper → near black, a picture → its
@@ -89,7 +97,30 @@
   var G = DESK, unit = 1, H = 733, cardTop = 249, cs = 1; // cs: picture scale (mobile)
   var list = work.querySelector(".work-list");
 
+  /* How far the contact block goes up for Work, in px: from where it sits
+     on Home to where it sits on every other page (the top margin), as
+     measured, so it lands on exactly the same spot whatever the screen's
+     height does to Home's layout */
+  var contactLift = 0;
+  function measureContact() {
+    if (!contact) return;
+    // where Home has it, from the layout (offsets: no transform, no
+    // translate of a roll in progress counts)
+    var tf = contact.style.transform, tr = contact.style.translate;
+    contact.style.transform = "none"; contact.style.translate = "none";
+    var top = contact.getBoundingClientRect().top;
+    contact.style.transform = tf; contact.style.translate = tr;
+    // the top margin (--gutter), resolved to px
+    var probe = document.createElement("div");
+    probe.style.cssText = "position:absolute;visibility:hidden;padding-top:var(--gutter)";
+    document.documentElement.appendChild(probe);
+    var gutter = parseFloat(getComputedStyle(probe).paddingTop) || 0;
+    probe.remove();
+    var want = gutter + (parseFloat(getComputedStyle(contact).marginTop) || 0);
+    contactLift = want - top;
+  }
   function measure() {
+    measureContact();
     var r = work.getBoundingClientRect(); // transforms are GSAP's
     unit = r.width / G.W;
     H = r.height / unit;
@@ -461,8 +492,32 @@
   }
   var ABOUT = new URL("about/", location.href).href, CONTACT = new URL("contact/", location.href).href;
   // the order going down: Home → About (scrolled through) → Work → Contact
-  function down() { if (phase === 0) goPage(ABOUT); else goPage(CONTACT); }
-  function up() { if (phase === 1) goPage(ABOUT); } // About opens at its top
+  /* Scrolling on to the next page (DzRoll.gate: only a deliberate push,
+     starting from rest, so a light touch never leaves): Home → About;
+     Work → About above, Contact below. Over the projects the wheel runs
+     the list instead. */
+  Roll.gate({
+    canNext: function () { return !busy && !gone && !root.classList.contains("is-loading"); },
+    canPrev: function () { return phase === 1 && !busy && !gone; },
+    next: function () { goPage(phase === 0 ? ABOUT : CONTACT); },
+    prev: function () { goPage(ABOUT); }, // About opens at its top
+    nextLabel: function () { return phase === 1 ? "Contact" : "About"; },
+    prevLabel: "About",
+    // (only what makes way: the mark and the contact block stay where
+    // they are, as they do on the next page)
+    push: function () { return phase === 1 ? [list, caption] : [q(".type")]; },
+    settle: function () { lastKey = ""; capKey = ""; }, // pictures and names placed again next frame
+    pieces: function () {
+      return phase === 1 ? { texts: [title, capList], boxes: cards }
+                         : { texts: homeText, boxes: seal ? [seal] : [] };
+    },
+    ignore: function (e) {
+      if (e.type === "keydown") return false;
+      if (e.touches && G.axis === "x") return false; // phone: the list runs sideways, up / down is the page's
+      var p = e.touches ? e.touches[0] : e;
+      return phase === 1 && !busy && p && inList(p.clientX, p.clientY);
+    }
+  });
   function step(d) { // one project on (+1) or back (−1)
     if (phase !== 1) return;
     listT = Math.round(listT) + d;
@@ -521,11 +576,8 @@
       snapSoon();
       return;
     }
-    if (busy) return;
-    if (fresh) acc = 0;
-    acc += dy;
-    if (acc > 24) { acc = 0; lock(); down(); }
-    else if (acc < -24) { acc = 0; if (phase === 1) { lock(); up(); } }
+    // elsewhere: the page's own scroll does nothing (DzRoll.gate decides
+    // whether a deliberate push goes on to the next page)
   }, { passive: false });
 
   /* Touch: up / down swipes go between Home, Work and Contact; in Work a
@@ -562,9 +614,7 @@
       touch.d = d;
       return;
     }
-    if (touch.axis !== "y" || touch.fired) return;
-    if (dy < -40) { touch.fired = true; down(); }
-    else if (dy > 40 && phase === 1) { touch.fired = true; up(); }
+    // up / down swipes: DzRoll.gate (a deliberate pull, let go to go on)
   }, { passive: false });
   function touchEnd() {
     if (!touch) return;
@@ -586,9 +636,8 @@
   window.addEventListener("keydown", function (e) {
     if (!on || gone || e.metaKey || e.ctrlKey || e.altKey) return;
     var k = e.key;
-    if (k === "ArrowDown" || k === "PageDown" || (k === " " && !e.shiftKey)) { e.preventDefault(); if (!busy) down(); }
-    else if (k === "ArrowUp" || k === "PageUp" || (k === " " && e.shiftKey)) { e.preventDefault(); up(); }
-    else if (k === "Home") { e.preventDefault(); goTo(0); }
+    // (↓ / ↑ / Page Down / Up / Space: DzRoll.gate, on to the next page)
+    if (k === "Home") { e.preventDefault(); goTo(0); }
     else if (k === "ArrowRight") { e.preventDefault(); step(1); }
     else if (k === "ArrowLeft") { e.preventDefault(); step(-1); }
   });
@@ -634,7 +683,7 @@
     drive(sealOut.set, 0, 1, 0.1, 0.32);
     // desktop: the contact block slides up to its Work place (251 units);
     // mobile: it rolls away with the rest of Home
-    if (G.contactY) drive(function (v) { gsap.set(contact, { y: MOVE(v) * (G.contactY * unit - heroDrop()) }); }, 0, 1, 0.08, 0.55);
+    if (G.contactY) drive(function (v) { gsap.set(contact, { y: MOVE(v) * contactLift }); }, 0, 1, 0.08, 0.55);
     else drive(contactOut.set, 0, 1, 0.06, 0.3);
     // Work: WORK rolls in where it stays (desktop on the foot, mobile under
     // the mark), the mark slides in
@@ -652,6 +701,8 @@
       rT = setTimeout(function () { measure(); settle(); }, 60);
     }
     window.addEventListener("resize", onResize);
+    // the fonts arriving can shift Home's lines: measure again then
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(onResize);
     gsap.ticker.add(tick);
 
     return function () { // leaving this layout: undo everything (phase and listT stay)

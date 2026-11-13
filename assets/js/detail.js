@@ -68,6 +68,7 @@
   var thumbs = q(".dt-thumbs button");
   var DOWN = new URL(document.body.dataset.down || "../../#work", location.href).href;
 
+
   // going back to Work opens on this project
   try { sessionStorage.setItem("dz-v", JSON.stringify({ p: 1, l: +document.body.dataset.project || 0 })); } catch (e) {}
   if (sc.focus) { sc.setAttribute("tabindex", "-1"); try { sc.focus({ preventScroll: true }); } catch (e) {} }
@@ -118,6 +119,7 @@
      the first picture is kept where the eased value puts it. */
   var sm = sc.scrollTop;
   function place() {
+    if (!easing) sm = sc.scrollTop; // a finger: no lag at all
     var t = sc.scrollTop, S = s0(), p = clamp(sm / S);
     // the first picture: from the small slot (fixed) to its own place,
     // which it reaches at t = S (the column's top, 283 down)
@@ -148,15 +150,28 @@
       var d = Math.abs((s.offsetTop - t) - (first.offsetTop - S));
       if (d < best) { best = d; cur = i; }
     });
+    // (at the very end the last one: it no longer climbs all the way up)
+    if (sc.scrollTop + sc.clientHeight >= sc.scrollHeight - 2) cur = shots.length - 1;
     thumbs.forEach(function (b, i) { b.classList.toggle("is-on", i === cur); });
   }
   var raf = 0;
   sc.addEventListener("scroll", function () { if (!raf) raf = requestAnimationFrame(function () { raf = 0; place(); }); }, { passive: true });
+  // only a wheel (a mouse's notches, a trackpad) is eased: a finger on a
+  // touch screen already scrolls smoothly, and any lag behind it would
+  // fight the browser's own momentum (it jerks)
+  var easing = false;
+  sc.addEventListener("wheel", function () { easing = true; }, { passive: true });
+  ["touchstart", "pointerdown"].forEach(function (t) {
+    window.addEventListener(t, function (e) {
+      if (t === "pointerdown" && e.pointerType === "mouse") return;
+      easing = false;
+    }, { passive: true });
+  });
   gsap.ticker.add(function (time, deltaTime) {
     var t = sc.scrollTop;
     if (sm === t) return;
-    // far off (a jump, a thumbnail far away): straight there
-    if (reduce || Math.abs(t - sm) > 2 * s0()) sm = t;
+    // not eased, or far off (a jump, a thumbnail far away): straight there
+    if (!easing || reduce || Math.abs(t - sm) > 2 * s0()) sm = t;
     else {
       sm += (t - sm) * (1 - Math.pow(1 - 0.16, Math.min(3, deltaTime / 16.67)));
       if (Math.abs(t - sm) < 0.5) sm = t;
@@ -176,6 +191,9 @@
   var wind = 0, lastY = sc.scrollTop;
   gsap.ticker.add(function (time, deltaTime) {
     var dt = Math.min(3, deltaTime / 16.67), y = sc.scrollTop, vy = y - lastY; lastY = y;
+    // a finger swiping (or the page gliding on after it): the sheets hold
+    // still, so the phone's scrolling has nothing else to redraw
+    if (Roll.swiping && Roll.swiping()) { wind = 0; return; }
     wind += (Math.max(-90, Math.min(90, vy)) - wind) * 0.3; wind *= 0.94;
     var gust = Math.max(-1, Math.min(1, wind / 40)), vh = innerHeight, per = 12 / STRIPS;
     sheets.forEach(function (sh) {
@@ -238,40 +256,14 @@
   });
 
   /* ---------- past the end: the next project ----------
-     (scrolling up at the top stays here: back to Work is the menu's WORK) */
-  function atTop() { return sc.scrollTop <= 1; }
-  function atEnd() { return sc.clientHeight + sc.scrollTop >= sc.scrollHeight - 2; }
-  var lastWheel = 0, acc = 0, startEdge = 0;
-  window.addEventListener("wheel", function (e) {
-    if (gone || e.ctrlKey) return;
-    var now = performance.now(), fresh = now - lastWheel > 220;
-    lastWheel = now;
-    var dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? innerHeight : 1);
-    if (fresh) { acc = 0; startEdge = dy > 0 && atEnd() ? 1 : 0; }
-    // only past the end (going back up to Work is the menu's job, not the scroll's)
-    if (dy <= 0 || !atEnd()) { acc = 0; return; }
-    acc += dy;
-    if (acc > (startEdge === 1 ? 40 : 240)) leave(DOWN);
-  }, { passive: true });
-  var touch = null;
-  window.addEventListener("touchstart", function (e) {
-    if (e.touches.length !== 1) { touch = null; return; }
-    touch = { y: e.touches[0].clientY, end: atEnd(), top: atTop() };
-  }, { passive: true });
-  function swiped(y) {
-    if (!touch || gone) return;
-    var dy = y - touch.y;
-    if (touch.end && dy < -50) { touch = null; leave(DOWN); }
-  }
-  window.addEventListener("touchmove", function (e) { swiped(e.touches[0].clientY); }, { passive: true });
-  window.addEventListener("touchend", function (e) {
-    var t = e.changedTouches && e.changedTouches[0];
-    if (t) swiped(t.clientY);
-    touch = null;
-  }, { passive: true });
-  window.addEventListener("keydown", function (e) {
-    if (gone || e.metaKey || e.ctrlKey || e.altKey) return;
-    var k = e.key;
-    if ((k === "ArrowDown" || k === "PageDown" || k === "End" || (k === " " && !e.shiftKey)) && atEnd()) { e.preventDefault(); leave(DOWN); }
+     (DzRoll.gate: only from the end the page already rests at, and only a
+     deliberate push; scrolling up at the top stays here: back to Work is
+     the menu's WORK) */
+  Roll.gate({
+    scroller: sc, next: function () { leave(DOWN); },
+    nextLabel: document.body.dataset.nextName || "Next project",
+    cueAs: function () { return title; }, // grows to the project titles' size
+    push: function () { return [sc]; },
+    pieces: function () { return { texts: [].slice.call(document.querySelectorAll(".dt-end")), boxes: shots }; }
   });
 })();
