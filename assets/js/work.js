@@ -406,22 +406,29 @@
   /* ---------- going between Home, Work and Contact ---------- */
 
   var DARK = "#1c1c1c", gone = false;
+  // Back / Forward between Home and Work (one page, two places): play the move
+  window.addEventListener("popstate", function () {
+    if (!on || gone || !tl) return;
+    var want = location.hash === "#work" ? 1 : 0;
+    if (want !== phase) goTo(want, true);
+  });
   function markNav(atWork, keepUrl) {
     // the address follows: dizai.studio/#work in Work, dizai.studio/ at Home
     // (a reload or a shared link opens the same place)
     if (!keepUrl) try {
       var want = location.pathname + location.search + (atWork ? "#work" : "");
-      if (location.pathname + location.search + location.hash !== want) history.replaceState(history.state, "", want);
+      // a step of its own in the history: Back from Home returns to Work
+      if (location.pathname + location.search + location.hash !== want) history.pushState(history.state, "", want);
     } catch (e) {}
     if (atWork !== (navWork.getAttribute("aria-current") === "page")) {
       if (atWork) { navWork.setAttribute("aria-current", "page"); navHome.removeAttribute("aria-current"); }
       else { navHome.setAttribute("aria-current", "page"); navWork.removeAttribute("aria-current"); }
     }
   }
-  function goTo(p) {
+  function goTo(p, fromHistory) {
     if (!tl || gone) return;
     phase = p;
-    markNav(p === 1);
+    markNav(p === 1, fromHistory);
     var to = p ? PHASE_T : 0;
     if (busy) busy.kill();
     var dist = Math.abs(to - tl.time()) / PHASE_T;
@@ -696,7 +703,8 @@
     var toWork = location.hash === "#work" || !!(again && saved && saved.p === 1);
     if (saved && typeof saved.l === "number" && (toWork || again)) listT = listS = prevS = saved.l;
     if (location.hash && location.hash !== "#work") history.replaceState(null, "", location.pathname);
-    markNav(toWork); // the menu and the address: Work or Home
+    markNav(toWork, true); // the menu (the address is already right)
+    if (toWork && location.hash !== "#work") history.replaceState(history.state, "", location.pathname + location.search + "#work");
     // from About / Contact the mark was already there: it stays and turns over
     var keepMark = Roll.takeFlip && Roll.takeFlip();
     if (toWork && tl) {
