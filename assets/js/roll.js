@@ -43,6 +43,7 @@
   // opts.blur false: the letters only rise (and fade), no blur
   function text(el, dir, opts) {
     if (dir === "in" && isArrival(el)) return glideIn();
+    if (!RUN) return whole(el, dir, opts);
     var split = null, last = -1;
 
     // the menu's letters only rise, without the blur
@@ -176,6 +177,37 @@
       },
       revert: doRevert,
       resplit: function () { if (split) { var v = last; doRevert(); last = -1; api.set(v); } }
+    };
+    return api;
+  }
+
+  /* All the letters together (RUN = false): the element moves as one,
+     so one layer is blurred instead of one per letter (far lighter while
+     scrolling). Uses translate and filter (blur + opacity), leaving the
+     element's own transform and opacity to the page. While it moves it
+     carries .is-fading (at rest: untouched). */
+  function whole(el, dir, opts) {
+    var noBlur = !!(opts && opts.blur === false) || !!(el.closest && el.closest(".site-nav"));
+    var last = -1, fs = 0;
+    function clear() { el.style.translate = el.style.filter = el.style.willChange = ""; el.classList.remove("is-fading"); }
+    var api = {
+      set: function (v) {
+        v = clamp01(v);
+        if (v === last) return;
+        last = v;
+        var a = dir === "out" ? v * v : (1 - v) * (1 - v);
+        if (!a) { clear(); return; }
+        if (!el.classList.contains("is-fading")) {
+          fs = parseFloat(getComputedStyle(el).fontSize) || 16;
+          el.classList.add("is-fading");
+          el.style.willChange = "translate, filter";
+        }
+        var rise = Math.min(RISE * fs, RISE_MAX), bl = noBlur ? 0 : fs * BLUR + 2;
+        el.style.translate = "0 " + ((dir === "out" ? -rise : rise) * a).toFixed(2) + "px";
+        el.style.filter = (bl ? "blur(" + (a * bl).toFixed(2) + "px) " : "") + "opacity(" + (1 - a).toFixed(3) + ")";
+      },
+      revert: clear,
+      resplit: function () {}
     };
     return api;
   }
@@ -338,7 +370,7 @@
       }
     }
     if (!gsap || reduce) { location.href = href; return; }
-    var rs = pieces.filter(function (el) { return shown(el) && !el.classList.contains("is-rolling"); })
+    var rs = pieces.filter(function (el) { return shown(el) && !el.classList.contains("is-rolling") && !el.classList.contains("is-fading"); })
                    .map(function (el) { return text(el, "out"); })
       .concat((boxes || []).filter(shown).map(function (el) { return box(el, "out"); }));
     var o = { v: 0 }, gone = false;
