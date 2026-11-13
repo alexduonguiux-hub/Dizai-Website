@@ -499,7 +499,7 @@ body::after {
     position: absolute;
     z-index: 1;
     left: calc(50% - var(--u) * 42);
-    top: calc(var(--u) * -1);
+    top: 0; /* Figma 53:18085: the mark at y 40, on the margin (as on About) */
     margin: 0;
     visibility: hidden;
   }
@@ -585,7 +585,7 @@ body::after {
 .cp-mark {
   position: absolute;
   left: calc(50% - var(--u) * 42);
-  top: calc(var(--u) * -1);
+  top: 0; /* the mark at y 40, on the margin (as on About and Work) */
   height: calc(var(--u) * 104);
   width: auto;
 }

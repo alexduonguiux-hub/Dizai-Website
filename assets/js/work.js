@@ -202,8 +202,25 @@
   var hintIn = hint ? Roll.text(hint, "in") : null, hintOut = hint ? Roll.text(hint, "out") : null;
 
   function showTitle(v) { title.classList.toggle("is-on", v > 0); titleIn.set(v); }
+  /* The mark comes in turning over, like a coin given a flick (the same
+     turn as when it is carried over to another page, DzRoll.flip): from
+     edge-on it spins a turn and a quarter and settles, picking up speed and
+     slowing down; driven by the timeline, so going back to Home it turns
+     back the other way. */
+  if (window.CustomEase && !gsap.parseEase("dz.flip")) {
+    window.CustomEase.create("dz.flip", "M0,0 C0.3,0 0.38,0.62 0.56,0.92 0.66,1.06 0.8,1.012 0.88,0.997 0.94,0.99 0.97,1 1,1");
+  }
+  var FLIP_EASE = gsap.parseEase("dz.flip") || gsap.parseEase("power3.inOut");
+  var markTurned = false; // (only undone here when it was turned here: a carried-over flip runs on its own)
   function showMark(v) {
-    marks.forEach(function (m, i) { m.classList.toggle("is-on", v > 0); markIns[i].set(v); });
+    var on = v > 0, turning = on && v < 1 && !reduce;
+    marks.forEach(function (m) {
+      m.classList.toggle("is-on", on);
+      m.style.visibility = on ? "" : "hidden";
+      if (turning) gsap.set(m, { rotationY: 450 * (1 - FLIP_EASE(v)), transformPerspective: 700 });
+      else if (markTurned) gsap.set(m, { clearProps: "transform" });
+    });
+    markTurned = turning;
   }
   // SCROLL DOWN rolls in (h 0 → 1), then away (1 → 2)
   function showHint(h) {
@@ -622,7 +639,7 @@
     // Work: WORK rolls in where it stays (desktop on the foot, mobile under
     // the mark), the mark slides in
     drive(function (v) { gsap.set(title, { y: G.titleY2() * unit, color: DARK }); showTitle(v); }, 0, 1, 0.4, 0.45);
-    drive(showMark, 0, 1, 0.5, 0.3);
+    drive(showMark, 0, 1, 0.4, 0.7); // (to the end: the turn takes its time)
     showHint(0);
     tl.set({}, {}, PHASE_T);
 
@@ -646,7 +663,7 @@
       root.classList.remove("has-scrub");
       outs.forEach(function (r) { r.set(0); });
       contactOut.set(0);
-      sealOut.set(0); titleIn.revert(); markIns.forEach(function (r) { r.set(1); }); showHint(0);
+      sealOut.set(0); titleIn.revert(); marks.forEach(function (m) { m.style.visibility = ""; gsap.set(m, { clearProps: "transform" }); }); showHint(0);
       [contact, title, mark].concat(cards).forEach(function (el) {
         el.style.transform = el.style.opacity = el.style.color = "";
       });
