@@ -257,34 +257,31 @@ body::after {
 
 /* ---------- Scrolling on to the next page (DzRoll.gate) ----------
    A deliberate push past the end shows as it builds (--pull 0 … 1): the
-   page's own hint ({SCROLL DOWN}, {SCROLL TO THE NEXT PROJECT}) darkens
-   and lifts; elsewhere a cue names where it goes ({WORK} at the foot,
-   {HOME} at the head), in the hints' grey italic. Let go short: it fades. */
+   next page's name comes in from the edge and grows to the middle in the
+   big titles' size (roll.js sets its size, weight and place), the content
+   pushed out of its way; the page's own scroll hint gives way to it. */
 .is-pulling-next .scroll-hint,
-.is-pulling-next .dt-end {
-  color: color-mix(in srgb, var(--ink) calc(var(--pull, 0) * 100%), var(--grey));
-  transform: translateY(calc(var(--pull, 0) * -0.5em));
-}
+.is-pulling-next .dt-end,
+.is-pulling-next .work-hint { opacity: calc(1 - var(--pull, 0) * 3); }
 .pull-cue {
   position: fixed;
+  top: 0;
   left: 0;
   right: 0;
-  bottom: calc(var(--gutter) + 2.6em); /* over the foot line (© 2024 …) */
   z-index: 5;
   margin: 0;
+  padding: 0 var(--gutter);
   text-align: center;
-  font-size: var(--text-sm);
-  font-weight: 600;
+  white-space: nowrap;
+  line-height: 0.8;
   text-transform: uppercase;
   font-variation-settings: "slnt" -10;
   color: color-mix(in srgb, var(--ink) calc(var(--pull, 0) * 100%), var(--grey));
   opacity: 0;
-  transform: translateY(calc((1 - var(--pull, 0)) * 0.6em));
   pointer-events: none;
+  will-change: transform;
 }
-.pull-cue.is-prev { bottom: auto; top: calc(var(--gutter) + 104 * 100vw / 1512 + 24px); transform: translateY(calc((var(--pull, 0) - 1) * 0.6em)); }
-.pull-cue.is-on { opacity: min(1, calc(var(--pull, 0) * 3)); }
-@media (max-width: 720px) { .pull-cue.is-prev { top: 140px; } }
+.pull-cue:not(.is-on) { visibility: hidden; }
 
 /* ---------- Loading screen (Figma Loading 13:257, 1512 × 813) ----------
    LOADING... top left, contact top right, seal bottom left, count bottom right. */

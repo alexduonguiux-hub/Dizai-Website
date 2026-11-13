@@ -445,12 +445,14 @@
      1. Only from a page already resting at that end: it got there and
         stood still for a moment (REST), and the push is a new gesture
         (not the tail of the scroll that brought it there).
-     2. Only a deliberate push past it: about three mouse-wheel notches in
-        a row, a full trackpad swipe, a fifth of the screen with a finger.
-     3. The push shows: html gets --pull 0 … 1 (and .is-pulling-next /
-        -prev); the scroll hints follow it. Let go short of it: back to 0.
+     2. Only a deliberate push past it: about three or four mouse-wheel
+        notches in a row, a full trackpad swipe, over a quarter of the
+        screen with a finger (let go to go on).
+     3. The push shows (see show()): the next page's name comes in from
+        the edge and grows to the middle, the content making way; html
+        gets --pull 0 … 1. Let go short of it: all back as it was.
      Keys: Page Down / Space / ↓ at the end (resting), Page Up / ↑ at the top. */
-  var REST = 450, QUIET = 250, PULL_WHEEL = 220, PULL_TOUCH = 0.2;
+  var REST = 450, QUIET = 250, PULL_WHEEL = 320, PULL_TOUCH = 0.28;
   function gate(o) {
     var sc = o.scroller || null, t0 = performance.now();
     var lastMove = -1e9, lastWheel = -1e9, g = null, pull = 0, endT = 0, done = false, tween = null;
@@ -464,25 +466,57 @@
                      : !!o.prev && (!o.canPrev || o.canPrev()) && atStart();
     }
     function resting(now) { return now - lastMove > REST && now - t0 > 800; }
-    // where the push goes, shown as it builds ({WORK} at the foot, {HOME}
-    // at the head …): nextLabel / prevLabel, text or a function giving it
-    var cue = null;
+    /* The push shows where it goes: {NAME} (nextLabel / prevLabel, text
+       or a function) comes in from the edge it is pulled from — the foot
+       for the next page, the head for the one before — and travels to the
+       middle of the screen growing to the size of the big titles, while
+       the page's content (o.push(): its elements) is pushed away the other
+       way to make room. Full: the page changes. Let go short of it: the
+       name slides back out and the content back into place. */
+    var cue = null, pushed = [];
     function label(dir) {
       var l = dir > 0 ? o.nextLabel : o.prevLabel;
       return typeof l === "function" ? l() : l;
     }
+    function bigSize() { // the big titles' size: 172 of 1512 (phones: 70 of 358 + 32)
+      return innerWidth <= 720 ? 70 * (innerWidth - 32) / 358 : 172 * innerWidth / 1512;
+    }
+    function ease(x) { return x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2; }
     function show(p, dir) {
       pull = p;
-      var l = p > 0 ? label(dir) : "";
-      if (l) {
-        if (!cue) { cue = document.createElement("p"); cue.className = "pull-cue trim"; cue.setAttribute("aria-hidden", "true"); document.body.appendChild(cue); }
-        cue.textContent = "{" + l + "}";
-        cue.classList.toggle("is-prev", dir < 0);
-      }
-      if (cue) cue.classList.toggle("is-on", !!l);
+      var e = ease(p), l = p > 0 ? label(dir) : "";
       root.style.setProperty("--pull", p.toFixed(3));
       root.classList.toggle("is-pulling-next", p > 0 && dir > 0);
       root.classList.toggle("is-pulling-prev", p > 0 && dir < 0);
+      // the content, pushed away (up for the next page, down for the one before)
+      var els = p > 0 && o.push ? o.push() : pushed;
+      // (as far as the name travels and more, fading back a little, so the
+      // name always has the room and reads clearly)
+      var away = -dir * e * innerHeight * 0.62;
+      (els || []).forEach(function (el) {
+        if (!el) return;
+        el.style.translate = p > 0 ? "0 " + away.toFixed(1) + "px" : "";
+        el.style.opacity = p > 0 ? (1 - 0.65 * e).toFixed(3) : "";
+      });
+      pushed = p > 0 ? els || [] : [];
+      if (!l) { if (cue) cue.classList.remove("is-on"); return; }
+      if (!cue) {
+        cue = document.createElement("p");
+        cue.className = "pull-cue";
+        cue.setAttribute("aria-hidden", "true");
+        document.body.appendChild(cue);
+      }
+      var txt = "{" + l + "}";
+      if (cue.textContent !== txt) cue.textContent = txt;
+      cue.classList.add("is-on");
+      var small = parseFloat(getComputedStyle(root).getPropertyValue("--text-sm")) || 20;
+      cue.style.fontSize = (small + (bigSize() - small) * e).toFixed(2) + "px";
+      cue.style.fontWeight = Math.round(600 - 200 * e);
+      var h = cue.offsetHeight, H = innerHeight;
+      // from just inside its edge to the middle
+      var from = dir > 0 ? H - h - H * 0.04 : H * 0.04, to = (H - h) / 2;
+      cue.style.transform = "translateY(" + (from + (to - from) * e).toFixed(1) + "px)";
+      cue.style.opacity = Math.min(1, p * 4).toFixed(3);
     }
     function release() {
       g = null;

@@ -501,9 +501,9 @@
     canPrev: function () { return phase === 1 && !busy && !gone; },
     next: function () { goPage(phase === 0 ? ABOUT : CONTACT); },
     prev: function () { goPage(ABOUT); }, // About opens at its top
-    // (Home has its {SCROLL DOWN}: that one follows the push instead)
-    nextLabel: function () { return phase === 1 ? "Contact" : ""; },
+    nextLabel: function () { return phase === 1 ? "Contact" : "About"; },
     prevLabel: "About",
+    push: function () { return phase === 1 ? [work] : [q(".hero")]; },
     ignore: function (e) {
       if (e.type === "keydown") return false;
       if (e.touches && G.axis === "x") return false; // phone: the list runs sideways, up / down is the page's

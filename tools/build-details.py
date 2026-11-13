@@ -81,7 +81,7 @@ def build(stamp):
   <script>(function (r) {{ r.classList.add("is-entering"); try {{ history.scrollRestoration = "manual"; }} catch (e) {{}}
     setTimeout(function () {{ r.classList.remove("is-entering"); }}, 3000); }})(document.documentElement)</script>
 </head>
-<body class="page-detail" data-up="../../#work" data-down="../{nxt["slug"]}/?v={stamp}" data-project="{INDEX[p["slug"]]}">
+<body class="page-detail" data-up="../../#work" data-down="../{nxt["slug"]}/?v={stamp}" data-next-name="{html.escape(nxt["title"])}" data-project="{INDEX[p["slug"]]}">
   <!-- Project page (Figma Work-Detail-00 … 03, 10:1738 / 10:1517 / 10:1526 /
        10:1536; content and pictures from Detail-Content 42:5305), built by
        tools/build-details.py; the motion is assets/js/detail.js.

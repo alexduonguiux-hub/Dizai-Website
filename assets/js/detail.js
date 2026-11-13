@@ -257,5 +257,9 @@
      (DzRoll.gate: only from the end the page already rests at, and only a
      deliberate push; scrolling up at the top stays here: back to Work is
      the menu's WORK) */
-  Roll.gate({ scroller: sc, next: function () { leave(DOWN); } });
+  Roll.gate({
+    scroller: sc, next: function () { leave(DOWN); },
+    nextLabel: document.body.dataset.nextName || "Next project",
+    push: function () { return [sc]; }
+  });
 })();

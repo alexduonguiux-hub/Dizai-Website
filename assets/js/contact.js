@@ -54,5 +54,8 @@
     gone = true;
     Roll.leave(new URL(document.body.dataset.up || "../#work", location.href).href, texts, boxes);
   }
-  Roll.gate({ scroller: document.scrollingElement, prev: back, prevLabel: "Work" });
+  Roll.gate({
+    scroller: document.scrollingElement, prev: back, prevLabel: "Work",
+    push: function () { return [].slice.call(document.querySelectorAll(".cp-center, .cp-copy")); }
+  });
 })();

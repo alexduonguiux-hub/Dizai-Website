@@ -233,6 +233,7 @@
   Roll.gate({
     scroller: sc,
     prev: function () { leave(HOME); }, prevLabel: "Home",
-    next: function () { leave(WORK); }, nextLabel: "Work"
+    next: function () { leave(WORK); }, nextLabel: "Work",
+    push: function () { return [sc]; }
   });
 })();
