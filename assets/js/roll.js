@@ -40,6 +40,7 @@
 
   // opts.blur false: the letters only rise (and fade), no blur
   function text(el, dir, opts) {
+    if (dir === "in" && isArrival(el)) return glideIn();
     var split = null, last = -1;
 
     // the menu's letters only rise, without the blur
@@ -251,8 +252,62 @@
     u.searchParams.set("v", v);
     return u.href;
   }
+  /* The small contact block (email, phone, city) is the same on every
+     page. Going to another page of the site it does not roll away and
+     back: its place is noted, and on the next page it glides from there
+     to its own place (on the same spot it just stays). A phone shows it
+     only on Home / Work. */
+  var CONTACT = "address.contact";
+  function keepsContact(href) {
+    var u = new URL(href, location.href);
+    if (u.origin !== location.origin) return false;
+    var home = !/\/(about|contact|work\/[^/]+)\/?$/.test(u.pathname);
+    return home || !matchMedia("(max-width: 720px)").matches;
+  }
+  var arrival;
+  function isArrival(el) {
+    if (!el.matches || !el.matches(CONTACT)) return false;
+    if (arrival === undefined) {
+      arrival = null;
+      try {
+        var a = JSON.parse(sessionStorage.getItem("dz-contact") || "null");
+        sessionStorage.removeItem("dz-contact");
+        if (a && Date.now() - a.t < 8000) arrival = a;
+      } catch (e) {}
+    }
+    return !!arrival;
+  }
+  var glided = false; // one glide for the block and its twins
+  function glideIn() {
+    function start() {
+      if (glided) return;
+      glided = true;
+      // every copy of the block (the inverting twins too) moves together
+      var els = [].slice.call(document.querySelectorAll(CONTACT)).filter(function (e) { return e.getClientRects().length; });
+      if (!els.length) return;
+      var r = els[0].getBoundingClientRect();
+      var dx = arrival.x - r.left, dy = arrival.y - r.top;
+      if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
+      var gsap = window.gsap, o = { k: 1 };
+      function put() { els.forEach(function (e) { e.style.translate = o.k ? (dx * o.k).toFixed(1) + "px " + (dy * o.k).toFixed(1) + "px" : ""; }); }
+      put();
+      if (!gsap || matchMedia("(prefers-reduced-motion: reduce)").matches) { o.k = 0; put(); return; }
+      gsap.to(o, { k: 0, duration: 0.9, delay: 0.05, ease: "power3.inOut", onUpdate: put });
+    }
+    return { set: start, revert: function () {}, resplit: function () {} };
+  }
+
   function leave(href, pieces, boxes) {
     href = stamped(href);
+    // the contact block goes along to the next page: it stays put here
+    if (keepsContact(href)) {
+      var info = (pieces || []).filter(function (el) { return el && el.matches && el.matches(CONTACT) && shown(el); });
+      if (info.length) {
+        var ir = info[0].getBoundingClientRect();
+        try { sessionStorage.setItem("dz-contact", JSON.stringify({ x: ir.left, y: ir.top, t: Date.now() })); } catch (e) {}
+        pieces = pieces.filter(function (el) { return !(el && el.matches && el.matches(CONTACT)); });
+      }
+    }
     var gsap = window.gsap, reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
     // to a page with the mark in the same place: the mark stays
     if (hasMark(href)) {
