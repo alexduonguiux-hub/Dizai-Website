@@ -418,5 +418,21 @@
     location.reload();
   });
 
-  window.DzRoll = { text: text, box: box, leave: leave, flip: flip, takeFlip: takeFlip, wait: wait };
+  /* A finger on the screen, or the page still gliding on after it (its
+     momentum): the paper sheets hold still meanwhile (their flutter,
+     redrawn every frame, made a phone's scrolling stutter) */
+  var touching = false, touchedAt = -1e9, scrolledAt = -1e9;
+  window.addEventListener("touchstart", function () { touching = true; touchedAt = performance.now(); }, { passive: true, capture: true });
+  function lift() { touching = false; touchedAt = performance.now(); }
+  window.addEventListener("touchend", lift, { passive: true, capture: true });
+  window.addEventListener("touchcancel", lift, { passive: true, capture: true });
+  document.addEventListener("scroll", function () { scrolledAt = performance.now(); }, { passive: true, capture: true });
+  function swiping() {
+    if (touching) return true;
+    var now = performance.now();
+    // gliding on after the finger lifted: scroll events still coming
+    return now - touchedAt < 4000 && now - scrolledAt < 160;
+  }
+
+  window.DzRoll = { text: text, box: box, leave: leave, flip: flip, takeFlip: takeFlip, wait: wait, swiping: swiping };
 })();

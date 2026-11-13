@@ -192,6 +192,9 @@
   var wind = 0, lastY = sc.scrollTop;
   gsap.ticker.add(function (time, deltaTime) {
     var dt = Math.min(3, deltaTime / 16.67), y = sc.scrollTop, vy = y - lastY; lastY = y;
+    // a finger swiping (or the page gliding on after it): the sheets hold
+    // still, so the phone's scrolling has nothing else to redraw
+    if (Roll.swiping && Roll.swiping()) { wind = 0; return; }
     wind += (Math.max(-90, Math.min(90, vy)) - wind) * 0.3; wind *= 0.94;
     var gust = Math.max(-1, Math.min(1, wind / 40)), vh = innerHeight, per = 12 / STRIPS;
     sheets.forEach(function (sh) {
