@@ -433,7 +433,7 @@ body::after {
   margin: 0 auto;
 }
 .work-title { margin: 6vh 0; }
-.work-hint { display: none; color: var(--grey); }
+.work-hint { display: none; color: var(--grey); font-variation-settings: "slnt" -10; } /* {SCROLL DOWN}: SemiBold Italic, like every scroll hint */
 .work-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--gutter); }
 /* the project names (Figma 29:24523): every project's name in pale green,
    16 apart; the current one in ink with its line under it */
@@ -1083,7 +1083,7 @@ body::after {
   color: var(--grey);
   font-variation-settings: "slnt" -10;
 }
-.dt-end a { color: inherit; text-decoration: none; transition: color 0.2s; }
+.dt-end a { color: inherit; text-decoration: none; transition: color 0.2s; --slnt: -10; font-variation-settings: "slnt" -10; } /* italic like every scroll hint (links set their own slant) */
 .dt-end a:hover, .dt-end a:focus-visible { color: var(--ink); }
 .dt-img { display: block; width: 100%; height: auto; aspect-ratio: 2048 / 1277; }
 .dt-shot.has-sheet { perspective: 1100px; }
