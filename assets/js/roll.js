@@ -473,7 +473,7 @@
        the page's content (o.push(): its elements) is pushed away the other
        way to make room. Full: the page changes. Let go short of it: the
        name slides back out and the content back into place. */
-    var cue = null, pushed = [];
+    var cue = null, pushed = [], rolls = null;
     function label(dir) {
       var l = dir > 0 ? o.nextLabel : o.prevLabel;
       return typeof l === "function" ? l() : l;
@@ -490,15 +490,32 @@
       root.classList.toggle("is-pulling-prev", p > 0 && dir < 0);
       // the content, pushed away (up for the next page, down for the one before)
       var els = p > 0 && o.push ? o.push() : pushed;
-      // (as far as the name travels and more, fading out into a blur — the
-      // site's own way of letting text go — so the name has the room)
-      var away = -dir * e * innerHeight * 0.62, blurPx = (innerWidth <= 720 ? 6 : 10) * e;
+      // (as far as the name travels and more, so the name has the room)
+      var away = -dir * e * innerHeight * 0.62;
       (els || []).forEach(function (el) {
-        if (!el) return;
-        el.style.translate = p > 0 ? "0 " + away.toFixed(1) + "px" : "";
-        el.style.opacity = p > 0 ? (1 - 0.92 * e).toFixed(3) : "";
-        el.style.filter = p > 0 && blurPx > 0.1 ? "blur(" + blurPx.toFixed(2) + "px)" : "";
+        if (el) el.style.translate = p > 0 ? "0 " + away.toFixed(1) + "px" : "";
       });
+      // the pieces on screen go the way every text goes when a page changes
+      // (rolling away into a blur, one after another), as far as the push
+      // has come; back to as they were if it is let go (o.pieces():
+      // { texts: [...], boxes: [...] })
+      if (p > 0 && !rolls && o.pieces) {
+        var pc = o.pieces() || {};
+        // (not the ones still waiting to come in, or moving already)
+        var free = function (el) { return el && shown(el) && !el.classList.contains("is-fading") && !el.classList.contains("is-rolling"); };
+        rolls = (pc.texts || []).filter(free).map(function (el) { return text(el, "out"); })
+          .concat((pc.boxes || []).filter(free).map(function (el) { return box(el, "out"); }));
+      }
+      if (rolls) {
+        // (over the whole push: barely at first, gone just as the page
+        // changes; each a touch after the one before)
+        var n = rolls.length, lag = n > 1 ? Math.min(0.15, 0.012 * (n - 1)) : 0;
+        rolls.forEach(function (r, i) {
+          var off = n > 1 ? lag * i / (n - 1) : 0;
+          r.set(Math.min(1, Math.max(0, (p - off) / (1 - lag))));
+        });
+        if (!(p > 0)) rolls = null;
+      }
       pushed = p > 0 ? els || [] : [];
       if (!l) { if (cue) cue.classList.remove("is-on"); return; }
       if (!cue) {

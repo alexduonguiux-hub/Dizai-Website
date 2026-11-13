@@ -504,6 +504,10 @@
     nextLabel: function () { return phase === 1 ? "Contact" : "About"; },
     prevLabel: "About",
     push: function () { return phase === 1 ? [work] : [q(".hero")]; },
+    pieces: function () {
+      return phase === 1 ? { texts: [title, capList], boxes: cards }
+                         : { texts: homeText, boxes: seal ? [seal] : [] };
+    },
     ignore: function (e) {
       if (e.type === "keydown") return false;
       if (e.touches && G.axis === "x") return false; // phone: the list runs sideways, up / down is the page's

@@ -56,6 +56,7 @@
   }
   Roll.gate({
     scroller: document.scrollingElement, prev: back, prevLabel: "Work",
-    push: function () { return [].slice.call(document.querySelectorAll(".cp-center, .cp-copy")); }
+    push: function () { return [].slice.call(document.querySelectorAll(".cp-center, .cp-copy")); },
+    pieces: function () { return { texts: texts.filter(function (el) { return !el.matches("address.contact"); }) }; }
   });
 })();

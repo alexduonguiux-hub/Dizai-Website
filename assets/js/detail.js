@@ -260,6 +260,7 @@
   Roll.gate({
     scroller: sc, next: function () { leave(DOWN); },
     nextLabel: document.body.dataset.nextName || "Next project",
-    push: function () { return [sc]; }
+    push: function () { return [sc]; },
+    pieces: function () { return { texts: [].slice.call(document.querySelectorAll(".dt-end")), boxes: shots }; }
   });
 })();

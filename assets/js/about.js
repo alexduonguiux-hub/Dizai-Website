@@ -234,6 +234,7 @@
     scroller: sc,
     prev: function () { leave(HOME); }, prevLabel: "Home",
     next: function () { leave(WORK); }, nextLabel: "Work",
-    push: function () { return [sc]; }
+    push: function () { return [sc]; },
+    pieces: function () { return { texts: texts, boxes: photos }; }
   });
 })();
