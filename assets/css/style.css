@@ -713,16 +713,17 @@ body::after {
     mask: var(--arrow-right) center / 100% 100% no-repeat;
   }
 
-  /* type block 25px below the screen's middle (Figma 13:212: centred at
-     50% + 25), clear of the contact block (top at gutter + 30px, 3 lines =
-     54px) and the social block */
+  /* type block (DESIGN … the services) in the middle of the room between
+     the contact block (top at gutter + 30px, 3 lines = 54px) and {SCROLL
+     DOWN} (cap bottom 20px over the social row's, 14 tall): as much space
+     above it as below it, 16 at the least */
   .hero {
     position: static;
     flex: 1;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding-block: calc(var(--gutter) + 30px + 54px + 16px + 50px) calc(var(--gutter) + 30px + 54px + 16px);
+    padding-block: calc(var(--gutter) + 30px + 54px + 16px) calc(var(--gutter) + 20px + 14px + 19px); /* (+3: the type's caps sit a touch low in their boxes) */
   }
 
   /* Four rows at 110px on 358 (Figma 13:8: rows 77 tall), every row
