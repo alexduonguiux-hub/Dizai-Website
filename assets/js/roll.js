@@ -603,7 +603,10 @@
        page still gliding in), the content gives a little instead of
        stopping dead — heavier the further it goes (at most an eighth of
        the screen) — and springs back once let go. */
-    var band = 0, bandAcc = 0, bandT = 0, bandTween = null;
+    // (only the first moment of a scroll stretches it — a trackpad's
+    // momentum would otherwise hold it out for a second or more — then it
+    // springs back at once, and that scroll's tail leaves it be)
+    var band = 0, bandAcc = 0, bandT = 0, bandTween = null, bandFrom = 0, bandSpent = false, BAND_HOLD = 200;
     function atEdge(dir) { return dir > 0 ? atEnd() : atStart(); }
     function rubber(x) { var M = innerHeight * 0.12; return M * (1 - 1 / (x / M + 1)); }
     function setBand(v) {
@@ -619,7 +622,7 @@
       bandAcc = 0;
       if (!band) return;
       var o2 = { v: band };
-      if (window.gsap) bandTween = window.gsap.to(o2, { v: 0, duration: 0.55, ease: "back.out(2.2)", onUpdate: function () { setBand(o2.v); }, onComplete: function () { bandTween = null; setBand(0); } });
+      if (window.gsap) bandTween = window.gsap.to(o2, { v: 0, duration: 0.42, ease: "back.out(2.2)", onUpdate: function () { setBand(o2.v); }, onComplete: function () { bandTween = null; setBand(0); } });
       else setBand(0);
     }
     window.addEventListener("wheel", function (e) {
@@ -634,9 +637,11 @@
       if (!g || dir !== g.dir) {
         release();
         // not going anywhere: the rubber band at the limit
-        if (atEdge(dir) && !(pull > 0)) {
+        if (fresh) { bandSpent = false; bandFrom = now; }
+        if (atEdge(dir) && !(pull > 0) && !bandSpent) {
+          if (now - bandFrom > BAND_HOLD) { bandSpent = true; clearTimeout(bandT); springBack(); return; }
           stretch(dir, (band && Math.sign(-band) === dir ? bandAcc : 0) + Math.abs(dy) * 0.6);
-          clearTimeout(bandT); bandT = setTimeout(springBack, 120);
+          clearTimeout(bandT); bandT = setTimeout(springBack, 90);
         }
         return;
       }
