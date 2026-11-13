@@ -1,6 +1,7 @@
 /* Letters rising — the site's one transition: going, every letter slides
    up and blurs away; coming, every letter rises from below out of a blur
-   into focus. The letters go one after another along the line.
+   into focus. The whole text moves as one (RUN = true: the letters go
+   one after another along the line instead).
 
    DzRoll.text(el, "out" | "in")  → { set(v), revert() }
      v 0 → 1. "out": the text rolls away (v 0 = as it is, 1 = gone).
@@ -17,6 +18,7 @@
 
   var RISE = 0.45;  // em: how far a letter travels
   var BLUR = 0.07;  // em of blur when furthest out (+ 2 px so small type blurs too)
+  var RUN = false;  // true: letter after letter along the line; false: all together, surfacing from below
   var live = [];
 
   function clamp01(x) { return x < 0 ? 0 : x > 1 ? 1 : x; }
@@ -142,7 +144,7 @@
     }
 
     function apply(v) {
-      var cs = split.cells, n = cs.length, spread = n > 1 ? Math.min(0.6, 0.04 * n) : 0;
+      var cs = split.cells, n = cs.length, spread = RUN && n > 1 ? Math.min(0.6, 0.04 * n) : 0;
       for (var i = 0; i < n; i++) {
         var start = n > 1 ? spread * i / (n - 1) : 0;
         var q = clamp01((v - start) / (1 - spread));
