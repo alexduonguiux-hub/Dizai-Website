@@ -16,7 +16,9 @@
 (function () {
   "use strict";
 
-  var RISE = 0.45;  // em: how far a letter travels
+  var RISE = 0.45;  // em: how far a letter travels…
+  var RISE_MAX = 18; // …but never more than this many px: big type only
+                     // shifts a little while it blurs into focus
   var BLUR = 0.07;  // em of blur when furthest out (+ 2 px so small type blurs too)
   var RUN = false;  // true: letter after letter along the line; false: all together, surfacing from below
   var live = [];
@@ -122,7 +124,8 @@
         flush();
         tn.parentNode.replaceChild(frag, tn);
       });
-      split = { cells: cells };
+      var efs = parseFloat(getComputedStyle(el).fontSize) || 16;
+      split = { cells: cells, rise: Math.min(RISE, RISE_MAX / efs) };
       el.classList.add("is-rolling");
       if (live.indexOf(api) < 0) live.push(api);
     }
@@ -153,7 +156,7 @@
         // the blur (soft landing). a = how far from resting, 0 … 1
         var a = dir === "out" ? q * q : (1 - q) * (1 - q);
         var st = cs[i].style;
-        st.transform = a ? "translateY(" + ((dir === "out" ? -RISE : RISE) * a).toFixed(3) + "em)" : "";
+        st.transform = a ? "translateY(" + ((dir === "out" ? -split.rise : split.rise) * a).toFixed(3) + "em)" : "";
         var bl = +cs[i].dataset.blur;
         st.filter = a && bl ? "blur(" + (a * bl).toFixed(2) + "px)" : "";
         st.opacity = (1 - a).toFixed(3);
