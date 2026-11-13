@@ -89,7 +89,30 @@
   var G = DESK, unit = 1, H = 733, cardTop = 249, cs = 1; // cs: picture scale (mobile)
   var list = work.querySelector(".work-list");
 
+  /* How far the contact block goes up for Work, in px: from where it sits
+     on Home to where it sits on every other page (the top margin), as
+     measured, so it lands on exactly the same spot whatever the screen's
+     height does to Home's layout */
+  var contactLift = 0;
+  function measureContact() {
+    if (!contact) return;
+    // where Home has it, from the layout (offsets: no transform, no
+    // translate of a roll in progress counts)
+    var tf = contact.style.transform, tr = contact.style.translate;
+    contact.style.transform = "none"; contact.style.translate = "none";
+    var top = contact.getBoundingClientRect().top;
+    contact.style.transform = tf; contact.style.translate = tr;
+    // the top margin (--gutter), resolved to px
+    var probe = document.createElement("div");
+    probe.style.cssText = "position:absolute;visibility:hidden;padding-top:var(--gutter)";
+    document.documentElement.appendChild(probe);
+    var gutter = parseFloat(getComputedStyle(probe).paddingTop) || 0;
+    probe.remove();
+    var want = gutter + (parseFloat(getComputedStyle(contact).marginTop) || 0);
+    contactLift = want - top;
+  }
   function measure() {
+    measureContact();
     var r = work.getBoundingClientRect(); // transforms are GSAP's
     unit = r.width / G.W;
     H = r.height / unit;
@@ -634,7 +657,7 @@
     drive(sealOut.set, 0, 1, 0.1, 0.32);
     // desktop: the contact block slides up to its Work place (251 units);
     // mobile: it rolls away with the rest of Home
-    if (G.contactY) drive(function (v) { gsap.set(contact, { y: MOVE(v) * (G.contactY * unit - heroDrop()) }); }, 0, 1, 0.08, 0.55);
+    if (G.contactY) drive(function (v) { gsap.set(contact, { y: MOVE(v) * contactLift }); }, 0, 1, 0.08, 0.55);
     else drive(contactOut.set, 0, 1, 0.06, 0.3);
     // Work: WORK rolls in where it stays (desktop on the foot, mobile under
     // the mark), the mark slides in
@@ -652,6 +675,8 @@
       rT = setTimeout(function () { measure(); settle(); }, 60);
     }
     window.addEventListener("resize", onResize);
+    // the fonts arriving can shift Home's lines: measure again then
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(onResize);
     gsap.ticker.add(tick);
 
     return function () { // leaving this layout: undo everything (phase and listT stay)
