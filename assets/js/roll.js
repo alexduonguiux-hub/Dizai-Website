@@ -490,13 +490,14 @@
       root.classList.toggle("is-pulling-prev", p > 0 && dir < 0);
       // the content, pushed away (up for the next page, down for the one before)
       var els = p > 0 && o.push ? o.push() : pushed;
-      // (as far as the name travels and more, fading back a little, so the
-      // name always has the room and reads clearly)
-      var away = -dir * e * innerHeight * 0.62;
+      // (as far as the name travels and more, fading out into a blur — the
+      // site's own way of letting text go — so the name has the room)
+      var away = -dir * e * innerHeight * 0.62, blurPx = (innerWidth <= 720 ? 6 : 10) * e;
       (els || []).forEach(function (el) {
         if (!el) return;
         el.style.translate = p > 0 ? "0 " + away.toFixed(1) + "px" : "";
-        el.style.opacity = p > 0 ? (1 - 0.65 * e).toFixed(3) : "";
+        el.style.opacity = p > 0 ? (1 - 0.92 * e).toFixed(3) : "";
+        el.style.filter = p > 0 && blurPx > 0.1 ? "blur(" + blurPx.toFixed(2) + "px)" : "";
       });
       pushed = p > 0 ? els || [] : [];
       if (!l) { if (cue) cue.classList.remove("is-on"); return; }
