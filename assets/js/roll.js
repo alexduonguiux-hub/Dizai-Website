@@ -380,34 +380,6 @@
     setTimeout(go, 1200); // never get stuck here
   }
 
-  /* A hard scroll that brought us here (the end of the last page) goes on
-     for a second or more on a trackpad (its inertia): on the new page that
-     tail is let through to nothing, so one push never goes two pages.
-     Wheel events arriving soon after the page opens, and every one after
-     them with no pause, are dropped; once the wheel has been still for a
-     moment (or the first one comes late) scrolling works as usual. */
-  (function () {
-    // (passive: the browser never waits on it, so scrolling stays smooth;
-    // it only keeps the page's own handlers from taking the tail as a new
-    // push, and it is removed once that tail is over)
-    var t0 = performance.now(), last = 0, opts = { capture: true, passive: true };
-    function done() { window.removeEventListener("wheel", hold, opts); }
-    function hold(e) {
-      var now = performance.now();
-      if (now - t0 < 700 || now - last < 400) {
-        last = now;
-        e.stopImmediatePropagation();
-        return;
-      }
-      done();
-    }
-    window.addEventListener("wheel", hold, opts);
-    // nothing coming in after the first moments: gone without a wheel event
-    (function check() {
-      setTimeout(function () { if (performance.now() - last >= 400) done(); else check(); }, 800);
-    })();
-  })();
-
   /* Back / Forward: the browser may show the page again just as it was
      left (its back-forward cache), i.e. with everything rolled away and
      the page marked as gone. Then it is loaded afresh instead, so it
@@ -465,6 +437,10 @@
       return dir > 0 ? !!o.next && (!o.canNext || o.canNext()) && atEnd()
                      : !!o.prev && (!o.canPrev || o.canPrev()) && atStart();
     }
+    // (a scroll carried over from the last page — its trackpad momentum,
+    // still going as this page opens — never goes on to another page: only
+    // a push begun once the page has been open a moment counts; scrolling
+    // the page itself is free at once)
     function resting(now) { return now - lastMove > REST && now - t0 > 800; }
     /* The push shows where it goes: {NAME} (nextLabel / prevLabel, text
        or a function) comes in from the edge it is pulled from — the foot
