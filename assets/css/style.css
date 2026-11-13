@@ -1045,8 +1045,10 @@ body::after {
 .dt-shots {
   width: calc(var(--u) * 696);
   margin: calc(100svh + var(--zoom-top)) auto 0; /* one screen of scroll to grow the first picture */
-  /* room after the last picture so it too can reach the top place */
-  padding-bottom: max(64px, calc(100svh - 2 * var(--gutter) - var(--zoom-top) - var(--u) * 434)); /* (and room for the hint at the end) */
+  /* after the last picture only the room for the hint at the end: the
+     column stops with its last picture near the foot of the screen (no
+     empty half screen under it) */
+  padding-bottom: max(64px, calc(var(--u) * 80));
   display: flex;
   flex-direction: column;
   gap: calc(var(--u) * 12);
@@ -1117,7 +1119,7 @@ body::after {
   .dt-desc { width: 100%; }
   .dt-meta { width: auto; }
   .dt-facts > .dt-ph { left: calc(50% - var(--u) * 103); }
-  .dt-shots { width: 100%; gap: 12px; padding-bottom: max(64px, calc(100svh - 2 * var(--gutter) - var(--zoom-top) - var(--u) * 223)); }
+  .dt-shots { width: 100%; gap: 12px; padding-bottom: 56px; }
   .dt-thumbs { display: none; } /* not on phones (Figma 41:5267); the end hint takes the foot */
 }
 /* About: its own scroll; past its ends the page goes on (about.js), so no

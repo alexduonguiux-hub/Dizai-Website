@@ -150,6 +150,8 @@
       var d = Math.abs((s.offsetTop - t) - (first.offsetTop - S));
       if (d < best) { best = d; cur = i; }
     });
+    // (at the very end the last one: it no longer climbs all the way up)
+    if (sc.scrollTop + sc.clientHeight >= sc.scrollHeight - 2) cur = shots.length - 1;
     thumbs.forEach(function (b, i) { b.classList.toggle("is-on", i === cur); });
   }
   var raf = 0;
