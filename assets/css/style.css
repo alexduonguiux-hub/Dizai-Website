@@ -404,6 +404,14 @@ body::after {
 .wc-item:not(.is-active) .wc-cat { display: none; }
 @media (max-width: 720px) { .wc-cat { display: none; } }
 .wc-item:not(.is-active) .wc-desc { display: none; }
+/* work.js places every row itself as the list runs (each row on its own
+   spot; the line and the kind fade in and out instead of popping) */
+.wc-list.is-free { display: block; position: relative; }
+.wc-list.is-free .wc-item { position: absolute; top: 0; left: 0; right: 0; will-change: transform, opacity; }
+.wc-list.is-free .wc-item .wc-desc { display: block; }
+.wc-list.is-free .wc-item .wc-cat { display: block; }
+.wc-list.is-free .wc-name { transition: none; }
+@media (max-width: 720px) { .wc-list.is-free .wc-item .wc-cat { display: none; } }
 /* the line under the name: AnNam Serif Regular 16 (Figma 23:22526), line
    height 1.1, trimmed to cap height / baseline like the rest (half-leading
    0.05em) */
