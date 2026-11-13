@@ -434,5 +434,122 @@
     return now - touchedAt < 4000 && now - scrolledAt < 160;
   }
 
-  window.DzRoll = { text: text, box: box, leave: leave, flip: flip, takeFlip: takeFlip, wait: wait, swiping: swiping };
+  /* ---------- scrolling on to the next page, without surprises ----------
+     DzRoll.gate({ scroller, prev, next, ignore })
+       scroller  the element the page scrolls in (none: a page that does
+                 not scroll, like Home / Work)
+       prev/next what scrolling past the top / the end does (or null)
+       ignore    function (event): true where the scroll is someone else's
+                 (Work's list of projects)
+     The rules, so a light touch or a long page's scroll never jumps away:
+     1. Only from a page already resting at that end: it got there and
+        stood still for a moment (REST), and the push is a new gesture
+        (not the tail of the scroll that brought it there).
+     2. Only a deliberate push past it: about three mouse-wheel notches in
+        a row, a full trackpad swipe, a fifth of the screen with a finger.
+     3. The push shows: html gets --pull 0 … 1 (and .is-pulling-next /
+        -prev); the scroll hints follow it. Let go short of it: back to 0.
+     Keys: Page Down / Space / ↓ at the end (resting), Page Up / ↑ at the top. */
+  var REST = 450, QUIET = 250, PULL_WHEEL = 220, PULL_TOUCH = 0.2;
+  function gate(o) {
+    var sc = o.scroller || null, t0 = performance.now();
+    var lastMove = -1e9, lastWheel = -1e9, g = null, pull = 0, endT = 0, done = false, tween = null;
+    var root = document.documentElement;
+    function atStart() { return !sc || sc.scrollTop <= 1; }
+    function atEnd() { return !sc || sc.scrollTop + sc.clientHeight >= sc.scrollHeight - 2; }
+    if (sc) sc.addEventListener("scroll", function () { lastMove = performance.now(); }, { passive: true });
+    // (canPrev / canNext: whether that way is open right now, e.g. Home / Work)
+    function can(dir) {
+      return dir > 0 ? !!o.next && (!o.canNext || o.canNext()) && atEnd()
+                     : !!o.prev && (!o.canPrev || o.canPrev()) && atStart();
+    }
+    function resting(now) { return now - lastMove > REST && now - t0 > 800; }
+    // where the push goes, shown as it builds ({WORK} at the foot, {HOME}
+    // at the head …): nextLabel / prevLabel, text or a function giving it
+    var cue = null;
+    function label(dir) {
+      var l = dir > 0 ? o.nextLabel : o.prevLabel;
+      return typeof l === "function" ? l() : l;
+    }
+    function show(p, dir) {
+      pull = p;
+      var l = p > 0 ? label(dir) : "";
+      if (l) {
+        if (!cue) { cue = document.createElement("p"); cue.className = "pull-cue trim"; cue.setAttribute("aria-hidden", "true"); document.body.appendChild(cue); }
+        cue.textContent = "{" + l + "}";
+        cue.classList.toggle("is-prev", dir < 0);
+      }
+      if (cue) cue.classList.toggle("is-on", !!l);
+      root.style.setProperty("--pull", p.toFixed(3));
+      root.classList.toggle("is-pulling-next", p > 0 && dir > 0);
+      root.classList.toggle("is-pulling-prev", p > 0 && dir < 0);
+    }
+    function release() {
+      g = null;
+      if (done || !pull) return;
+      var from = { p: pull }, dir = root.classList.contains("is-pulling-prev") ? -1 : 1;
+      if (tween) tween.kill();
+      if (window.gsap) tween = window.gsap.to(from, { p: 0, duration: 0.35, ease: "power2.out", onUpdate: function () { show(from.p, dir); } });
+      else show(0, dir);
+    }
+    function fire(dir) {
+      if (done) return;
+      done = true;
+      show(1, dir);
+      (dir > 0 ? o.next : o.prev)();
+    }
+    window.addEventListener("wheel", function (e) {
+      if (done || e.ctrlKey) return;
+      var now = performance.now(), fresh = now - lastWheel > QUIET;
+      lastWheel = now;
+      if (o.ignore && o.ignore(e)) { release(); return; }
+      var dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? innerHeight : 1);
+      var dir = dy > 0 ? 1 : dy < 0 ? -1 : 0;
+      if (!dir) return;
+      if (fresh) g = can(dir) && resting(now) ? { dir: dir, acc: 0 } : null;
+      if (!g || dir !== g.dir) { release(); return; }
+      if (tween) { tween.kill(); tween = null; }
+      g.acc += Math.abs(dy);
+      show(Math.min(1, g.acc / PULL_WHEEL), dir);
+      if (g.acc >= PULL_WHEEL) fire(dir);
+      clearTimeout(endT); endT = setTimeout(release, QUIET);
+    }, { passive: true });
+    var t = null;
+    window.addEventListener("touchstart", function (e) {
+      if (done || e.touches.length !== 1) { t = null; return; }
+      var now = performance.now();
+      t = { x: e.touches[0].clientX, y: e.touches[0].clientY, next: can(1) && resting(now), prev: can(-1) && resting(now), dir: 0, off: o.ignore && o.ignore(e) };
+    }, { passive: true });
+    window.addEventListener("touchmove", function (e) {
+      if (!t || t.off || done) return;
+      var dx = e.touches[0].clientX - t.x, dy = t.y - e.touches[0].clientY; // dy > 0: pulling up, on to the next
+      if (!t.dir) {
+        if (Math.abs(dy) < 10 || Math.abs(dx) > Math.abs(dy)) return;  // sideways: not ours
+        t.dir = dy > 0 ? 1 : -1;
+      }
+      if (!(t.dir > 0 ? t.next : t.prev) || dy * t.dir <= 0) { show(0, t.dir); return; }
+      if (tween) { tween.kill(); tween = null; }
+      show(Math.min(1, dy * t.dir / (innerHeight * PULL_TOUCH)), t.dir);
+    }, { passive: true });
+    function lift() {
+      if (!t) return;
+      var dir = t.dir; t = null;
+      if (pull >= 1 && dir) fire(dir); else release();
+    }
+    window.addEventListener("touchend", lift, { passive: true });
+    window.addEventListener("touchcancel", lift, { passive: true });
+    window.addEventListener("keydown", function (e) {
+      if (done || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (/^(INPUT|TEXTAREA|SELECT)$/.test((e.target && e.target.tagName) || "")) return;
+      var k = e.key, now = performance.now();
+      var down = k === "PageDown" || k === "ArrowDown" || (k === " " && !e.shiftKey);
+      var up = k === "PageUp" || k === "ArrowUp" || (k === " " && e.shiftKey);
+      if (o.ignore && o.ignore(e)) return;
+      if (down && can(1) && resting(now)) { e.preventDefault(); fire(1); }
+      else if (up && can(-1) && resting(now)) { e.preventDefault(); fire(-1); }
+    });
+    return { atStart: atStart, atEnd: atEnd };
+  }
+
+  window.DzRoll = { text: text, box: box, leave: leave, flip: flip, takeFlip: takeFlip, wait: wait, swiping: swiping, gate: gate };
 })();

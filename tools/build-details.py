@@ -122,7 +122,7 @@ def build(stamp):
     <div class="dt-scroll">
       <div class="dt-shots">
 {shots}
-        <p class="dt-end trim"><a href="../{nxt["slug"]}/?v={stamp}">{{Next project}}</a></p>
+        <p class="dt-end trim"><a href="../{nxt["slug"]}/?v={stamp}">{{Scroll to the next project}}</a></p>
       </div>
     </div>
 

@@ -255,6 +255,37 @@ body::after {
   font-variation-settings: "slnt" -10; /* {SCROLL DOWN}: SemiBold Italic */
 }
 
+/* ---------- Scrolling on to the next page (DzRoll.gate) ----------
+   A deliberate push past the end shows as it builds (--pull 0 … 1): the
+   page's own hint ({SCROLL DOWN}, {SCROLL TO THE NEXT PROJECT}) darkens
+   and lifts; elsewhere a cue names where it goes ({WORK} at the foot,
+   {HOME} at the head), in the hints' grey italic. Let go short: it fades. */
+.is-pulling-next .scroll-hint,
+.is-pulling-next .dt-end {
+  color: color-mix(in srgb, var(--ink) calc(var(--pull, 0) * 100%), var(--grey));
+  transform: translateY(calc(var(--pull, 0) * -0.5em));
+}
+.pull-cue {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--gutter) + 2.6em); /* over the foot line (© 2024 …) */
+  z-index: 5;
+  margin: 0;
+  text-align: center;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-variation-settings: "slnt" -10;
+  color: color-mix(in srgb, var(--ink) calc(var(--pull, 0) * 100%), var(--grey));
+  opacity: 0;
+  transform: translateY(calc((1 - var(--pull, 0)) * 0.6em));
+  pointer-events: none;
+}
+.pull-cue.is-prev { bottom: auto; top: calc(var(--gutter) + 104 * 100vw / 1512 + 24px); transform: translateY(calc((var(--pull, 0) - 1) * 0.6em)); }
+.pull-cue.is-on { opacity: min(1, calc(var(--pull, 0) * 3)); }
+@media (max-width: 720px) { .pull-cue.is-prev { top: 140px; } }
+
 /* ---------- Loading screen (Figma Loading 13:257, 1512 × 813) ----------
    LOADING... top left, contact top right, seal bottom left, count bottom right. */
 .loader { display: none; }
@@ -847,27 +878,54 @@ body::after {
   gap: 16px;
 }
 .ab-end {
-  /* the end of the page is one screen, laid out like Contact: scrolled to
-     the end, SEND US YOUR PROBLEMS / HELLO@ / LINKEDIN ✱ FACEBOOK sit in
-     the middle of the screen (7 below it, as on Contact) and © 2024 on the
-     foot (the frame's padding below it) */
+  /* the end of the page is one screen: scrolled to the end, SEND US YOUR
+     PROBLEMS / CONTACT US → over © 2024 on the foot (the frame's padding
+     below it) */
   position: relative;
   width: 100%;
   height: calc(100svh - var(--gutter));
   margin-top: calc(var(--u) * 9);
 }
 .ab-contact {
-  --fs: calc(var(--u) * 172);
+  /* Figma 71:24104: SEND US / YOUR / PROBLEMS, CONTACT US → 20 under it,
+     the whole 78 above © 2024 (so at 1512 × 813 it starts 1524 down) */
   position: absolute;
   left: 0;
   right: 0;
-  top: 50svh; /* the section starts at the top of the screen when scrolled to the end */
-  transform: translateY(-50%);
-  margin-top: calc(var(--u) * 7);
+  bottom: calc(var(--u) * 92); /* 78 + © 2024's own 14 */
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: calc(var(--u) * 20);
+}
+.ab-ask {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--u) * 18);
+  font-size: calc(var(--u) * 172);
+  font-weight: 400;
+  line-height: 0.7;          /* box = cap height, like the title */
+  white-space: nowrap;
+}
+.ab-cta {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: from-font;
+  text-underline-position: from-font;
+}
+.ab-cta:hover, .ab-cta:focus-visible { --slnt: -10; }
+/* → drawn like the menu's arrow (AnNam Serif has no arrow glyph yet) */
+.ab-arrow {
+  display: inline-block;
+  width: 0.68em;
+  height: 0.3em;
+  margin-left: 0.2em;
+  vertical-align: 0.21em;
+  background: currentColor;
+  -webkit-mask: var(--arrow-right) center / 100% 100% no-repeat;
+  mask: var(--arrow-right) center / 100% 100% no-repeat;
 }
 .ab-copy { position: absolute; left: 0; right: 0; bottom: 0; }
 .is-entering .ab { visibility: hidden; }
@@ -887,7 +945,10 @@ body::after {
   .ab-photo { width: calc(var(--u) * 171); height: calc(var(--u) * 228); }
   .ab-text { width: calc(var(--u) * 326); margin-top: calc(var(--u) * 24); } /* 16 in on each side */
   .ab-end { margin-top: calc(var(--u) * 60); }
-  .ab-contact { --fs: calc(var(--u) * 70); margin-top: 0; gap: 12px; }
+  /* phone: the same, in the title's size (70, 7 apart), in the middle of
+     the last screen */
+  .ab-contact { bottom: auto; top: 50svh; transform: translateY(-50%); gap: 12px; }
+  .ab-ask { font-size: calc(var(--u) * 70); gap: calc(var(--u) * 7); }
 }
 /* ---------- Project pages (Figma Work-Detail-00 … 03, 10:1738 …) ----------
    Built by tools/build-details.py, moved by assets/js/detail.js. Units of

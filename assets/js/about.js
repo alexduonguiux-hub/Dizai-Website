@@ -125,7 +125,7 @@
   // the pieces, in page order: text rolls, pictures rise
   var frame = q(".ab-info").filter(shown);
   var marks = q(".ab-mark");
-  var texts = q(".ab-line, .ab-text p, .ab-contact .cp-kicker, .ab-contact .cp-email, .ab-contact .cp-social, " +
+  var texts = q(".ab-line, .ab-text p, .ab-cta, " +
                 ".dt-title, .dt-desc, .dt-meta li, .dt-next-kicker, .dt-next-title, .ab-copy").filter(shown); // About + project pages
   var photos = q(".ab-photo-box, .dt-shot");
   // the content scrolls in its own frame under the menu and mark
@@ -226,57 +226,13 @@
     leave(url.href);
   });
 
-  /* ---------- past the ends: Work below, Home above ---------- */
-  /* Pages change from the menu only: scrolling (wheel, swipe, keys) no
-     longer goes on to the next page (true brings that back) */
-  var SCROLL_PAGES = false;
-
-  function atTop() { return sc.scrollTop <= 1; }
+  /* ---------- past the ends: Work below, Home above ----------
+     (DzRoll.gate: only from the end the page already rests at, and only a
+     deliberate push; a long scroll that reaches the end stops there) */
   function atEnd() { return sc.clientHeight + sc.scrollTop >= sc.scrollHeight - 2; }
-
-  /* Past an end, the push that goes on is counted: a light one if the
-     scroll started with the page already there, a longer one if the same
-     scroll has just arrived there (so it carries on smoothly, but the tail
-     of a trackpad flick alone does not leave the page). */
-  var lastWheel = 0, acc = 0, startEdge = 0; // +1 started at the end, −1 at the top
-  window.addEventListener("wheel", function (e) {
-    if (gone || e.ctrlKey) return;
-    var now = performance.now(), fresh = now - lastWheel > 220;
-    lastWheel = now;
-    var dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? innerHeight : 1);
-    if (fresh) { acc = 0; startEdge = dy > 0 && atEnd() ? 1 : dy < 0 && atTop() ? -1 : 0; }
-    var dir = dy > 0 ? 1 : dy < 0 ? -1 : 0;
-    if (!dir || !(dir > 0 ? atEnd() : atTop())) { acc = 0; return; }
-    acc += Math.abs(dy);
-    if (SCROLL_PAGES && acc > (startEdge === dir ? 40 : 240)) leave(dir > 0 ? WORK : HOME);
-  }, { passive: true });
-
-  var touch = null;
-  window.addEventListener("touchstart", function (e) {
-    if (e.touches.length !== 1) { touch = null; return; }
-    touch = { y: e.touches[0].clientY, end: atEnd(), top: atTop() };
-  }, { passive: true });
-  // checked as the finger moves and again as it lifts: once the browser
-  // takes a swipe as a scroll it may stop reporting the moves
-  function swiped(y) {
-    if (!touch || gone) return;
-    var dy = y - touch.y;
-    if (!SCROLL_PAGES) return;
-    if (touch.end && dy < -50) { touch = null; leave(WORK); }
-    else if (touch.top && dy > 60) { touch = null; leave(HOME); }
-  }
-  window.addEventListener("touchmove", function (e) { swiped(e.touches[0].clientY); }, { passive: true });
-  window.addEventListener("touchend", function (e) {
-    var t = e.changedTouches && e.changedTouches[0];
-    if (t) swiped(t.clientY);
-    touch = null;
-  }, { passive: true });
-
-  window.addEventListener("keydown", function (e) {
-    if (gone || e.metaKey || e.ctrlKey || e.altKey) return;
-    var k = e.key;
-    if (!SCROLL_PAGES) return;
-    if ((k === "ArrowDown" || k === "PageDown" || k === "End" || (k === " " && !e.shiftKey)) && atEnd()) { e.preventDefault(); leave(WORK); }
-    else if ((k === "ArrowUp" || k === "PageUp" || k === "Home" || (k === " " && e.shiftKey)) && atTop()) { e.preventDefault(); leave(HOME); }
+  Roll.gate({
+    scroller: sc,
+    prev: function () { leave(HOME); }, prevLabel: "Home",
+    next: function () { leave(WORK); }, nextLabel: "Work"
   });
 })();

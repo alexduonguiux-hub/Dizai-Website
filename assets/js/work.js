@@ -492,11 +492,25 @@
   }
   var ABOUT = new URL("about/", location.href).href, CONTACT = new URL("contact/", location.href).href;
   // the order going down: Home → About (scrolled through) → Work → Contact
-  /* Pages change from the menu only: scrolling (wheel, swipe, keys) no
-     longer goes on to the next page (true brings that back) */
-  var SCROLL_PAGES = false;
-  function down() { if (!SCROLL_PAGES) return; if (phase === 0) goPage(ABOUT); else goPage(CONTACT); }
-  function up() { if (SCROLL_PAGES && phase === 1) goPage(ABOUT); } // About opens at its top
+  /* Scrolling on to the next page (DzRoll.gate: only a deliberate push,
+     starting from rest, so a light touch never leaves): Home → About;
+     Work → About above, Contact below. Over the projects the wheel runs
+     the list instead. */
+  Roll.gate({
+    canNext: function () { return !busy && !gone && !root.classList.contains("is-loading"); },
+    canPrev: function () { return phase === 1 && !busy && !gone; },
+    next: function () { goPage(phase === 0 ? ABOUT : CONTACT); },
+    prev: function () { goPage(ABOUT); }, // About opens at its top
+    // (Home has its {SCROLL DOWN}: that one follows the push instead)
+    nextLabel: function () { return phase === 1 ? "Contact" : ""; },
+    prevLabel: "About",
+    ignore: function (e) {
+      if (e.type === "keydown") return false;
+      if (e.touches && G.axis === "x") return false; // phone: the list runs sideways, up / down is the page's
+      var p = e.touches ? e.touches[0] : e;
+      return phase === 1 && !busy && p && inList(p.clientX, p.clientY);
+    }
+  });
   function step(d) { // one project on (+1) or back (−1)
     if (phase !== 1) return;
     listT = Math.round(listT) + d;
@@ -541,9 +555,8 @@
     lastWheel = now;
     if (locked) { lock(); return; }
     var dy = wheelPx(e, e.deltaY), dx = wheelPx(e, e.deltaX);
-    if (phase === 1 && !busy && (!SCROLL_PAGES || inList(e.clientX, e.clientY))) {
-      // the projects: the wheel runs the list (sideways on a trackpad too;
-      // anywhere on Work, now that it no longer changes the page)
+    if (phase === 1 && !busy && inList(e.clientX, e.clientY)) {
+      // the projects: the wheel runs the list (sideways on a trackpad too)
       var d = Math.abs(dy) >= Math.abs(dx) ? dy : dx;
       acc = 0;
       if (Math.abs(d) >= 50) {
@@ -556,11 +569,8 @@
       snapSoon();
       return;
     }
-    if (busy) return;
-    if (fresh) acc = 0;
-    acc += dy;
-    if (acc > 24) { acc = 0; lock(); down(); }
-    else if (acc < -24) { acc = 0; if (phase === 1) { lock(); up(); } }
+    // elsewhere: the page's own scroll does nothing (DzRoll.gate decides
+    // whether a deliberate push goes on to the next page)
   }, { passive: false });
 
   /* Touch: up / down swipes go between Home, Work and Contact; in Work a
@@ -597,9 +607,7 @@
       touch.d = d;
       return;
     }
-    if (touch.axis !== "y" || touch.fired) return;
-    if (dy < -40) { touch.fired = true; down(); }
-    else if (dy > 40 && phase === 1) { touch.fired = true; up(); }
+    // up / down swipes: DzRoll.gate (a deliberate pull, let go to go on)
   }, { passive: false });
   function touchEnd() {
     if (!touch) return;
@@ -621,9 +629,8 @@
   window.addEventListener("keydown", function (e) {
     if (!on || gone || e.metaKey || e.ctrlKey || e.altKey) return;
     var k = e.key;
-    if (k === "ArrowDown" || k === "PageDown" || (k === " " && !e.shiftKey)) { e.preventDefault(); if (!SCROLL_PAGES) { if (phase === 1) step(1); } else if (!busy) down(); }
-    else if (k === "ArrowUp" || k === "PageUp" || (k === " " && e.shiftKey)) { e.preventDefault(); if (!SCROLL_PAGES) { if (phase === 1) step(-1); } else up(); }
-    else if (k === "Home") { e.preventDefault(); goTo(0); }
+    // (↓ / ↑ / Page Down / Up / Space: DzRoll.gate, on to the next page)
+    if (k === "Home") { e.preventDefault(); goTo(0); }
     else if (k === "ArrowRight") { e.preventDefault(); step(1); }
     else if (k === "ArrowLeft") { e.preventDefault(); step(-1); }
   });

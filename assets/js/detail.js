@@ -67,9 +67,6 @@
   var shots = q(".dt-shot"), first = shots[0];
   var thumbs = q(".dt-thumbs button");
   var DOWN = new URL(document.body.dataset.down || "../../#work", location.href).href;
-  /* Pages change from the menu only: scrolling (wheel, swipe, keys) no
-     longer goes on to the next page (true brings that back) */
-  var SCROLL_PAGES = false;
 
 
   // going back to Work opens on this project
@@ -257,40 +254,8 @@
   });
 
   /* ---------- past the end: the next project ----------
-     (scrolling up at the top stays here: back to Work is the menu's WORK) */
-  function atTop() { return sc.scrollTop <= 1; }
-  function atEnd() { return sc.clientHeight + sc.scrollTop >= sc.scrollHeight - 2; }
-  var lastWheel = 0, acc = 0, startEdge = 0;
-  window.addEventListener("wheel", function (e) {
-    if (gone || e.ctrlKey) return;
-    var now = performance.now(), fresh = now - lastWheel > 220;
-    lastWheel = now;
-    var dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? innerHeight : 1);
-    if (fresh) { acc = 0; startEdge = dy > 0 && atEnd() ? 1 : 0; }
-    // only past the end (going back up to Work is the menu's job, not the scroll's)
-    if (dy <= 0 || !atEnd()) { acc = 0; return; }
-    acc += dy;
-    if (SCROLL_PAGES && acc > (startEdge === 1 ? 40 : 240)) leave(DOWN);
-  }, { passive: true });
-  var touch = null;
-  window.addEventListener("touchstart", function (e) {
-    if (e.touches.length !== 1) { touch = null; return; }
-    touch = { y: e.touches[0].clientY, end: atEnd(), top: atTop() };
-  }, { passive: true });
-  function swiped(y) {
-    if (!touch || gone) return;
-    var dy = y - touch.y;
-    if (SCROLL_PAGES && touch.end && dy < -50) { touch = null; leave(DOWN); }
-  }
-  window.addEventListener("touchmove", function (e) { swiped(e.touches[0].clientY); }, { passive: true });
-  window.addEventListener("touchend", function (e) {
-    var t = e.changedTouches && e.changedTouches[0];
-    if (t) swiped(t.clientY);
-    touch = null;
-  }, { passive: true });
-  window.addEventListener("keydown", function (e) {
-    if (gone || e.metaKey || e.ctrlKey || e.altKey) return;
-    var k = e.key;
-    if (SCROLL_PAGES && (k === "ArrowDown" || k === "PageDown" || k === "End" || (k === " " && !e.shiftKey)) && atEnd()) { e.preventDefault(); leave(DOWN); }
-  });
+     (DzRoll.gate: only from the end the page already rests at, and only a
+     deliberate push; scrolling up at the top stays here: back to Work is
+     the menu's WORK) */
+  Roll.gate({ scroller: sc, next: function () { leave(DOWN); } });
 })();

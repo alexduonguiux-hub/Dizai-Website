@@ -45,43 +45,14 @@
     Roll.leave(url.href, texts, boxes);
   });
 
-  /* Scrolling back up goes back to Work: Contact sits right after it, so a
-     wheel / swipe / key upwards from the top of this page returns there
-     (rolling away first, like the WORK link). A small push is not enough,
-     so a stray nudge or a trackpad's tail does not leave the page. */
-  var gone = false, pushed = 0, lastWheel = 0, ty = null;
-  function atTop() { return (window.scrollY || document.documentElement.scrollTop || 0) <= 1; }
-  /* Pages change from the menu only: scrolling (wheel, swipe, keys) no
-     longer goes on to the next page (true brings that back) */
-  var SCROLL_PAGES = false;
+  /* Scrolling back up goes back to Work: Contact sits right after it
+     (DzRoll.gate: only from the top the page already rests at, and only a
+     deliberate push; rolling away first, like the WORK link) */
+  var gone = false;
   function back() {
-    if (gone || !SCROLL_PAGES) return;
+    if (gone) return;
     gone = true;
     Roll.leave(new URL(document.body.dataset.up || "../#work", location.href).href, texts, boxes);
   }
-  window.addEventListener("wheel", function (e) {
-    var now = Date.now();
-    if (now - lastWheel > 250) pushed = 0;   // a new gesture
-    lastWheel = now;
-    if (!atTop() || e.deltaY >= 0) { pushed = 0; return; }
-    pushed += -e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? innerHeight : 1);
-    if (pushed > 60) back();
-  }, { passive: true });
-  window.addEventListener("touchstart", function (e) {
-    ty = e.touches.length === 1 && atTop() ? e.touches[0].clientY : null;
-  }, { passive: true });
-  window.addEventListener("touchmove", function (e) {
-    if (ty != null && e.touches[0].clientY - ty > 70) { ty = null; back(); }
-  }, { passive: true });
-  // again as the finger lifts: once the browser takes the swipe as a
-  // scroll it may stop reporting the moves
-  window.addEventListener("touchend", function (e) {
-    var t = e.changedTouches && e.changedTouches[0];
-    if (ty != null && t && t.clientY - ty > 60) back();
-    ty = null;
-  }, { passive: true });
-  window.addEventListener("keydown", function (e) {
-    if (e.metaKey || e.ctrlKey || e.altKey) return;
-    if ((e.key === "ArrowUp" || e.key === "PageUp" || e.key === "Home") && atTop()) back();
-  });
+  Roll.gate({ scroller: document.scrollingElement, prev: back, prevLabel: "Work" });
 })();
