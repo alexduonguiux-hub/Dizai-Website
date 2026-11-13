@@ -276,9 +276,10 @@
     var key = x.toFixed(4); if (key === capKey) return; capKey = key;
     var F = +capList.dataset.focus || 0, desk = G.axis === "y";
     // the space under row i: its name, the gap, and its line as far as it is open
-    // (the line opens over the first half row of the way and folds away
-    // by the time the next one takes over)
-    function open(u) { return 1 - smooth(Math.min(1, 2 * Math.abs(u))); }
+    // (the line opens slowly over the whole step from the last project to
+    // this one, while the last one's folds away: both move together, no
+    // snapping shut and open again at the hand-over)
+    function open(u) { return 1 - smooth(Math.min(1, Math.abs(u))); }
     function gapUnder(i) { var sl = slots[i]; return sl.hn + GAP + sl.e * open(sl.o - x); }
     var i0 = offsets().indexOf(0), ys = [];
     ys[i0] = x >= 0 ? F - x * gapUnder(i0) : F - x * gapUnder(i0 - 1);
@@ -295,7 +296,7 @@
       // the line and the kind: only the current one; the line unfolds
       // with its space (clipped to it, never over the next name)
       var g = open(u);
-      sl.desc.style.opacity = g.toFixed(3);
+      sl.desc.style.opacity = (g * g).toFixed(3); // clear only once it has its room
       var room = i + 1 < slots.length ? ys[i + 1] - ys[i] - 6 : 1e9;      // down to just above the next name
       var cut = Math.max(0, sl.db - room);
       sl.desc.style.clipPath = cut > 0.05 ? "inset(0 0 " + cut.toFixed(1) + "px 0)" : "";
