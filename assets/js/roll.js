@@ -534,7 +534,10 @@
       // from just inside its edge to the middle
       var from = dir > 0 ? H - h - H * 0.04 : H * 0.04, to = (H - h) / 2;
       cue.style.transform = "translateY(" + (from + (to - from) * e).toFixed(1) + "px)";
-      cue.style.opacity = Math.min(1, p * 4).toFixed(3);
+      // coming in like every text does: out of a blur into focus
+      var fs = parseFloat(cue.style.fontSize) || small, a = 1 - e;
+      cue.style.filter = a > 0.01 ? "blur(" + (a * (fs * BLUR + 2)).toFixed(2) + "px)" : "";
+      cue.style.opacity = Math.min(1, p * 2.5).toFixed(3);
     }
     /* What is shown follows the push at a set pace, however hard the
        scroll: the name takes at least UP_S to come all the way in (and
@@ -551,7 +554,18 @@
       var step = Math.max(-max, Math.min(max, d * 0.35 + (d > 0 ? 0.002 : -0.002)));
       var next = Math.abs(d) <= Math.abs(step) ? target : pull + step;
       if (next !== pull || (next === 0 && pull === 0)) show(Math.max(0, Math.min(1, next)), tdir);
-      if (going && pull >= 0.999) { lastT = 0; (tdir > 0 ? o.next : o.prev)(); return; }
+      if (going && pull >= 0.999) {
+        lastT = 0;
+        // there: the name goes the way the page's texts go now (rising
+        // away into a blur), as the page changes
+        if (cue) {
+          var out = text(cue, "out"), ov = { v: 0 };
+          if (window.gsap) window.gsap.to(ov, { v: 1, duration: 0.45, ease: "none", onUpdate: function () { out.set(ov.v); } });
+          else out.set(1);
+        }
+        (tdir > 0 ? o.next : o.prev)();
+        return;
+      }
       if (pull !== target || going) raf = requestAnimationFrame(loop); else lastT = 0;
     }
     function aim(t, dir) {
