@@ -380,5 +380,26 @@
     setTimeout(go, 1200); // never get stuck here
   }
 
+  /* A hard scroll that brought us here (the end of the last page) goes on
+     for a second or more on a trackpad (its inertia): on the new page that
+     tail is let through to nothing, so one push never goes two pages.
+     Wheel events arriving soon after the page opens, and every one after
+     them with no pause, are dropped; once the wheel has been still for a
+     moment (or the first one comes late) scrolling works as usual. */
+  (function () {
+    var t0 = performance.now(), last = 0, armed = true;
+    window.addEventListener("wheel", function (e) {
+      if (!armed) return;
+      var now = performance.now();
+      if (now - t0 < 700 || now - last < 260) {
+        last = now;
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        return;
+      }
+      armed = false;
+    }, { capture: true, passive: false });
+  })();
+
   window.DzRoll = { text: text, box: box, leave: leave, flip: flip, takeFlip: takeFlip, wait: wait };
 })();

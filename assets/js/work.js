@@ -451,6 +451,7 @@
      scroll (a trackpad's inertia goes on for a second or more) is let
      through to nothing, until the wheel has been still for a moment. */
   var locked = false, lockTimer = 0, acc = 0, lastWheel = 0, snapTimer = 0, lastStep = 0;
+  var gestureFrom = 0, gestureStepped = false; // where the present wheel gesture began
   function lock() {
     locked = true;
     clearTimeout(lockTimer);
@@ -481,12 +482,16 @@
       // the projects: the wheel runs the list (sideways on a trackpad too)
       var d = Math.abs(dy) >= Math.abs(dx) ? dy : dx;
       acc = 0;
+      // one push, one project at most: a new gesture notes where it began
+      if (fresh) { gestureFrom = Math.round(listT); gestureStepped = false; }
       if (Math.abs(d) >= 50) {
-        // a mouse wheel's notch (or a hard push): one project per notch
-        if (now - lastStep > 140) { lastStep = now; step(d > 0 ? 1 : -1); }
+        // a mouse wheel's notch (or a hard push): one project per notch,
+        // but a fast spin (notches with no pause between) is one push
+        if (!gestureStepped) { gestureStepped = true; lastStep = now; step(d > 0 ? 1 : -1); }
         return;
       }
-      listT += d / pitchPx() * 1.4; // a trackpad: the list follows the fingers
+      listT += d / pitchPx() * 1.4; // a trackpad: the list follows the fingers…
+      listT = Math.max(gestureFrom - 1, Math.min(gestureFrom + 1, listT)); // …one project either way
       following = performance.now(); lastDir = d > 0 ? 1 : -1;
       snapSoon();
       return;
