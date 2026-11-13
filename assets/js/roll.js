@@ -504,8 +504,23 @@
       if (cue.textContent !== txt) cue.textContent = txt;
       cue.classList.add("is-on");
       var small = parseFloat(getComputedStyle(root).getPropertyValue("--text-sm")) || 20;
-      cue.style.fontSize = (small + (bigSize() - small) * e).toFixed(2) + "px";
-      cue.style.fontWeight = Math.round(600 - 200 * e);
+      // the size it grows to: the big titles', or the page's own (o.cueAs:
+      // an element whose size, weight and width it takes — a project
+      // title, for the next project)
+      var like = o.cueAs && o.cueAs(), big = bigSize(), wt = 400, wide = 0;
+      if (like) {
+        var ls = getComputedStyle(like);
+        big = parseFloat(ls.fontSize) || big;
+        wt = parseFloat(ls.fontWeight) || wt;
+        wide = like.getBoundingClientRect().width;
+      }
+      cue.style.fontSize = (small + (big - small) * e).toFixed(2) + "px";
+      cue.style.fontWeight = Math.round(600 + (wt - 600) * e);
+      // (a long name wraps as the title does, in the title's width)
+      cue.style.whiteSpace = wide ? "normal" : "";
+      cue.style.maxWidth = wide ? wide.toFixed(1) + "px" : "";
+      cue.style.marginLeft = cue.style.marginRight = wide ? "auto" : "";
+      cue.style.padding = wide ? "0" : "";
       var h = cue.offsetHeight, H = innerHeight;
       // from just inside its edge to the middle (at the head: below the menu
       // and the mark, never over them)
