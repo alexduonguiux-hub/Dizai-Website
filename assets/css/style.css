@@ -1008,7 +1008,7 @@ body::after {
   width: calc(var(--u) * 206);
   height: calc(var(--u) * 129);
 }
-/* {SCROLL DOWN} 8 over the small picture, centred on it (Figma 80:29105:
+/* {SCROLL TO VIEW} 8 over the small picture, centred on it (Figma 80:29105:
    SemiBold Italic 20, grey); it rolls away with the facts as the page scrolls */
 .dt-facts > .dt-hint {
   position: fixed;
