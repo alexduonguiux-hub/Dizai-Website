@@ -70,7 +70,10 @@ def build(stamp):
   <link rel="stylesheet" href="../../assets/css/style.css?v={stamp}">
   <!-- an old copy of this page (held in the browser's cache) loads the
        current one: version.json is always fetched fresh -->
-  <script>(function () {{ var b = "?v={stamp}".slice(3), h0 = location.href; if (!window.fetch) return;
+  <script>(function () {{ var b = "?v={stamp}".slice(3), h0 = location.href;
+    /* the ?v= stamp only gets past the cache: the address bar shows the clean link */
+    try {{ var cu = new URL(h0); if (cu.searchParams.has("v")) {{ cu.searchParams.delete("v"); history.replaceState(history.state, "", cu.pathname + cu.search + cu.hash); }} }} catch (e) {{}}
+    if (!window.fetch) return;
     fetch("../../version.json?t=" + Date.now(), {{ cache: "no-store" }}).then(function (r) {{ return r.json(); }}).then(function (j) {{
       var u = new URL(h0); if (j && j.v && j.v !== b && u.searchParams.get("v") !== j.v) {{ u.searchParams.set("v", j.v); try {{ if (window.dzFlipTaken) sessionStorage.setItem("dz-flip", "1"); }} catch (e) {{}} location.replace(u.href); }}
     }}).catch(function () {{}}); }})()</script>
