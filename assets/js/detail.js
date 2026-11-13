@@ -67,6 +67,10 @@
   var shots = q(".dt-shot"), first = shots[0];
   var thumbs = q(".dt-thumbs button");
   var DOWN = new URL(document.body.dataset.down || "../../#work", location.href).href;
+  /* Pages change from the menu only: scrolling (wheel, swipe, keys) no
+     longer goes on to the next page (true brings that back) */
+  var SCROLL_PAGES = false;
+
 
   // going back to Work opens on this project
   try { sessionStorage.setItem("dz-v", JSON.stringify({ p: 1, l: +document.body.dataset.project || 0 })); } catch (e) {}
@@ -251,7 +255,7 @@
     // only past the end (going back up to Work is the menu's job, not the scroll's)
     if (dy <= 0 || !atEnd()) { acc = 0; return; }
     acc += dy;
-    if (acc > (startEdge === 1 ? 40 : 240)) leave(DOWN);
+    if (SCROLL_PAGES && acc > (startEdge === 1 ? 40 : 240)) leave(DOWN);
   }, { passive: true });
   var touch = null;
   window.addEventListener("touchstart", function (e) {
@@ -261,7 +265,7 @@
   function swiped(y) {
     if (!touch || gone) return;
     var dy = y - touch.y;
-    if (touch.end && dy < -50) { touch = null; leave(DOWN); }
+    if (SCROLL_PAGES && touch.end && dy < -50) { touch = null; leave(DOWN); }
   }
   window.addEventListener("touchmove", function (e) { swiped(e.touches[0].clientY); }, { passive: true });
   window.addEventListener("touchend", function (e) {
@@ -272,6 +276,6 @@
   window.addEventListener("keydown", function (e) {
     if (gone || e.metaKey || e.ctrlKey || e.altKey) return;
     var k = e.key;
-    if ((k === "ArrowDown" || k === "PageDown" || k === "End" || (k === " " && !e.shiftKey)) && atEnd()) { e.preventDefault(); leave(DOWN); }
+    if (SCROLL_PAGES && (k === "ArrowDown" || k === "PageDown" || k === "End" || (k === " " && !e.shiftKey)) && atEnd()) { e.preventDefault(); leave(DOWN); }
   });
 })();

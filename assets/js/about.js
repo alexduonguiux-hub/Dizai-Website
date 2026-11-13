@@ -224,6 +224,10 @@
   });
 
   /* ---------- past the ends: Work below, Home above ---------- */
+  /* Pages change from the menu only: scrolling (wheel, swipe, keys) no
+     longer goes on to the next page (true brings that back) */
+  var SCROLL_PAGES = false;
+
   function atTop() { return sc.scrollTop <= 1; }
   function atEnd() { return sc.clientHeight + sc.scrollTop >= sc.scrollHeight - 2; }
 
@@ -241,7 +245,7 @@
     var dir = dy > 0 ? 1 : dy < 0 ? -1 : 0;
     if (!dir || !(dir > 0 ? atEnd() : atTop())) { acc = 0; return; }
     acc += Math.abs(dy);
-    if (acc > (startEdge === dir ? 40 : 240)) leave(dir > 0 ? WORK : HOME);
+    if (SCROLL_PAGES && acc > (startEdge === dir ? 40 : 240)) leave(dir > 0 ? WORK : HOME);
   }, { passive: true });
 
   var touch = null;
@@ -254,6 +258,7 @@
   function swiped(y) {
     if (!touch || gone) return;
     var dy = y - touch.y;
+    if (!SCROLL_PAGES) return;
     if (touch.end && dy < -50) { touch = null; leave(WORK); }
     else if (touch.top && dy > 60) { touch = null; leave(HOME); }
   }
@@ -267,6 +272,7 @@
   window.addEventListener("keydown", function (e) {
     if (gone || e.metaKey || e.ctrlKey || e.altKey) return;
     var k = e.key;
+    if (!SCROLL_PAGES) return;
     if ((k === "ArrowDown" || k === "PageDown" || k === "End" || (k === " " && !e.shiftKey)) && atEnd()) { e.preventDefault(); leave(WORK); }
     else if ((k === "ArrowUp" || k === "PageUp" || k === "Home" || (k === " " && e.shiftKey)) && atTop()) { e.preventDefault(); leave(HOME); }
   });

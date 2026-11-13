@@ -163,11 +163,25 @@ body::after {
 .nav-list a[aria-current="page"]::after,
 .nav-list a:hover::after,
 .nav-list a.is-hover::after {
-  content: "←";
-  /* AnNam Serif has no arrow glyph yet; use a system face for it */
-  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-  font-style: normal;
-  font-weight: 400;
+  /* the arrow (Figma 37:29794): AnNam Serif has no arrow glyph yet, so it
+     is drawn, to the Figma one's measure: 0.68em long, a 0.28em head, a
+     0.07em line, 0.2em after the word (and the glyph's 0.16em side
+     bearing after it), centred on the capitals; in the text's own colour
+     (the inverting twins too) */
+  content: "";
+  display: inline-block;
+  width: 0.68em;
+  height: 0.3em;
+  margin-left: 0.2em;
+  margin-right: 0.16em;
+  vertical-align: 0.21em;
+  background: currentColor;
+  -webkit-mask: var(--arrow-left) center / 100% 100% no-repeat;
+  mask: var(--arrow-left) center / 100% 100% no-repeat;
+}
+:root {
+  --arrow-left: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 72 30'%3E%3Cpath d='M4 15H72M16.5 2.5L4 15l12.5 12.5' fill='none' stroke='%23000' stroke-width='7.2'/%3E%3C/svg%3E");
+  --arrow-right: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 72 30'%3E%3Cpath d='M68 15H0M55.5 2.5L68 15 55.5 27.5' fill='none' stroke='%23000' stroke-width='7.2'/%3E%3C/svg%3E");
 }
 
 /* ---------- Hero ----------
@@ -658,10 +672,17 @@ body::after {
   .nav-list a[aria-current="page"]::before,
   .nav-list a:hover::before,
   .nav-list a.is-hover::before {
-    content: "→";
-    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-    font-style: normal;
-    font-weight: 400;
+    /* the same drawn arrow, pointing at the word */
+    content: "";
+    display: inline-block;
+    width: 0.68em;
+    height: 0.3em;
+    margin-left: 0.16em;
+    margin-right: 0.2em;
+    vertical-align: 0.21em;
+    background: currentColor;
+    -webkit-mask: var(--arrow-right) center / 100% 100% no-repeat;
+    mask: var(--arrow-right) center / 100% 100% no-repeat;
   }
 
   /* type block 25px below the screen's middle (Figma 13:212: centred at
@@ -973,8 +994,9 @@ body::after {
   gap: calc(var(--u) * 12);
 }
 .dt-shot { position: relative; margin: 0; transform-origin: 0 0; }
-/* {SCROLL TO THE NEXT PROJECT} at the end of the pictures: scrolled to the
-   end it sits on the foot of the screen, centred (Figma 57:22865) */
+/* {NEXT PROJECT} at the end of the pictures (a link: pages change from
+   links only, not by scrolling on): scrolled to the end it sits on the foot
+   of the screen, centred (Figma 57:22865) */
 .dt-shots { position: relative; }
 .dt-end {
   position: absolute;
@@ -987,6 +1009,8 @@ body::after {
   color: var(--grey);
   font-variation-settings: "slnt" -10;
 }
+.dt-end a { color: inherit; text-decoration: none; transition: color 0.2s; }
+.dt-end a:hover, .dt-end a:focus-visible { color: var(--ink); }
 .dt-img { display: block; width: 100%; height: auto; aspect-ratio: 2048 / 1277; }
 .dt-shot.has-sheet { perspective: 1100px; }
 .dt-shot.has-sheet .dt-img { visibility: hidden; }

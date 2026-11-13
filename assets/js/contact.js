@@ -51,8 +51,11 @@
      so a stray nudge or a trackpad's tail does not leave the page. */
   var gone = false, pushed = 0, lastWheel = 0, ty = null;
   function atTop() { return (window.scrollY || document.documentElement.scrollTop || 0) <= 1; }
+  /* Pages change from the menu only: scrolling (wheel, swipe, keys) no
+     longer goes on to the next page (true brings that back) */
+  var SCROLL_PAGES = false;
   function back() {
-    if (gone) return;
+    if (gone || !SCROLL_PAGES) return;
     gone = true;
     Roll.leave(new URL(document.body.dataset.up || "../#work", location.href).href, texts, boxes);
   }
