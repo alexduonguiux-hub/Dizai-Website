@@ -112,8 +112,13 @@
     root.style.setProperty("--dt-title-bottom", (r.bottom - (parseFloat(getComputedStyle(title).marginBottom) || 0)).toFixed(1) + "px");
   }
   titleFoot();
+  /* The zoom follows the scroll eased (sm catches up with scrollTop a
+     little each frame): a mouse wheel jumps 100 px a notch, and the
+     picture would jump with it. The page itself still scrolls as it does;
+     the first picture is kept where the eased value puts it. */
+  var sm = sc.scrollTop;
   function place() {
-    var t = sc.scrollTop, S = s0(), p = clamp(t / S);
+    var t = sc.scrollTop, S = s0(), p = clamp(sm / S);
     // the first picture: from the small slot (fixed) to its own place,
     // which it reaches at t = S (the column's top, 283 down)
     var r0 = ph.getBoundingClientRect();
@@ -122,10 +127,13 @@
     // positioned, for the line at its end)
     var col = first.offsetParent === sc ? null : first.offsetParent;
     var ox = first.offsetLeft + (col ? col.offsetLeft : 0), oy = first.offsetTop + (col ? col.offsetTop : 0);
-    var W = first.offsetWidth, natLeft = box.left + ox, natTop = box.top + oy - t, endTop = box.top + oy - S;
-    if (p < 1 && W) {
+    // the whole column runs on the eased value too (held back by sm − t)
+    if (col) col.style.translate = Math.abs(t - sm) > 0.5 ? "0 " + (t - sm).toFixed(2) + "px" : "";
+    var W = first.offsetWidth, natLeft = box.left + ox, natTop = box.top + oy - (col ? sm : t), endTop = box.top + oy - S;
+    if (W && (p < 1 || Math.abs(sm - t) > 0.5)) {
       var e = reduce ? 1 : ease(p);
-      var w = lerp(r0.width, W, e), left = lerp(r0.left, natLeft, e), top = lerp(r0.top, endTop, e);
+      var w = lerp(r0.width, W, e), left = lerp(r0.left, natLeft, e),
+          top = p < 1 ? lerp(r0.top, endTop, e) : box.top + oy - sm; // past the zoom: on with the eased value
       first.style.transform = "translate(" + (left - natLeft).toFixed(2) + "px," + (top - natTop).toFixed(2) + "px) scale(" + (w / W).toFixed(5) + ")";
     } else first.style.transform = "";
     // the facts roll away one after another as it grows (they sit under
@@ -133,7 +141,7 @@
     if (entered) outs.forEach(function (r, i) { r.set(clamp(p * 1.7 - i * 0.15)); });
     factsBox.classList.toggle("is-gone", p > 0.35); // the link takes no clicks once it has rolled away
     // the title sinks back as the pictures run up over it
-    title.style.opacity = (1 - 0.82 * clamp((t - S * 0.9) / (S * 0.6))).toFixed(3);
+    title.style.opacity = (1 - 0.82 * clamp((sm - S * 0.9) / (S * 0.6))).toFixed(3);
     // the picture nearest the top place is the current one
     var best = 1e9, cur = 0;
     shots.forEach(function (s, i) {
@@ -144,6 +152,17 @@
   }
   var raf = 0;
   sc.addEventListener("scroll", function () { if (!raf) raf = requestAnimationFrame(function () { raf = 0; place(); }); }, { passive: true });
+  gsap.ticker.add(function (time, deltaTime) {
+    var t = sc.scrollTop;
+    if (sm === t) return;
+    // far off (a jump, a thumbnail far away): straight there
+    if (reduce || Math.abs(t - sm) > 2 * s0()) sm = t;
+    else {
+      sm += (t - sm) * (1 - Math.pow(1 - 0.16, Math.min(3, deltaTime / 16.67)));
+      if (Math.abs(t - sm) < 0.5) sm = t;
+    }
+    place();
+  });
   window.addEventListener("resize", function () { titleFoot(); sizeSheets(); place(); });
 
   thumbs.forEach(function (b, i) {
@@ -182,7 +201,7 @@
   /* ---------- coming in ---------- */
   function play(r, delay, then) {
     var o = { v: 0 };
-    gsap.to(o, { v: 1, duration: reduce ? 0.01 : 0.85, delay: reduce ? 0 : delay, ease: "none",
+    gsap.to(o, { v: 1, duration: reduce ? 0.01 : 0.85, delay: reduce ? 0 : delay + (window.DzRoll && DzRoll.wait ? DzRoll.wait() : 0), ease: "none",
                  onUpdate: function () { r.set(o.v); }, onComplete: then });
   }
   function enter() {
@@ -205,7 +224,7 @@
   function leave(href) {
     if (gone) return;
     gone = true;
-    Roll.leave(href, [title].concat(info, facts.filter(function (el) { return !el.classList.contains("is-rolling"); })), shots);
+    Roll.leave(href, [title].concat(info, facts.filter(function (el) { return !el.classList.contains("is-rolling") && !el.classList.contains("is-fading"); })), shots);
   }
   window.addEventListener("pageshow", function (e) { if (e.persisted) gone = false; });
   document.addEventListener("click", function (e) {
