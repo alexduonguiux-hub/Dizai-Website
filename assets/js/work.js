@@ -685,8 +685,10 @@
     root.classList.add("is-back"); // the letters below start blank
     var saved = null, nav = performance.getEntriesByType && performance.getEntriesByType("navigation")[0];
     try { saved = JSON.parse(sessionStorage.getItem("dz-v") || "null"); } catch (e) {}
-    var toWork = location.hash === "#work" || !!(nav && nav.type === "reload" && saved && saved.p === 1);
-    if (saved && typeof saved.l === "number" && (toWork || (nav && nav.type === "reload"))) listT = listS = prevS = saved.l;
+    // (a reload, or Back / Forward to this page: as it was left, Home or Work)
+    var again = !!(nav && (nav.type === "reload" || nav.type === "back_forward"));
+    var toWork = location.hash === "#work" || !!(again && saved && saved.p === 1);
+    if (saved && typeof saved.l === "number" && (toWork || again)) listT = listS = prevS = saved.l;
     if (location.hash) history.replaceState(null, "", location.pathname);
     // from About / Contact the mark was already there: it stays and turns over
     var keepMark = Roll.takeFlip && Roll.takeFlip();

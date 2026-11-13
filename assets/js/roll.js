@@ -401,5 +401,15 @@
     }, { capture: true, passive: false });
   })();
 
+  /* Back / Forward: the browser may show the page again just as it was
+     left (its back-forward cache), i.e. with everything rolled away and
+     the page marked as gone. Then it is loaded afresh instead, so it
+     comes in as usual. */
+  window.addEventListener("pageshow", function (e) {
+    if (!e.persisted) return;
+    document.documentElement.style.visibility = "hidden";
+    location.reload();
+  });
+
   window.DzRoll = { text: text, box: box, leave: leave, flip: flip, takeFlip: takeFlip, wait: wait };
 })();
