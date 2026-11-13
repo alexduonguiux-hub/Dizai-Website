@@ -218,8 +218,12 @@
   }
 
   // images: slide up through a window the size of the box
+  // WebKit (Safari, iPhone / iPad) at times leaves a blurred picture's
+  // halo behind where it moved from (a smudge under the mark): there the
+  // pictures move and fade without the blur
+  var WEBKIT = document.documentElement.classList.contains("is-webkit");
   function box(el, dir, opts) {
-    var noBlur = !!(opts && opts.blur === false);
+    var noBlur = !!(opts && opts.blur === false) || WEBKIT;
     var last = -1, kept = null;
     // what the element had of its own (a page may set its opacity, like
     // Work's pictures): put back at rest, not wiped
@@ -235,7 +239,10 @@
         var a = dir === "out" ? v * v : (1 - v) * (1 - v);
         if (!a) {
           // (never moved: nothing to put back, leave it as the page has it)
-          if (kept) { for (var k in kept) el.style[k] = kept[k]; kept = null; }
+          if (kept) {
+            for (var k in kept) el.style[k] = kept[k];
+            kept = null;
+          }
           return;
         }
         keep();
