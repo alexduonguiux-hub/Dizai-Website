@@ -503,7 +503,9 @@
     prev: function () { goPage(ABOUT); }, // About opens at its top
     nextLabel: function () { return phase === 1 ? "Contact" : "About"; },
     prevLabel: "About",
-    push: function () { return phase === 1 ? [work] : [q(".hero")]; },
+    // (only what makes way: the mark and the contact block stay where
+    // they are, as they do on the next page)
+    push: function () { return phase === 1 ? [list, caption] : [q(".type")]; },
     pieces: function () {
       return phase === 1 ? { texts: [title, capList], boxes: cards }
                          : { texts: homeText, boxes: seal ? [seal] : [] };
