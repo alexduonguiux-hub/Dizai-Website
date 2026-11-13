@@ -112,6 +112,7 @@ def build(stamp):
 
     <h1 class="dt-title" style="--tw: {p["width"]}">{p["title"]}</h1>
     <div class="dt-facts">
+      <p class="dt-hint trim" aria-hidden="true">{{Scroll down}}</p>
       <p class="dt-services trim">{services}</p>
       <p class="dt-desc">{esc(p["desc"])}</p>
       <p class="dt-meta">Launch: {p["launch"]} • Client: {esc(p["client"])}</p>
