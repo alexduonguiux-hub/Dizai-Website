@@ -44,6 +44,14 @@
                   ".services", ".scroll-hint", ".social"].map(q).filter(Boolean);
   var seal = q(".type-row .seal");
   var contact = q(".hero .contact");
+  /* The stage is pinned and never scrolls: but going to the #work address,
+     the browser scrolls it to the element of that name (on a short window,
+     by the top margin), and everything on it sits that much higher. Kept
+     at 0. */
+  function unscroll() { if (stage.scrollTop || stage.scrollLeft) { stage.scrollTop = 0; stage.scrollLeft = 0; } }
+  stage.addEventListener("scroll", unscroll, { passive: true });
+  window.addEventListener("hashchange", unscroll);
+  unscroll();
   var mark = q(".work-mark");
   /* The mark inverts where a picture passes under it, like the cursor: a
      white copy in "difference" (paper → near black, a picture → its
