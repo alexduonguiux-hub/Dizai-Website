@@ -471,7 +471,7 @@
        the page's content (o.push(): its elements) is pushed away the other
        way to make room. Full: the page changes. Let go short of it: the
        name slides back out and the content back into place. */
-    var cue = null, pushed = [], rolls = null;
+    var cue = null, pushed = [], rolls = null, cueKey = "", cueM = null;
     function label(dir) {
       var l = dir > 0 ? o.nextLabel : o.prevLabel;
       return typeof l === "function" ? l() : l;
@@ -525,40 +525,53 @@
         document.body.appendChild(cue);
       }
       var txt = "{" + l + "}";
-      if (cue.textContent !== txt) cue.textContent = txt;
       cue.classList.add("is-on");
-      var small = parseFloat(getComputedStyle(root).getPropertyValue("--text-sm")) || 20;
-      // the size it grows to: the big titles', or the page's own (o.cueAs:
-      // an element whose size, weight and width it takes — a project
-      // title, for the next project)
-      var like = o.cueAs && o.cueAs(), big = bigSize(), wt = 400, wide = 0;
-      if (like) {
-        var ls = getComputedStyle(like);
-        big = parseFloat(ls.fontSize) || big;
-        wt = parseFloat(ls.fontWeight) || wt;
-        wide = like.getBoundingClientRect().width;
+      /* Laid out once, at the size it ends at — a long name wrapped there
+         already, as the title does — and from then on only scaled and moved
+         (transform): no line jumping to a new break as it grows, no text
+         laid out again every frame (it was jerky). Measured again only for
+         a new name or a new screen size. */
+      var key = txt + "|" + innerWidth + "x" + innerHeight + "|" + dir;
+      if (cueKey !== key) {
+        cueKey = key;
+        if (cue.textContent !== txt) cue.textContent = txt;
+        var small0 = parseFloat(getComputedStyle(root).getPropertyValue("--text-sm")) || 20;
+        // the size it grows to: the big titles', or the page's own (o.cueAs:
+        // an element whose size, weight and width it takes — a project
+        // title, for the next project)
+        var like = o.cueAs && o.cueAs(), big = bigSize(), wt = 400, wide = 0;
+        if (like) {
+          var ls = getComputedStyle(like);
+          big = parseFloat(ls.fontSize) || big;
+          wt = parseFloat(ls.fontWeight) || wt;
+          wide = like.getBoundingClientRect().width;
+        }
+        cue.style.fontSize = big.toFixed(2) + "px";
+        cue.style.fontWeight = wt;
+        // (a long name wraps as the title does, in the title's width)
+        cue.style.whiteSpace = wide ? "normal" : "";
+        cue.style.maxWidth = wide ? wide.toFixed(1) + "px" : "";
+        cue.style.marginLeft = cue.style.marginRight = wide ? "auto" : "";
+        cue.style.padding = wide ? "0" : "";
+        cue.style.transformOrigin = "50% 50%";
+        var H0 = innerHeight, head = H0 * 0.04;
+        // (at the head: below the menu and the mark, never over them)
+        [].forEach.call(document.querySelectorAll(".site-nav, .cp-mark, .ab-mark, .work-mark, .dt-title"), function (el) {
+          var r = el.getBoundingClientRect();
+          if (r.height && r.bottom < H0 / 2) head = Math.max(head, r.bottom + 16);
+        });
+        cueM = { h: cue.offsetHeight, big: big, s0: Math.min(1, small0 / big), head: head, H: H0 };
       }
-      cue.style.fontSize = (small + (big - small) * e).toFixed(2) + "px";
-      cue.style.fontWeight = Math.round(600 + (wt - 600) * e);
-      // (a long name wraps as the title does, in the title's width)
-      cue.style.whiteSpace = wide ? "normal" : "";
-      cue.style.maxWidth = wide ? wide.toFixed(1) + "px" : "";
-      cue.style.marginLeft = cue.style.marginRight = wide ? "auto" : "";
-      cue.style.padding = wide ? "0" : "";
-      var h = cue.offsetHeight, H = innerHeight;
-      // from just inside its edge to the middle (at the head: below the menu
-      // and the mark, never over them)
-      var head = H * 0.04;
-      [].forEach.call(document.querySelectorAll(".site-nav, .cp-mark, .ab-mark, .work-mark, .dt-title"), function (el) {
-        var r = el.getBoundingClientRect();
-        if (r.height && r.bottom < H / 2) head = Math.max(head, r.bottom + 16);
-      });
-      var from = dir > 0 ? H - h - H * 0.04 : head, to = Math.max(head, (H - h) / 2);
-      cue.style.transform = "translateY(" + (from + (to - from) * e).toFixed(1) + "px)";
-      // coming in like every text does: out of a blur into focus
-      var fs = parseFloat(cue.style.fontSize) || small, a = 1 - e;
-      cue.style.filter = a > 0.01 ? "blur(" + (a * (fs * BLUR + 2)).toFixed(2) + "px)" : "";
-      // (not there at all for a slight push: no faint smudge)
+      var M = cueM, s = M.s0 + (1 - M.s0) * e, hv = M.h * s;
+      // from just inside its edge to the middle (centre of what shows)
+      var fromC = dir > 0 ? M.H - M.H * 0.04 - hv / 2 : M.head + hv / 2;
+      var toC = Math.max(M.head + M.h / 2, M.H / 2);
+      var c = fromC + (toC - fromC) * e;
+      cue.style.transform = "translateY(" + (c - M.h / 2).toFixed(1) + "px) scale(" + s.toFixed(4) + ")";
+      // coming in like every text does: out of a blur into focus (the blur
+      // is drawn before the scale: given in the unscaled size)
+      var a = 1 - e, fsv = M.big * s;
+      cue.style.filter = a > 0.01 ? "blur(" + (a * (fsv * BLUR + 2) / s).toFixed(2) + "px)" : "";
       cue.style.opacity = Math.max(0, Math.min(1, (p - 0.08) * 3)).toFixed(3);
     }
     /* What is shown follows the push at a set pace, however hard the
