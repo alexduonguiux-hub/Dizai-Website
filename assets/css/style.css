@@ -1146,11 +1146,15 @@ body::after {
      of the screen's width, centred */
   @media (min-width: 721px) {
     .dt-shots { width: 60vw; }
-    /* the small picture in the same proportion to the column as on a
-       phone (206 of 358), and {SCROLL TO VIEW} over it */
-    .dt-facts > .dt-ph, .dt-facts > .dt-hint { left: calc(50% - 30vw * 206 / 358); width: calc(60vw * 206 / 358); }
-    .dt-facts > .dt-ph { height: calc(60vw * 129 / 358); }
-    .dt-facts > .dt-hint { bottom: calc(var(--gutter) + 60vw * 129 / 358 + 8px + 0.01em); }
+    /* the picture on the first screen already at the column's width (an
+       upright tablet has the height for it: no empty middle), so it only
+       rises into place; {SCROLL TO VIEW} over it */
+    .dt-facts > .dt-ph, .dt-facts > .dt-hint { left: 20vw; width: 60vw; }
+    .dt-facts > .dt-ph { height: calc(60vw * 1277 / 2048); }
+    .dt-facts > .dt-hint { bottom: calc(var(--gutter) + 60vw * 1277 / 2048 + 8px + 0.01em); }
+    /* the facts in the middle of the room between the title and
+       {SCROLL TO VIEW}, not hanging under the title */
+    .dt-facts { bottom: calc(var(--gutter) + 60vw * 1277 / 2048 + 8px + 1.7em); justify-content: center; }
   }
   .dt-thumbs { display: none; } /* not on phones (Figma 41:5267); the end hint takes the foot */
 }
