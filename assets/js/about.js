@@ -100,7 +100,7 @@
       var y = scroller.scrollTop, vy = y - lastY; lastY = y;
       // a finger swiping (or the page gliding on after it): the sheet
       // holds still meanwhile, so the phone's scrolling stays smooth
-      if (Roll.swiping && Roll.swiping()) { wind = 0; return; }
+      if (Roll.swiping && Roll.swiping() && matchMedia("(max-width: 720px)").matches) { wind = 0; return; } // (phones only: a tablet keeps the paper moving)
       // gusts from scrolling, easing off; the sheet swings on its pin
       wind += (Math.max(-90, Math.min(90, vy)) - wind) * 0.3; wind *= 0.94;
       var gust = Math.max(-1, Math.min(1, wind / 40));
