@@ -1154,7 +1154,7 @@ body::after {
     .dt-facts > .dt-hint { bottom: calc(var(--gutter) + 80vw * 1277 / 2048 + 8px + 0.01em); }
     /* the facts in the middle of the room between the title and
        {SCROLL TO VIEW}, not hanging under the title */
-    .dt-facts { bottom: calc(var(--gutter) + 80vw * 1277 / 2048 + 8px + 1.7em); justify-content: center; }
+    .dt-facts { bottom: calc(var(--gutter) + 80vw * 1277 / 2048 + 8px + 1.7em); justify-content: center; gap: 24px; } /* (the facts' type stays phone-sized: so does their spacing) */
   }
   .dt-thumbs { display: none; } /* not on phones (Figma 41:5267); the end hint takes the foot */
 }
