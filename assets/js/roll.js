@@ -16,6 +16,8 @@
 (function () {
   "use strict";
 
+  // the phone layout (style.css): phones, and tablets held upright
+  var PHONE = "(max-width: 720px), (orientation: portrait) and (max-width: 1100px)";
   var RISE = 0.45;  // em: how far a letter travels…
   var RISE_MAX = 18; // …but never more than this many px: big type only
                      // shifts a little while it blurs into focus
@@ -319,7 +321,7 @@
     var u = new URL(href, location.href);
     if (u.origin !== location.origin) return false;
     var home = !/\/(about|contact|work\/[^/]+)\/?$/.test(u.pathname);
-    return home || !matchMedia("(max-width: 720px)").matches;
+    return home || !matchMedia(PHONE).matches;
   }
   var arrival, leadUntil = 0;
   var GLIDE = 0.75; // s: the block's move; the new page's own pieces come in after it
@@ -477,7 +479,7 @@
       return typeof l === "function" ? l() : l;
     }
     function bigSize() { // the big titles' size: 172 of 1512 (phones: 70 of 358 + 32)
-      return innerWidth <= 720 ? 70 * (innerWidth - 32) / 358 : 172 * innerWidth / 1512;
+      return matchMedia(PHONE).matches ? 70 * (innerWidth - 32) / 358 : 172 * innerWidth / 1512;
     }
     function ease(x) { return x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2; }
     function show(p, dir) {
@@ -714,5 +716,5 @@
     return { atStart: atStart, atEnd: atEnd };
   }
 
-  window.DzRoll = { text: text, box: box, leave: leave, flip: flip, takeFlip: takeFlip, wait: wait, swiping: swiping, gate: gate };
+  window.DzRoll = { PHONE: PHONE, text: text, box: box, leave: leave, flip: flip, takeFlip: takeFlip, wait: wait, swiping: swiping, gate: gate };
 })();

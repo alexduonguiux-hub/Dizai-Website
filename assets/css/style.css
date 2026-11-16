@@ -108,6 +108,13 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
   margin-bottom: -0.14em;
 }
 
+/* Phone layout: phones, and tablets held upright (an iPad in portrait,
+   up to 1100 wide) — the desktop layout is drawn for a wide screen and
+   leaves an upright tablet half empty. Every "phone" rule below uses
+   @media (max-width: 720px), (orientation: portrait) and (max-width: 1100px)
+   and the desktop-only ones its opposite; the scripts use the same test
+   (DzRoll.PHONE). */
+
 /* ---------- Grain ----------
    A faint, single-tone film / paper grain over every page: a noise tile
    (assets/img/noise.png, 192 px drawn at 64, so one grain is about one
@@ -454,7 +461,7 @@ body::after {
   color: var(--ink);
 }
 .wc-item:not(.is-active) .wc-cat { display: none; }
-@media (max-width: 720px) { .wc-cat { display: none; } }
+@media (max-width: 720px), (orientation: portrait) and (max-width: 1100px) { .wc-cat { display: none; } }
 .wc-item:not(.is-active) .wc-desc { display: none; }
 /* work.js places every row itself as the list runs (each row on its own
    spot; the line and the kind fade in and out instead of popping) */
@@ -463,7 +470,7 @@ body::after {
 .wc-list.is-free .wc-item .wc-desc { display: block; }
 .wc-list.is-free .wc-item .wc-cat { display: block; }
 .wc-list.is-free .wc-name { transition: none; }
-@media (max-width: 720px) { .wc-list.is-free .wc-item .wc-cat { display: none; } }
+@media (max-width: 720px), (orientation: portrait) and (max-width: 1100px) { .wc-list.is-free .wc-item .wc-cat { display: none; } }
 /* the line under the name: AnNam Serif Regular 16 (Figma 23:22526), line
    height 1.1, trimmed to cap height / baseline like the rest (half-leading
    0.05em) */
@@ -591,7 +598,7 @@ body::after {
 /* Desktop layout on a tall screen (an iPad held upright): Home's type block
    is sized by the width, so it sits in the middle of the height instead of
    leaving the bottom half empty (on a 1512 × 813 screen this is 0) */
-@media (min-width: 721px) {
+@media (min-width: 721px) and (orientation: landscape), (min-width: 1101px) {
   .has-scrub .hero { margin-top: max(0px, calc((100svh - 2 * var(--gutter) - 100cqi * 733 / 1432) / 2)); }
 }
 /* Mobile Work (Figma Work-01 22:3, Work-02 22:66, 390 × 844; units of 358):
@@ -600,7 +607,7 @@ body::after {
    under the mark, the projects (350 × 262) run right to left 8 apart under
    it; under them the current project's name and line, then the next four
    names (Figma 29:24528) */
-@media (max-width: 720px) {
+@media (max-width: 720px), (orientation: portrait) and (max-width: 1100px) {
   .work { --fs: calc(100cqi * 70 / 358); --u: calc(100cqi / 358); } /* WORK 70 (Figma 37:31645) */
   .work-mark { height: calc(var(--u) * 64); }
   .work-list { grid-template-columns: 1fr; }
@@ -681,7 +688,7 @@ body::after {
 .is-return:not(.is-back) .site-nav, .is-return:not(.is-back) .hero { visibility: hidden; }
 
 /* ---------- Mobile (Figma Home 13:8, 390 × 844) ---------- */
-@media (max-width: 720px) {
+@media (max-width: 720px), (orientation: portrait) and (max-width: 1100px) {
   :root { --text-sm: 20px; }
 
   body {
@@ -930,7 +937,7 @@ body::after {
 .is-entering .ab { visibility: hidden; }
 /* coming from a page with the mark in the same place: it is there at once */
 .dz-keep-mark .cp-mark, .dz-keep-mark .ab-mark { visibility: visible; }
-@media (max-width: 720px) {
+@media (max-width: 720px), (orientation: portrait) and (max-width: 1100px) {
   /* phone (units of 358): the title on four lines (70, 7 apart), the
      photo 171 × 228, everything 24 apart; the email on three lines (70) */
   .ab { --u: calc(100cqi / 358); }
@@ -942,7 +949,7 @@ body::after {
   .ab-br-m { display: inline; } /* … top-tier / designers from Vietnam. */
   .ab-photo-box { margin-top: calc(var(--u) * 24); }
   .ab-photo { width: calc(var(--u) * 171); height: calc(var(--u) * 228); }
-  .ab-text { width: calc(var(--u) * 326); margin-top: calc(var(--u) * 24); } /* 16 in on each side */
+  .ab-text { width: calc(var(--u) * 326); max-width: 560px; margin-top: calc(var(--u) * 24); } /* 16 in on each side (at most 560: an upright tablet) */
   .ab-end { margin-top: calc(var(--u) * 60); }
   /* phone: the same, in the title's size (70, 7 apart), in the middle of
      the last screen */
@@ -1113,7 +1120,7 @@ body::after {
 .dt-thumbs button.is-on, .dt-thumbs button:hover { opacity: 1; }
 .dt-thumbs img { display: block; width: calc(var(--u) * 53); height: calc(var(--u) * 33); object-fit: cover; }
 .is-entering .dt, .is-entering .page-detail .site-nav { visibility: hidden; }
-@media (max-width: 720px) {
+@media (max-width: 720px), (orientation: portrait) and (max-width: 1100px) {
   /* phone (Figma Work-Detail-00 mobile 41:5180, units of 358): the title
      (Regular 70) 54 down; 20 under it LAUNCH · CLIENT side by side, the
      services, the description (all 20 apart, centred); the small picture
@@ -1130,7 +1137,7 @@ body::after {
     right: var(--gutter);
     justify-content: flex-start;
   }
-  .dt-desc { width: 100%; }
+  .dt-desc { width: 100%; max-width: 560px; } /* (an upright tablet: no over-long lines) */
   .dt-meta { width: auto; }
   .dt-facts > .dt-ph { left: calc(50% - var(--u) * 103); }
   .dt-facts > .dt-hint { left: calc(50% - var(--u) * 103); }
