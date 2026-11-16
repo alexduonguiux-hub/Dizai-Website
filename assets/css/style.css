@@ -1142,19 +1142,19 @@ body::after {
   .dt-facts > .dt-ph { left: calc(50% - var(--u) * 103); }
   .dt-facts > .dt-hint { left: calc(50% - var(--u) * 103); }
   .dt-shots { width: 100%; gap: 12px; padding-bottom: 56px; }
-  /* an upright tablet: the pictures (and the first one's zoom) at most 60%
+  /* an upright tablet: the pictures (and the first one's zoom) at most 80%
      of the screen's width, centred */
   @media (min-width: 721px) {
-    .dt-shots { width: 60vw; }
+    .dt-shots { width: 80vw; }
     /* the picture on the first screen already at the column's width (an
        upright tablet has the height for it: no empty middle), so it only
        rises into place; {SCROLL TO VIEW} over it */
-    .dt-facts > .dt-ph, .dt-facts > .dt-hint { left: 20vw; width: 60vw; }
-    .dt-facts > .dt-ph { height: calc(60vw * 1277 / 2048); }
-    .dt-facts > .dt-hint { bottom: calc(var(--gutter) + 60vw * 1277 / 2048 + 8px + 0.01em); }
+    .dt-facts > .dt-ph, .dt-facts > .dt-hint { left: 10vw; width: 80vw; }
+    .dt-facts > .dt-ph { height: calc(80vw * 1277 / 2048); }
+    .dt-facts > .dt-hint { bottom: calc(var(--gutter) + 80vw * 1277 / 2048 + 8px + 0.01em); }
     /* the facts in the middle of the room between the title and
        {SCROLL TO VIEW}, not hanging under the title */
-    .dt-facts { bottom: calc(var(--gutter) + 60vw * 1277 / 2048 + 8px + 1.7em); justify-content: center; }
+    .dt-facts { bottom: calc(var(--gutter) + 80vw * 1277 / 2048 + 8px + 1.7em); justify-content: center; }
   }
   .dt-thumbs { display: none; } /* not on phones (Figma 41:5267); the end hint takes the foot */
 }
