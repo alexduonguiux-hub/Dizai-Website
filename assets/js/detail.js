@@ -75,7 +75,7 @@
   if (sc.focus) { sc.setAttribute("tabindex", "-1"); try { sc.focus({ preventScroll: true }); } catch (e) {} }
 
   /* ---------- the pictures: sheets of paper ---------- */
-  var FLAT = matchMedia("(max-width: 720px), (pointer: coarse)").matches;
+  var FLAT = matchMedia((window.DzRoll ? DzRoll.PHONE : "(max-width: 720px)") + ", (pointer: coarse)").matches;
   var STRIPS = 18;
   var sheets = shots.map(function (fig, i) {
     var img = fig.querySelector("img"), sh = { fig: fig, img: img, bands: [], ph: i * 1.7, swing: 0, vswing: 0 };

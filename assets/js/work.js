@@ -148,7 +148,7 @@
   /* Phones and touch screens: one flat sheet that sways on its pin. The
      18 nested 3D bands tear into white seams on high-density phone screens
      (and iOS Safari is unreliable with 3D nested that deep). */
-  var FLAT = window.matchMedia("(max-width: 720px), (pointer: coarse)").matches;
+  var FLAT = window.matchMedia((window.DzRoll ? DzRoll.PHONE : "(max-width: 720px)") + ", (pointer: coarse)").matches;
   var sheets = cards.map(function (c, i) {
     var a = c.querySelector("a"), img = a.querySelector("img");
     if (FLAT) return { sheet: null, a: a, bands: [], ph: i * 1.9, swing: 0, vswing: 0 };
@@ -645,7 +645,7 @@
   /* ---------- GSAP: the Home → Work timeline ---------- */
 
   var mm = gsap.matchMedia();
-  mm.add({ desk: "(min-width: 721px)", mob: "(max-width: 720px)" }, function (ctx) {
+  mm.add({ mob: Roll.PHONE, desk: "(min-width: 721px) and (orientation: landscape), (min-width: 1101px)" }, function (ctx) {
     G = ctx.conditions.desk ? DESK : MOB;
     slots = []; // the names list is rebuilt for this layout
     on = true;

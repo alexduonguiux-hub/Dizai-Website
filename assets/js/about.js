@@ -70,7 +70,7 @@
     var scroller = document.querySelector(".ab-scroll");
     if (!box || !img || !scroller) return;
     var still = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    var FLAT = matchMedia("(max-width: 720px), (pointer: coarse)").matches;
+    var FLAT = matchMedia((window.DzRoll ? DzRoll.PHONE : "(max-width: 720px)") + ", (pointer: coarse)").matches;
     var STRIPS = 18, bands = [], ph = 0.7, swing = 0, vswing = 0, wind = 0, lastY = scroller.scrollTop;
     if (FLAT) box.classList.add("is-flat");
     else {
