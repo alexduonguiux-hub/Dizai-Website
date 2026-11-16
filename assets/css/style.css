@@ -805,7 +805,7 @@ body::after {
   .cp { --fs: calc(100cqi * 70 / 358); }
   .cp-mark { top: 44px; left: calc(50% - 100cqi * 25.5 / 358); height: calc(100cqi * 64 / 358); }
   .page-contact .cp-info { display: none; }
-  .cp-center { gap: 12px; margin-top: 0; }
+  .cp-center { gap: max(12px, calc(100cqi * 12 / 358)); margin-top: 0; } /* 12 on a phone, growing with the big type (an upright tablet) */
   .cp-email a { gap: 0.1em; }
   .cp-email .cp-p { display: block; }
   .cp-email .cp-p + .cp-p { margin-top: 0.1em; }
@@ -953,7 +953,7 @@ body::after {
   .ab-end { margin-top: calc(var(--u) * 60); }
   /* phone: the same, in the title's size (70, 7 apart), in the middle of
      the last screen */
-  .ab-contact { bottom: auto; top: 50svh; transform: translateY(-50%); gap: 12px; }
+  .ab-contact { bottom: auto; top: 50svh; transform: translateY(-50%); gap: max(12px, calc(var(--u) * 12)); }
   .ab-ask { font-size: calc(var(--u) * 70); gap: calc(var(--u) * 7); }
 }
 /* ---------- Project pages (Figma Work-Detail-00 … 03, 10:1738 …) ----------
