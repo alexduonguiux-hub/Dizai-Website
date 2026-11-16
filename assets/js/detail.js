@@ -75,6 +75,10 @@
   if (sc.focus) { sc.setAttribute("tabindex", "-1"); try { sc.focus({ preventScroll: true }); } catch (e) {} }
 
   /* ---------- the pictures: sheets of paper ---------- */
+  // phones: no paper at all on a project page — plain pictures, so the
+  // zoom and the swipe have the frame to themselves (tablets and desktop
+  // keep it)
+  var PHONE_ONLY = matchMedia("(max-width: 720px)").matches;
   var FLAT = matchMedia((window.DzRoll ? DzRoll.PHONE : "(max-width: 720px)") + ", (pointer: coarse)").matches;
   var STRIPS = 18;
   var sheets = shots.map(function (fig, i) {
@@ -190,10 +194,7 @@
 
   /* ---------- the flutter ---------- */
   var wind = 0, lastY = sc.scrollTop, stillSheets = false;
-  // the pauses below (swiping, the first picture growing) are for phones
-  // only; a tablet keeps the paper moving
-  var PHONE_ONLY = matchMedia("(max-width: 720px)").matches;
-  gsap.ticker.add(function (time, deltaTime) {
+  if (!PHONE_ONLY) gsap.ticker.add(function (time, deltaTime) {
     var dt = Math.min(3, deltaTime / 16.67), y = sc.scrollTop, vy = y - lastY; lastY = y;
     // a finger swiping (or the page gliding on after it): the sheets hold
     // still, so the phone's scrolling has nothing else to redraw
