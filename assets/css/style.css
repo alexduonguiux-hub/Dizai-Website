@@ -5,17 +5,17 @@
 
 /* the upright file carries both axes, weight and slant (slnt 0 → −10 is
    the italic), so links can lean over smoothly instead of jumping to the
-   italic font (dizai-serif v0.919, AnNam Golden: AnNamGolden[slnt,wght]) */
+   italic font (dizai-serif v0.923, AnNam Golden: AnNamGolden[slnt,wght]) */
 @font-face {
   font-family: "AnNam Golden";
-  src: url("../fonts/AnNamGolden-VF.woff2?v=0.919") format("woff2");
+  src: url("../fonts/AnNamGolden-VF.woff2?v=0.923") format("woff2");
   font-weight: 400 700;
   font-style: normal;
   font-display: block; /* no fallback-font flash on the loader count */
 }
 @font-face {
   font-family: "AnNam Golden";
-  src: url("../fonts/AnNamGolden-Italic-VF.woff2?v=0.919") format("woff2");
+  src: url("../fonts/AnNamGolden-Italic-VF.woff2?v=0.923") format("woff2");
   font-weight: 400 700;
   font-style: italic;
   font-display: block; /* no fallback-font flash on the loader count */
