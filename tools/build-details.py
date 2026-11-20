@@ -64,7 +64,7 @@ def build(stamp):
   <link rel="apple-touch-icon" sizes="180x180" href="../../apple-touch-icon.png?v=3">
   <meta name="theme-color" content="#f0efee">
   <meta name="format-detection" content="telephone=no, email=no, address=no, date=no">
-  <link rel="preload" href="../../assets/fonts/AnNamSerif-VF.woff2?v=0.917" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="../../assets/fonts/AnNamSerif-VF.woff2?v=0.918" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="../../assets/img/detail/{key}-01.jpg?v={stamp}" as="image">
   <link rel="prefetch" href="../{nxt["slug"]}/?v={stamp}">
   <script>/* WebKit: Safari, any iPhone / iPad browser (the grain, style.css) */ if (/AppleWebKit/.test(navigator.userAgent) && !/Chrome|Chromium|Edg|Android/.test(navigator.userAgent)) document.documentElement.classList.add("is-webkit");</script>
