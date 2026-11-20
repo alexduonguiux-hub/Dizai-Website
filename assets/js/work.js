@@ -261,7 +261,7 @@
   }
 
   /* The project names beside the pictures (Figma 37:29790 / 29:24528).
-     Every project's name is listed, pale (AnNam Serif SemiBold 20, 16
+     Every project's name is listed, pale (AnNam Golden SemiBold 20, 16
      apart); the current one is in ink with its line under it. Desktop:
      three names above it and three below, going round, the second ones
      out blurred 1 px, the third 2 px; mobile: it comes first, the next

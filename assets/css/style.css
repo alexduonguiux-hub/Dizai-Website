@@ -5,17 +5,17 @@
 
 /* the upright file carries both axes, weight and slant (slnt 0 → −10 is
    the italic), so links can lean over smoothly instead of jumping to the
-   italic font (dizai-serif v0.918, AnNamSerif[slnt,wght]) */
+   italic font (dizai-serif v0.919, AnNam Golden: AnNamGolden[slnt,wght]) */
 @font-face {
-  font-family: "AnNam Serif";
-  src: url("../fonts/AnNamSerif-VF.woff2?v=0.918") format("woff2");
+  font-family: "AnNam Golden";
+  src: url("../fonts/AnNamGolden-VF.woff2?v=0.919") format("woff2");
   font-weight: 400 700;
   font-style: normal;
   font-display: block; /* no fallback-font flash on the loader count */
 }
 @font-face {
-  font-family: "AnNam Serif";
-  src: url("../fonts/AnNamSerif-Italic-VF.woff2?v=0.918") format("woff2");
+  font-family: "AnNam Golden";
+  src: url("../fonts/AnNamGolden-Italic-VF.woff2?v=0.919") format("woff2");
   font-weight: 400 700;
   font-style: italic;
   font-display: block; /* no fallback-font flash on the loader count */
@@ -62,7 +62,7 @@ body {
   container-type: inline-size;
   background: var(--paper);
   color: var(--ink);
-  font-family: "AnNam Serif", Georgia, serif;
+  font-family: "AnNam Golden", Georgia, serif;
   font-weight: 600;
   font-size: var(--text-sm);
   line-height: 1;
@@ -100,7 +100,7 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 }
 
 /* Trim the line box to cap height → baseline, like Figma's text-box-trim
-   (cap / alphabetic). AnNam Serif: ascender 960, descender 240, cap 700 (UPM 1000),
+   (cap / alphabetic). AnNam Golden (as AnNam Serif): ascender 960, descender 240, cap 700 (UPM 1000),
    so with line-height 1 the cap top sits 0.16em below the box and the baseline
    0.14em above its bottom. */
 .trim {
@@ -170,7 +170,7 @@ body::after {
 .nav-list a[aria-current="page"]::after,
 .nav-list a:hover::after,
 .nav-list a.is-hover::after {
-  /* the arrow (Figma 37:29794): AnNam Serif has no arrow glyph yet, so it
+  /* the arrow (Figma 37:29794): AnNam Golden has no arrow glyph yet, so it
      is drawn, to the Figma one's measure: 0.68em long, a 0.28em head, a
      0.07em line, 0.2em after the word (and the glyph's 0.16em side
      bearing after it), centred on the capitals; in the text's own colour
@@ -471,7 +471,7 @@ body::after {
 .wc-list.is-free .wc-item .wc-cat { display: block; }
 .wc-list.is-free .wc-name { transition: none; }
 @media (max-width: 720px), (orientation: portrait) and (max-width: 1100px) { .wc-list.is-free .wc-item .wc-cat { display: none; } }
-/* the line under the name: AnNam Serif Regular 16 (Figma 23:22526), line
+/* the line under the name: AnNam Golden Regular 16 (Figma 23:22526), line
    height 1.1, trimmed to cap height / baseline like the rest (half-leading
    0.05em) */
 .work-caption .wc-desc {
@@ -481,7 +481,7 @@ body::after {
   margin-top: calc(6px - 0.2em);
   margin-bottom: -0.2em;
   color: var(--ink);
-  font-family: "Dinh Tuong", "AnNam Serif", Georgia, serif; /* Figma 37:29810: Dinh Tuong Regular 16 */
+  font-family: "Dinh Tuong", "AnNam Golden", Georgia, serif; /* Figma 37:29810: Dinh Tuong Regular 16 */
   font-variation-settings: normal;
   font-size: calc(var(--text-sm) * 0.8);
   line-height: 1.1;
@@ -922,7 +922,7 @@ body::after {
   text-underline-position: from-font;
 }
 .ab-cta:hover, .ab-cta:focus-visible { --slnt: -10; }
-/* → drawn like the menu's arrow (AnNam Serif has no arrow glyph yet) */
+/* → drawn like the menu's arrow (AnNam Golden has no arrow glyph yet) */
 .ab-arrow {
   display: inline-block;
   width: 0.68em;
@@ -1045,7 +1045,7 @@ body::after {
   width: calc(var(--u) * 450);
   margin-top: -0.2em;
   margin-bottom: -0.2em;
-  font-family: "Dinh Tuong", "AnNam Serif", Georgia, serif;
+  font-family: "Dinh Tuong", "AnNam Golden", Georgia, serif;
   font-variation-settings: normal;
   font-weight: 400;
   font-size: calc(var(--text-sm) * 0.8);
