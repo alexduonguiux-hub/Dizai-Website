@@ -8,14 +8,14 @@
    italic font (dizai-serif v0.935, AnNam Golden: AnNamGolden[slnt,wght]) */
 @font-face {
   font-family: "AnNam Golden";
-  src: url("../fonts/AnNamGolden-VF.woff2?v=0.935") format("woff2");
+  src: url("../fonts/AnNamGolden-VF.woff2?v=0.935b") format("woff2");
   font-weight: 400 700;
   font-style: normal;
   font-display: block; /* no fallback-font flash on the loader count */
 }
 @font-face {
   font-family: "AnNam Golden";
-  src: url("../fonts/AnNamGolden-Italic-VF.woff2?v=0.935") format("woff2");
+  src: url("../fonts/AnNamGolden-Italic-VF.woff2?v=0.935b") format("woff2");
   font-weight: 400 700;
   font-style: italic;
   font-display: block; /* no fallback-font flash on the loader count */
@@ -25,7 +25,7 @@
    DinhTuong-OFL.txt): the projects' one-line descriptions in Work */
 @font-face {
   font-family: "Dinh Tuong";
-  src: url("../fonts/DinhTuong-Regular.woff2?v=1.009") format("woff2");
+  src: url("../fonts/DinhTuong-Regular.woff2?v=1.010") format("woff2");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
