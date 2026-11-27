@@ -8,14 +8,14 @@
    italic font (dizai-serif v0.935, AnNam Golden: AnNamGolden[slnt,wght]) */
 @font-face {
   font-family: "AnNam Golden";
-  src: url("../fonts/AnNamGolden-VF.woff2?v=0.935f") format("woff2");
+  src: url("../fonts/AnNamGolden-VF.woff2?v=0.935g") format("woff2");
   font-weight: 400 700;
   font-style: normal;
   font-display: block; /* no fallback-font flash on the loader count */
 }
 @font-face {
   font-family: "AnNam Golden";
-  src: url("../fonts/AnNamGolden-Italic-VF.woff2?v=0.935f") format("woff2");
+  src: url("../fonts/AnNamGolden-Italic-VF.woff2?v=0.935g") format("woff2");
   font-weight: 400 700;
   font-style: italic;
   font-display: block; /* no fallback-font flash on the loader count */

@@ -57,14 +57,14 @@ def build(stamp):
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{esc(plain)} — Đìzai Studio</title>
   <meta name="description" content="{esc(p["desc"][:150])}">
-  <link rel="icon" type="image/png" sizes="32x32" href="../../favicon-32x32.png?v=3">
-  <link rel="icon" type="image/png" sizes="16x16" href="../../favicon-16x16.png?v=3">
-  <link rel="icon" type="image/svg+xml" href="../../favicon.svg?v=3">
-  <link rel="shortcut icon" href="../../favicon.ico?v=3">
-  <link rel="apple-touch-icon" sizes="180x180" href="../../apple-touch-icon.png?v=3">
+  <link rel="icon" type="image/png" sizes="32x32" href="../../favicon-32x32.png?v=4">
+  <link rel="icon" type="image/png" sizes="16x16" href="../../favicon-16x16.png?v=4">
+  <link rel="icon" type="image/svg+xml" href="../../favicon.svg?v=4">
+  <link rel="shortcut icon" href="../../favicon.ico?v=4">
+  <link rel="apple-touch-icon" sizes="180x180" href="../../apple-touch-icon.png?v=4">
   <meta name="theme-color" content="#f0efee">
   <meta name="format-detection" content="telephone=no, email=no, address=no, date=no">
-  <link rel="preload" href="../../assets/fonts/AnNamGolden-VF.woff2?v=0.935f" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="../../assets/fonts/AnNamGolden-VF.woff2?v=0.935g" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="../../assets/img/detail/{key}-01.jpg?v={stamp}" as="image">
   <link rel="prefetch" href="../{nxt["slug"]}/?v={stamp}">
   <script>/* WebKit: Safari, any iPhone / iPad browser (the grain, style.css) */ if (/AppleWebKit/.test(navigator.userAgent) && !/Chrome|Chromium|Edg|Android/.test(navigator.userAgent)) document.documentElement.classList.add("is-webkit");</script>
